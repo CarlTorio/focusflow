@@ -67,8 +67,8 @@ export function NoteCard({
           <button
             onClick={(e) => { e.stopPropagation(); onToggleStar(); }}
             className={cn(
-              "transition-transform hover:scale-110 active:scale-125",
-              note.is_starred ? "text-warning" : "text-muted-foreground opacity-0 group-hover:opacity-100"
+              "transition-all hover:scale-110 active:scale-125",
+              note.is_starred ? "text-warning" : "text-muted-foreground/30 hover:text-muted-foreground"
             )}
           >
             <Star className={cn("h-4 w-4", note.is_starred && "fill-current")} />
