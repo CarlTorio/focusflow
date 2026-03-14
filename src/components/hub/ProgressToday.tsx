@@ -1,16 +1,18 @@
-import { CheckCircle2, CalendarX2, ListChecks, BookOpen } from "lucide-react";
+import { CheckCircle2, CalendarX2, ListChecks, FileText } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export function ProgressToday() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const today = new Date().toISOString().split("T")[0];
 
   const { data: taskCounts } = useQuery({
     queryKey: ["progress-today", today],
     queryFn: async () => {
-      const [completedRes, outstandingRes, todosRes] = await Promise.all([
+      const [completedRes, outstandingRes, todosRes, notesRes] = await Promise.all([
         supabase
           .from("task_schedules")
           .select("id", { count: "exact", head: true })
@@ -25,21 +27,27 @@ export function ProgressToday() {
           .from("tasks")
           .select("id", { count: "exact", head: true })
           .neq("status", "completed"),
+        supabase
+          .from("notes" as any)
+          .select("id", { count: "exact", head: true })
+          .gte("created_at", `${today}T00:00:00`)
+          .lt("created_at", `${today}T23:59:59`),
       ]);
       return {
         completed: completedRes.count || 0,
         outstanding: outstandingRes.count || 0,
         todos: todosRes.count || 0,
+        notes: notesRes.count || 0,
       };
     },
     enabled: !!user,
   });
 
   const cards = [
-    { label: "Completed", sub: "Activities", count: taskCounts?.completed || 0, icon: CheckCircle2, color: "text-success" },
-    { label: "Outstanding", sub: "Activities", count: taskCounts?.outstanding || 0, icon: CalendarX2, color: "text-destructive" },
-    { label: "Todos", sub: "Outstanding", count: taskCounts?.todos || 0, icon: ListChecks, color: "text-primary" },
-    { label: "Journal", sub: "Entries", count: 0, icon: BookOpen, color: "text-primary-dark" },
+    { label: "Completed", sub: "Activities", count: taskCounts?.completed || 0, icon: CheckCircle2, color: "text-success", action: undefined },
+    { label: "Outstanding", sub: "Activities", count: taskCounts?.outstanding || 0, icon: CalendarX2, color: "text-destructive", action: undefined },
+    { label: "Todos", sub: "Outstanding", count: taskCounts?.todos || 0, icon: ListChecks, color: "text-primary", action: undefined },
+    { label: "Notes", sub: "Today", count: taskCounts?.notes || 0, icon: FileText, color: "text-primary-dark", action: () => navigate("/notes") },
   ];
 
   return (
