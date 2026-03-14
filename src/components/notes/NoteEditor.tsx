@@ -54,16 +54,26 @@ export function NoteEditor({ note, onUpdate, onBack, isMobile }: NoteEditorProps
   const scheduleSave = useCallback(
     (updates: { title?: string; content?: string }) => {
       if (!note) return;
+      pendingSave.current = { ...pendingSave.current, ...updates };
       setSaveStatus("saving");
       if (saveTimer.current) clearTimeout(saveTimer.current);
       saveTimer.current = setTimeout(() => {
         onUpdate({ id: note.id, ...updates });
+        pendingSave.current = null;
         setSaveStatus("saved");
         setTimeout(() => setSaveStatus("idle"), 1500);
       }, 1500);
     },
     [note, onUpdate]
   );
+
+  const flushSave = useCallback(() => {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    if (note && pendingSave.current) {
+      onUpdate({ id: note.id, ...pendingSave.current });
+      pendingSave.current = null;
+    }
+  }, [note, onUpdate]);
 
   useEffect(() => {
     if (note && note.id !== currentNoteId.current) {
