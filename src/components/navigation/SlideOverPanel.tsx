@@ -64,8 +64,9 @@ export function SlideOverPanel({ open, onClose }: { open: boolean; onClose: () =
         <div className="flex-1 overflow-y-auto p-4 space-y-1">
           {[
             { icon: CalendarDays, label: "Planners" },
+            { icon: Bell, label: "Alarms", to: "/settings" },
             { icon: Mail, label: "Invitations" },
-            { icon: Settings, label: "Settings" },
+            { icon: Settings, label: "Settings", to: "/settings" },
             { icon: UserPen, label: "Edit Profile" },
           ].map((item) => (
             <button
