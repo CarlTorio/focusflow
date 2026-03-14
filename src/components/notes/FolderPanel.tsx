@@ -83,45 +83,45 @@ export function FolderPanel({
         <button
           onClick={() => onFilterChange("All")}
           className={cn(
-            "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors",
+            "flex w-full min-w-0 items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors",
             activeFilter === "All"
               ? "bg-primary text-primary-foreground font-medium"
               : "text-foreground hover:bg-secondary"
           )}
         >
-          <FileText className="h-4 w-4" />
-          <span className="relative flex-1 text-left overflow-hidden" style={{ maskImage: "linear-gradient(to right, black 70%, transparent 100%)", WebkitMaskImage: "linear-gradient(to right, black 70%, transparent 100%)" }}>All Notes</span>
-          <span className="text-xs opacity-70">{nonArchivedNotes.length}</span>
+          <FileText className="h-4 w-4 shrink-0" />
+          <span className="flex-1 min-w-0 truncate text-left" style={{ maskImage: "linear-gradient(to right, black 75%, transparent 100%)", WebkitMaskImage: "linear-gradient(to right, black 75%, transparent 100%)" }}>All Notes</span>
+          <span className="text-xs opacity-70 shrink-0">{nonArchivedNotes.length}</span>
         </button>
 
         {/* Starred */}
         <button
           onClick={() => onFilterChange("Starred")}
           className={cn(
-            "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors",
+            "flex w-full min-w-0 items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors",
             activeFilter === "Starred"
               ? "bg-primary text-primary-foreground font-medium"
               : "text-foreground hover:bg-secondary"
           )}
         >
-          <Star className={cn("h-4 w-4", activeFilter === "Starred" ? "fill-current" : "")} />
-          <span className="relative flex-1 text-left overflow-hidden" style={{ maskImage: "linear-gradient(to right, black 70%, transparent 100%)", WebkitMaskImage: "linear-gradient(to right, black 70%, transparent 100%)" }}>Starred</span>
-          <span className="text-xs opacity-70">{starredCount}</span>
+          <Star className={cn("h-4 w-4 shrink-0", activeFilter === "Starred" ? "fill-current" : "")} />
+          <span className="flex-1 min-w-0 truncate text-left" style={{ maskImage: "linear-gradient(to right, black 75%, transparent 100%)", WebkitMaskImage: "linear-gradient(to right, black 75%, transparent 100%)" }}>Starred</span>
+          <span className="text-xs opacity-70 shrink-0">{starredCount}</span>
         </button>
 
         {/* Archived */}
         <button
           onClick={() => onFilterChange("Archived")}
           className={cn(
-            "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors",
+            "flex w-full min-w-0 items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors",
             activeFilter === "Archived"
               ? "bg-primary text-primary-foreground font-medium"
               : "text-foreground hover:bg-secondary"
           )}
         >
-          <Folder className="h-4 w-4" />
-          <span className="relative flex-1 text-left overflow-hidden" style={{ maskImage: "linear-gradient(to right, black 70%, transparent 100%)", WebkitMaskImage: "linear-gradient(to right, black 70%, transparent 100%)" }}>Archived</span>
-          <span className="text-xs opacity-70">{notes.filter((n) => n.is_archived).length}</span>
+          <Folder className="h-4 w-4 shrink-0" />
+          <span className="flex-1 min-w-0 truncate text-left" style={{ maskImage: "linear-gradient(to right, black 75%, transparent 100%)", WebkitMaskImage: "linear-gradient(to right, black 75%, transparent 100%)" }}>Archived</span>
+          <span className="text-xs opacity-70 shrink-0">{notes.filter((n) => n.is_archived).length}</span>
         </button>
 
         <div className="mx-2 my-2 h-px bg-border" />
@@ -147,19 +147,19 @@ export function FolderPanel({
             );
           }
           return (
-            <div key={folder} className="group flex items-center">
+            <div key={folder} className="group flex min-w-0 items-center">
               <button
                 onClick={() => onFilterChange(folder)}
                 className={cn(
-                  "flex flex-1 items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors",
+                  "flex min-w-0 flex-1 items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors",
                   activeFilter === folder
                     ? "bg-primary text-primary-foreground font-medium"
                     : "text-foreground hover:bg-secondary"
                 )}
               >
-                <Folder className="h-4 w-4" />
-                <span className="relative flex-1 text-left overflow-hidden" style={{ maskImage: "linear-gradient(to right, black 70%, transparent 100%)", WebkitMaskImage: "linear-gradient(to right, black 70%, transparent 100%)" }}>{folder}</span>
-                <span className="text-xs opacity-70">{count}</span>
+                <Folder className="h-4 w-4 shrink-0" />
+                <span className="flex-1 min-w-0 truncate text-left" style={{ maskImage: "linear-gradient(to right, black 75%, transparent 100%)", WebkitMaskImage: "linear-gradient(to right, black 75%, transparent 100%)" }}>{folder}</span>
+                <span className="text-xs opacity-70 shrink-0">{count}</span>
               </button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
