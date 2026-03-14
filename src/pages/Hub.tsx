@@ -3,6 +3,7 @@ import { ProfileHero } from "@/components/hub/ProfileHero";
 import { MoodCheckCard } from "@/components/hub/MoodCheckCard";
 import { ProgressToday } from "@/components/hub/ProgressToday";
 import { MoodTimeline } from "@/components/hub/MoodTimeline";
+import { MoodInsights } from "@/components/hub/MoodInsights";
 import { AssistantsCard } from "@/components/hub/AssistantsCard";
 import { BreathingCTA } from "@/components/hub/BreathingCTA";
 
@@ -15,6 +16,7 @@ export default function Hub() {
         <MoodCheckCard />
         <ProgressToday />
         <MoodTimeline />
+        <MoodInsights />
         <AssistantsCard />
         <BreathingCTA />
       </div>
