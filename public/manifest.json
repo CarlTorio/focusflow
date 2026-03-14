@@ -1,0 +1,15 @@
+{
+  "name": "FocusFlow",
+  "short_name": "FocusFlow",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#7C4DFF",
+  "background_color": "#FAF8FF",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ]
+}
