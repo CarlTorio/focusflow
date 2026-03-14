@@ -4,8 +4,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { AlarmProvider } from "@/contexts/AlarmContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { AlarmNotificationBanner } from "@/components/alarms/AlarmNotificationBanner";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -27,28 +29,31 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route
-              element={
-                <ProtectedRoute>
-                  <AppLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route path="/hub" element={<Hub />} />
-              <Route path="/planner" element={<Planner />} />
-              <Route path="/focus" element={<Focus />} />
-              <Route path="/todos" element={<Todos />} />
-              <Route path="/notes" element={<Notes />} />
-              <Route path="/settings" element={<SettingsPage />} />
-            </Route>
-            <Route path="/" element={<Navigate to="/hub" replace />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <AlarmProvider>
+            <AlarmNotificationBanner />
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route
+                element={
+                  <ProtectedRoute>
+                    <AppLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route path="/hub" element={<Hub />} />
+                <Route path="/planner" element={<Planner />} />
+                <Route path="/focus" element={<Focus />} />
+                <Route path="/todos" element={<Todos />} />
+                <Route path="/notes" element={<Notes />} />
+                <Route path="/settings" element={<SettingsPage />} />
+              </Route>
+              <Route path="/" element={<Navigate to="/hub" replace />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AlarmProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

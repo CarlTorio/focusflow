@@ -1,4 +1,4 @@
-const CACHE_NAME = 'focusflow-v1';
+const CACHE_NAME = 'focusflow-v2';
 const ASSETS = ['/', '/index.html'];
 
 self.addEventListener('install', (event) => {
@@ -27,4 +27,33 @@ self.addEventListener('fetch', (event) => {
       })
       .catch(() => caches.match(event.request))
   );
+});
+
+// Handle notification click events
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  const action = event.action;
+  if (action === 'snooze') {
+    // Snooze will be handled by the app when it receives focus
+    event.waitUntil(
+      self.clients.matchAll({ type: 'window' }).then((clients) => {
+        if (clients.length > 0) {
+          clients[0].focus();
+          clients[0].postMessage({ type: 'ALARM_SNOOZE', alarmId: event.notification.tag });
+        }
+      })
+    );
+  } else {
+    // Dismiss or click - focus the app
+    event.waitUntil(
+      self.clients.matchAll({ type: 'window' }).then((clients) => {
+        if (clients.length > 0) {
+          clients[0].focus();
+        } else {
+          self.clients.openWindow('/');
+        }
+      })
+    );
+  }
 });
