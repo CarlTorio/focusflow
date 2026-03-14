@@ -8,6 +8,10 @@ interface Profile {
   first_name: string;
   last_name: string;
   avatar_url: string | null;
+  onboarding_completed?: boolean;
+  theme_mode?: string;
+  theme_color?: string;
+  theme_intensity?: number;
 }
 
 interface AuthContextType {
@@ -30,10 +34,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase
       .from("profiles")
-      .select("id, email, first_name, last_name, avatar_url")
+      .select("*")
       .eq("id", userId)
       .single();
-    if (data) setProfile(data);
+    if (data) setProfile(data as any);
   };
 
   const refreshProfile = async () => {
