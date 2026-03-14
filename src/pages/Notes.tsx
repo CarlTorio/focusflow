@@ -158,7 +158,15 @@ export default function Notes() {
 
         {/* Filter pills */}
         <div className="relative">
-          <div className="flex gap-2 overflow-x-auto px-4 py-2 scrollbar-none">
+          <div
+            ref={pillsScrollRef}
+            onScroll={() => {
+              const el = pillsScrollRef.current;
+              if (!el) return;
+              setPillsAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 4);
+            }}
+            className="flex gap-2 overflow-x-auto px-4 py-2 scrollbar-none"
+          >
             {["All", "Starred", ...allFolders].map((filter) => (
               <button
                 key={filter}
@@ -184,9 +192,15 @@ export default function Notes() {
               + New Folder
             </button>
           </div>
-          {/* Right fade indicator */}
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-background to-transparent" />
+          {/* Right fade indicator — disappears when scrolled to end */}
+          <div
+            className={cn(
+              "pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-background to-transparent transition-opacity",
+              pillsAtEnd ? "opacity-0" : "opacity-100"
+            )}
+          />
         </div>
+
 
         <div className="px-2">
           <NotesListPanel
