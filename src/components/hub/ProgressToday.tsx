@@ -28,7 +28,7 @@ export function ProgressToday() {
           .select("id", { count: "exact", head: true })
           .neq("status", "completed"),
         supabase
-          .from("notes" as any)
+          .from("notes")
           .select("id", { count: "exact", head: true })
           .gte("created_at", `${today}T00:00:00`)
           .lt("created_at", `${today}T23:59:59`),

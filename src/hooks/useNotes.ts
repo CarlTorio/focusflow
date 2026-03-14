@@ -1,18 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
+import type { Tables } from "@/integrations/supabase/types";
 
-export interface Note {
-  id: string;
-  user_id: string;
-  title: string;
-  content: string | null;
-  folder: string;
-  is_starred: boolean;
-  is_archived: boolean;
-  created_at: string;
-  updated_at: string;
-}
+export type Note = Tables<"notes">;
 
 export function useNotes() {
   const { user } = useAuth();
@@ -22,13 +13,13 @@ export function useNotes() {
     queryKey: ["notes", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("notes" as any)
+        .from("notes")
         .select("*")
         .eq("user_id", user!.id)
         .eq("is_archived", false)
         .order("updated_at", { ascending: false });
       if (error) throw error;
-      return (data as any[]) as Note[];
+      return data as Note[];
     },
     enabled: !!user,
   });
@@ -37,12 +28,12 @@ export function useNotes() {
     queryKey: ["notes-all", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("notes" as any)
+        .from("notes")
         .select("*")
         .eq("user_id", user!.id)
         .order("updated_at", { ascending: false });
       if (error) throw error;
-      return (data as any[]) as Note[];
+      return data as Note[];
     },
     enabled: !!user,
   });
@@ -50,16 +41,16 @@ export function useNotes() {
   const createNote = useMutation({
     mutationFn: async (params: { title?: string; folder?: string }) => {
       const { data, error } = await supabase
-        .from("notes" as any)
+        .from("notes")
         .insert({
           user_id: user!.id,
           title: params.title || "Untitled",
           folder: params.folder || "General",
-        } as any)
+        })
         .select()
         .single();
       if (error) throw error;
-      return data as unknown as Note;
+      return data as Note;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notes"] });
@@ -71,13 +62,13 @@ export function useNotes() {
     mutationFn: async (params: { id: string; title?: string; content?: string; folder?: string; is_starred?: boolean; is_archived?: boolean }) => {
       const { id, ...updates } = params;
       const { data, error } = await supabase
-        .from("notes" as any)
-        .update(updates as any)
+        .from("notes")
+        .update(updates)
         .eq("id", id)
         .select()
         .single();
       if (error) throw error;
-      return data as unknown as Note;
+      return data as Note;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notes"] });
@@ -88,7 +79,7 @@ export function useNotes() {
   const deleteNote = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from("notes" as any)
+        .from("notes")
         .delete()
         .eq("id", id);
       if (error) throw error;
