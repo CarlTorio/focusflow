@@ -35,8 +35,12 @@ export function NotesListPanel({
   folders,
 }: NotesListPanelProps) {
   const [search, setSearch] = useState("");
-  const [sortMode, setSortMode] = useState<SortMode>("lastModified");
-  const [starredFirst, setStarredFirst] = useState(true);
+  const [sortMode, setSortMode] = useState<SortMode>(
+    () => (localStorage.getItem("notes-sort-mode") as SortMode) || "lastModified"
+  );
+  const [starredFirst, setStarredFirst] = useState(
+    () => localStorage.getItem("notes-starred-first") !== "false"
+  );
   // Stable ordered IDs — only re-sorted when note set, starred status, or sort settings change
   const [stableIds, setStableIds] = useState<string[]>([]);
 
@@ -100,13 +104,20 @@ export function NotesListPanel({
             <ChevronDown className="h-3 w-3" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start">
-            <DropdownMenuItem onClick={() => setSortMode("lastModified")}>Last Modified</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSortMode("newest")}>Newest First</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => { setSortMode("lastModified"); localStorage.setItem("notes-sort-mode", "lastModified"); }}>Last Modified</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => { setSortMode("newest"); localStorage.setItem("notes-sort-mode", "newest"); }}>Newest First</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
         <div className="flex items-center gap-1.5">
           <span className="text-[10px] text-muted-foreground">★ first</span>
-          <Switch checked={starredFirst} onCheckedChange={setStarredFirst} className="scale-75" />
+          <Switch
+            checked={starredFirst}
+            onCheckedChange={(val) => {
+              setStarredFirst(val);
+              localStorage.setItem("notes-starred-first", String(val));
+            }}
+            className="scale-75"
+          />
         </div>
       </div>
 

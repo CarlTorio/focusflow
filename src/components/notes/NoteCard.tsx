@@ -56,9 +56,9 @@ export function NoteCard({
         <div className="min-w-0 flex-1">
           <h4 className="truncate text-sm font-semibold text-foreground">{note.title}</h4>
           <p className="mt-1 truncate text-xs text-muted-foreground">{stripHtml(note.content) || "No content"}</p>
-          <div className="mt-2 flex items-center gap-2">
-            <span className="text-[10px] text-muted-foreground">{formatNoteDate(note.updated_at)}</span>
-            <span className="rounded-full bg-primary-light px-2 py-0.5 text-[10px] font-medium text-primary-dark">
+          <div className="mt-2 flex items-center gap-2 overflow-hidden">
+            <span className="shrink-0 text-[10px] text-muted-foreground whitespace-nowrap">{formatNoteDate(note.updated_at)}</span>
+            <span className="min-w-0 truncate rounded-full bg-primary-light px-2 py-0.5 text-[10px] font-medium text-primary-dark whitespace-nowrap">
               {note.folder}
             </span>
           </div>
