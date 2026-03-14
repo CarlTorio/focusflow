@@ -243,7 +243,7 @@ export function CreateAlarmModal({ open, onClose }: CreateAlarmModalProps) {
                   onClick={() => setSoundType(opt.value as SoundType)}
                   className={cn(
                     "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors",
-                    soundType === opt.value && soundType !== "custom"
+                    soundType === opt.value
                       ? "bg-primary/10 text-primary font-medium"
                       : "text-foreground hover:bg-secondary"
                   )}
