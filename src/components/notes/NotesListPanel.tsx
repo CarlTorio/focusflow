@@ -35,8 +35,12 @@ export function NotesListPanel({
   folders,
 }: NotesListPanelProps) {
   const [search, setSearch] = useState("");
-  const [sortMode, setSortMode] = useState<SortMode>("lastModified");
-  const [starredFirst, setStarredFirst] = useState(true);
+  const [sortMode, setSortMode] = useState<SortMode>(
+    () => (localStorage.getItem("notes-sort-mode") as SortMode) || "lastModified"
+  );
+  const [starredFirst, setStarredFirst] = useState(
+    () => localStorage.getItem("notes-starred-first") !== "false"
+  );
   // Stable ordered IDs — only re-sorted when note set, starred status, or sort settings change
   const [stableIds, setStableIds] = useState<string[]>([]);
 
