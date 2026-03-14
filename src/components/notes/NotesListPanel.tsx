@@ -104,8 +104,8 @@ export function NotesListPanel({
             <ChevronDown className="h-3 w-3" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start">
-            <DropdownMenuItem onClick={() => setSortMode("lastModified")}>Last Modified</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSortMode("newest")}>Newest First</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => { setSortMode("lastModified"); localStorage.setItem("notes-sort-mode", "lastModified"); }}>Last Modified</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => { setSortMode("newest"); localStorage.setItem("notes-sort-mode", "newest"); }}>Newest First</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
         <div className="flex items-center gap-1.5">
