@@ -70,7 +70,35 @@ export function useNotes() {
       if (error) throw error;
       return data as Note;
     },
-    onSuccess: () => {
+    onMutate: async (params) => {
+      const { id, ...updates } = params;
+      // Cancel any in-flight refetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: ["notes", user?.id] });
+      await queryClient.cancelQueries({ queryKey: ["notes-all", user?.id] });
+
+      // Snapshot previous values for rollback
+      const prevNotes = queryClient.getQueryData<Note[]>(["notes", user?.id]);
+      const prevAllNotes = queryClient.getQueryData<Note[]>(["notes-all", user?.id]);
+
+      // Optimistically patch the cache instantly
+      const patchNote = (note: Note) =>
+        note.id === id ? { ...note, ...updates } : note;
+
+      queryClient.setQueryData<Note[]>(["notes", user?.id], (old) =>
+        old ? old.map(patchNote) : old
+      );
+      queryClient.setQueryData<Note[]>(["notes-all", user?.id], (old) =>
+        old ? old.map(patchNote) : old
+      );
+
+      return { prevNotes, prevAllNotes };
+    },
+    onError: (_err, _params, context) => {
+      // Roll back on error
+      if (context?.prevNotes) queryClient.setQueryData(["notes", user?.id], context.prevNotes);
+      if (context?.prevAllNotes) queryClient.setQueryData(["notes-all", user?.id], context.prevAllNotes);
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["notes"] });
       queryClient.invalidateQueries({ queryKey: ["notes-all"] });
     },
