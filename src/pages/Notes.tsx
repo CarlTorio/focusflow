@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { useNotes, Note } from "@/hooks/useNotes";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileHeader } from "@/components/navigation/MobileHeader";
@@ -27,6 +27,8 @@ export default function Notes() {
   const [mobileView, setMobileView] = useState<"list" | "editor">("list");
   const [deleteTarget, setDeleteTarget] = useState<Note | null>(null);
   const [folderVersion, setFolderVersion] = useState(0);
+  const [pillsAtEnd, setPillsAtEnd] = useState(false);
+  const pillsScrollRef = useRef<HTMLDivElement>(null);
 
   // Derive folders from notes
   const folders = useMemo(() => {
@@ -155,32 +157,50 @@ export default function Notes() {
         <MobileHeader title="Notes" />
 
         {/* Filter pills */}
-        <div className="flex gap-2 overflow-x-auto px-4 py-2 scrollbar-none">
-          {["All", "Starred", ...allFolders].map((filter) => (
-            <button
-              key={filter}
-              onClick={() => setActiveFilter(filter)}
-              className={cn(
-                "flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
-                activeFilter === filter
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary text-foreground"
-              )}
-            >
-              {filter === "Starred" && <Star className="h-3 w-3" />}
-              {filter}
-            </button>
-          ))}
-          <button
-            onClick={() => {
-              const name = prompt("New folder name:");
-              if (name) handleCreateFolder(name);
+        <div className="relative">
+          <div
+            ref={pillsScrollRef}
+            onScroll={() => {
+              const el = pillsScrollRef.current;
+              if (!el) return;
+              setPillsAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 4);
             }}
-            className="shrink-0 rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-muted-foreground"
+            className="flex gap-2 overflow-x-auto px-4 py-2 scrollbar-none"
           >
-            + New Folder
-          </button>
+            {["All", "Starred", ...allFolders].map((filter) => (
+              <button
+                key={filter}
+                onClick={() => setActiveFilter(filter)}
+                className={cn(
+                  "flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+                  activeFilter === filter
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-foreground"
+                )}
+              >
+                {filter === "Starred" && <Star className="h-3 w-3" />}
+                {filter}
+              </button>
+            ))}
+            <button
+              onClick={() => {
+                const name = prompt("New folder name:");
+                if (name) handleCreateFolder(name);
+              }}
+              className="shrink-0 rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-muted-foreground"
+            >
+              + New Folder
+            </button>
+          </div>
+          {/* Right fade indicator — disappears when scrolled to end */}
+          <div
+            className={cn(
+              "pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-background to-transparent transition-opacity",
+              pillsAtEnd ? "opacity-0" : "opacity-100"
+            )}
+          />
         </div>
+
 
         <div className="px-2">
           <NotesListPanel
