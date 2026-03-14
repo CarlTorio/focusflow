@@ -105,7 +105,7 @@ export function FolderPanel({
           )}
         >
           <Star className={cn("h-4 w-4", activeFilter === "Starred" ? "fill-current" : "")} />
-          <span className="flex-1 text-left">Starred</span>
+          <span className="relative flex-1 text-left overflow-hidden" style={{ maskImage: "linear-gradient(to right, black 70%, transparent 100%)", WebkitMaskImage: "linear-gradient(to right, black 70%, transparent 100%)" }}>Starred</span>
           <span className="text-xs opacity-70">{starredCount}</span>
         </button>
 
