@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, ChevronDown } from "lucide-react";
 import { Note } from "@/hooks/useNotes";
 import { NoteCard } from "./NoteCard";
@@ -37,24 +37,44 @@ export function NotesListPanel({
   const [search, setSearch] = useState("");
   const [sortMode, setSortMode] = useState<SortMode>("lastModified");
   const [starredFirst, setStarredFirst] = useState(true);
+  // Stable ordered IDs — only re-sorted when note set, starred status, or sort settings change
+  const [stableIds, setStableIds] = useState<string[]>([]);
 
-  const filtered = notes.filter((n) => {
+  // Key that changes only when notes are added/removed
+  const noteIdsKey = notes.map((n) => n.id).sort().join(",");
+  // Key that changes only when starred status changes
+  const starredKey = notes.filter((n) => n.is_starred).map((n) => n.id).sort().join(",");
+
+  useEffect(() => {
+    if (notes.length === 0) {
+      setStableIds([]);
+      return;
+    }
+    const sorted = [...notes].sort((a, b) => {
+      if (starredFirst) {
+        if (a.is_starred && !b.is_starred) return -1;
+        if (!a.is_starred && b.is_starred) return 1;
+      }
+      const dateA = new Date(sortMode === "newest" ? a.created_at : a.updated_at).getTime();
+      const dateB = new Date(sortMode === "newest" ? b.created_at : b.updated_at).getTime();
+      return dateB - dateA;
+    });
+    setStableIds(sorted.map((n) => n.id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [noteIdsKey, starredKey, sortMode, starredFirst]);
+
+  // Build display list using the stable order, then apply search filter
+  const orderedNotes = stableIds
+    .map((id) => notes.find((n) => n.id === id))
+    .filter((n): n is Note => !!n);
+
+  const filtered = orderedNotes.filter((n) => {
     if (!search) return true;
     const q = search.toLowerCase();
     return (
       n.title.toLowerCase().includes(q) ||
       (n.content || "").toLowerCase().includes(q)
     );
-  });
-
-  const sorted = [...filtered].sort((a, b) => {
-    if (starredFirst) {
-      if (a.is_starred && !b.is_starred) return -1;
-      if (!a.is_starred && b.is_starred) return 1;
-    }
-    const dateA = new Date(sortMode === "newest" ? a.created_at : a.updated_at).getTime();
-    const dateB = new Date(sortMode === "newest" ? b.created_at : b.updated_at).getTime();
-    return dateB - dateA;
   });
 
   return (
@@ -92,7 +112,7 @@ export function NotesListPanel({
 
       {/* List */}
       <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
-        {sorted.length === 0 ? (
+        {filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <Search className="mb-3 h-10 w-10 text-muted-foreground/40" />
             <p className="text-sm font-medium text-foreground">No notes found</p>
@@ -101,7 +121,7 @@ export function NotesListPanel({
             </p>
           </div>
         ) : (
-          sorted.map((note) => (
+          filtered.map((note) => (
             <NoteCard
               key={note.id}
               note={note}
@@ -119,3 +139,4 @@ export function NotesListPanel({
     </div>
   );
 }
+
