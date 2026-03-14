@@ -90,7 +90,7 @@ export function FolderPanel({
           )}
         >
           <FileText className="h-4 w-4" />
-          <span className="flex-1 text-left">All Notes</span>
+          <span className="relative flex-1 text-left overflow-hidden" style={{ maskImage: "linear-gradient(to right, black 70%, transparent 100%)", WebkitMaskImage: "linear-gradient(to right, black 70%, transparent 100%)" }}>All Notes</span>
           <span className="text-xs opacity-70">{nonArchivedNotes.length}</span>
         </button>
 
@@ -105,7 +105,7 @@ export function FolderPanel({
           )}
         >
           <Star className={cn("h-4 w-4", activeFilter === "Starred" ? "fill-current" : "")} />
-          <span className="flex-1 text-left">Starred</span>
+          <span className="relative flex-1 text-left overflow-hidden" style={{ maskImage: "linear-gradient(to right, black 70%, transparent 100%)", WebkitMaskImage: "linear-gradient(to right, black 70%, transparent 100%)" }}>Starred</span>
           <span className="text-xs opacity-70">{starredCount}</span>
         </button>
 
@@ -120,7 +120,7 @@ export function FolderPanel({
           )}
         >
           <Folder className="h-4 w-4" />
-          <span className="flex-1 text-left">Archived</span>
+          <span className="relative flex-1 text-left overflow-hidden" style={{ maskImage: "linear-gradient(to right, black 70%, transparent 100%)", WebkitMaskImage: "linear-gradient(to right, black 70%, transparent 100%)" }}>Archived</span>
           <span className="text-xs opacity-70">{notes.filter((n) => n.is_archived).length}</span>
         </button>
 
@@ -158,7 +158,7 @@ export function FolderPanel({
                 )}
               >
                 <Folder className="h-4 w-4" />
-                <span className="flex-1 text-left">{folder}</span>
+                <span className="relative flex-1 text-left overflow-hidden" style={{ maskImage: "linear-gradient(to right, black 70%, transparent 100%)", WebkitMaskImage: "linear-gradient(to right, black 70%, transparent 100%)" }}>{folder}</span>
                 <span className="text-xs opacity-70">{count}</span>
               </button>
               <DropdownMenu>
