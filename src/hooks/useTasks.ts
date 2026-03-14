@@ -28,6 +28,12 @@ function addHoursToTime(time: string, hours: number): string {
   return `${String(newH).padStart(2, "0")}:${String(newM).padStart(2, "0")}`;
 }
 
+function subtractMinutesFromTime(date: string, time: string, minutes: number): string {
+  const d = new Date(`${date}T${time}:00`);
+  d.setMinutes(d.getMinutes() - minutes);
+  return d.toISOString();
+}
+
 export function useTasks() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -108,13 +114,17 @@ export function useTasks() {
       }
 
       // Auto-distribution
-      await autoDistributeTask(task, user.id);
+      const schedules = await autoDistributeTask(task, user.id);
+
+      // Auto-generate alarms for schedules with start_time
+      await autoCreateTaskAlarms(task, schedules, user.id);
 
       return task;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["task_schedules"] });
+      queryClient.invalidateQueries({ queryKey: ["alarms"] });
       toast({ title: "Task created!", description: "Your task has been scheduled automatically." });
     },
     onError: (error) => {
@@ -122,7 +132,63 @@ export function useTasks() {
     },
   });
 
-  async function autoDistributeTask(task: Task, userId: string) {
+  async function autoCreateTaskAlarms(task: Task, schedules: TablesInsert<"task_schedules">[], userId: string) {
+    const alarmRows: any[] = [];
+
+    // Create task_reminder alarms for schedules with start_time
+    for (const sched of schedules) {
+      if (sched.start_time && sched.scheduled_date) {
+        alarmRows.push({
+          user_id: userId,
+          alarm_type: "task_reminder",
+          title: task.title,
+          alarm_time: subtractMinutesFromTime(sched.scheduled_date, sched.start_time, 5),
+          sound_type: "default",
+          is_active: true,
+        });
+      }
+    }
+
+    // Create due_warning alarms for tasks with estimated_hours > 2
+    if (Number(task.estimated_hours) > 2) {
+      const dueDate = task.due_date;
+      const dayBefore = new Date(dueDate + "T00:00:00");
+      dayBefore.setDate(dayBefore.getDate() - 1);
+      dayBefore.setHours(9, 0, 0, 0);
+
+      const dayOf = new Date(dueDate + "T00:00:00");
+      dayOf.setHours(8, 0, 0, 0);
+
+      if (dayBefore > new Date()) {
+        alarmRows.push({
+          user_id: userId,
+          alarm_type: "due_warning",
+          title: `Deadline tomorrow: ${task.title}`,
+          alarm_time: dayBefore.toISOString(),
+          sound_type: "default",
+          is_active: true,
+        });
+      }
+
+      if (dayOf > new Date()) {
+        alarmRows.push({
+          user_id: userId,
+          alarm_type: "due_warning",
+          title: `Deadline today: ${task.title}`,
+          alarm_time: dayOf.toISOString(),
+          sound_type: "default",
+          is_active: true,
+        });
+      }
+    }
+
+    if (alarmRows.length > 0) {
+      const { error } = await supabase.from("alarms").insert(alarmRows);
+      if (error) console.error("Alarm insert error:", error);
+    }
+  }
+
+  async function autoDistributeTask(task: Task, userId: string): Promise<TablesInsert<"task_schedules">[]> {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(0, 0, 0, 0);
@@ -208,6 +274,8 @@ export function useTasks() {
         variant: "destructive",
       });
     }
+
+    return scheduleRows;
   }
 
   const completeTask = useMutation({
@@ -222,10 +290,18 @@ export function useTasks() {
         .from("task_schedules")
         .update({ status: "completed" })
         .eq("task_id", taskId);
+
+      // Deactivate associated alarms
+      await supabase
+        .from("alarms")
+        .update({ is_active: false } as any)
+        .eq("user_id", user!.id)
+        .eq("alarm_type", "task_reminder");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["task_schedules"] });
+      queryClient.invalidateQueries({ queryKey: ["alarms"] });
     },
     onError: (error) => {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -250,12 +326,14 @@ export function useTasks() {
 
   const deleteTask = useMutation({
     mutationFn: async (taskId: string) => {
+      // Alarms linked to task_schedules will cascade delete
       const { error } = await supabase.from("tasks").delete().eq("id", taskId);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["task_schedules"] });
+      queryClient.invalidateQueries({ queryKey: ["alarms"] });
       toast({ title: "Task deleted" });
     },
     onError: (error) => {
