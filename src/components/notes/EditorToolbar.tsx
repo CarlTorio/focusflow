@@ -40,6 +40,28 @@ function ToolBtn({
 export function EditorToolbar({ editor }: EditorToolbarProps) {
   const iconSize = "h-4 w-4";
 
+  // Subscribe to editor state so toolbar re-renders instantly on every selection/mark change
+  const editorState = useEditorState({
+    editor,
+    selector: (ctx) => ({
+      isBold: ctx.editor.isActive("bold"),
+      isItalic: ctx.editor.isActive("italic"),
+      isUnderline: ctx.editor.isActive("underline"),
+      isStrike: ctx.editor.isActive("strike"),
+      isCode: ctx.editor.isActive("code"),
+      isH1: ctx.editor.isActive("heading", { level: 1 }),
+      isH2: ctx.editor.isActive("heading", { level: 2 }),
+      isH3: ctx.editor.isActive("heading", { level: 3 }),
+      isBulletList: ctx.editor.isActive("bulletList"),
+      isOrderedList: ctx.editor.isActive("orderedList"),
+      isTaskList: ctx.editor.isActive("taskList"),
+      isAlignLeft: ctx.editor.isActive({ textAlign: "left" }),
+      isAlignCenter: ctx.editor.isActive({ textAlign: "center" }),
+      isAlignRight: ctx.editor.isActive({ textAlign: "right" }),
+      isHighlight: ctx.editor.isActive("highlight"),
+    }),
+  });
+
   return (
     <div className="flex items-center gap-0.5 overflow-x-auto border-b border-border px-4 py-1.5 scrollbar-none">
       <ToolBtn onClick={() => editor.chain().focus().undo().run()} title="Undo">
