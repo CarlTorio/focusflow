@@ -1,5 +1,6 @@
 import { useMemo, useState, useEffect, useRef } from "react";
-import { format, startOfWeek, addDays, isToday, differenceInMinutes, parse } from "date-fns";
+import { format, addDays, isToday } from "date-fns";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ScheduleWithTask } from "@/hooks/usePlanner";
 
@@ -13,19 +14,30 @@ const PRIORITY_COLORS: Record<string, string> = {
 interface GridViewProps {
   weekStart: Date;
   schedules: ScheduleWithTask[];
-  workStart?: number; // hour
-  workEnd?: number; // hour
+  workStart?: number;
+  workEnd?: number;
   onCellClick: (date: Date, time: string) => void;
+  isMobile?: boolean;
+  selectedMobileDay?: Date;
+  onMobileDayChange?: (day: Date) => void;
 }
 
-export function GridView({ weekStart, schedules, workStart = 8, workEnd = 18, onCellClick }: GridViewProps) {
+export function GridView({
+  weekStart,
+  schedules,
+  workStart = 8,
+  workEnd = 18,
+  onCellClick,
+  isMobile = false,
+  selectedMobileDay,
+  onMobileDayChange,
+}: GridViewProps) {
   const [currentMinute, setCurrentMinute] = useState(() => {
     const now = new Date();
     return now.getHours() * 60 + now.getMinutes();
   });
   const gridRef = useRef<HTMLDivElement>(null);
 
-  // Real-time current time indicator
   useEffect(() => {
     const interval = setInterval(() => {
       const now = new Date();
@@ -43,9 +55,8 @@ export function GridView({ weekStart, schedules, workStart = 8, workEnd = 18, on
   }, [workStart, workEnd]);
 
   const totalSlots = workEnd - workStart;
-  const slotHeight = 60; // px per hour
+  const slotHeight = isMobile ? 52 : 60;
 
-  // Group schedules by date
   const schedulesByDate = useMemo(() => {
     const map: Record<string, ScheduleWithTask[]> = {};
     schedules.forEach(s => {
@@ -62,24 +73,127 @@ export function GridView({ weekStart, schedules, workStart = 8, workEnd = 18, on
   const showTimeLine = currentHourInRange >= workStart && currentHourInRange <= workEnd;
   const timeLineTop = ((currentHourInRange - workStart) / totalSlots) * (totalSlots * slotHeight);
 
+  // ── MOBILE: single-day view ──────────────────────────────────────
+  if (isMobile) {
+    const activeDay = selectedMobileDay ?? days[0];
+    const dateKey = format(activeDay, "yyyy-MM-dd");
+    const daySchedules = schedulesByDate[dateKey] || [];
+    const current = isToday(activeDay);
+
+    return (
+      <div className="flex flex-col h-full" ref={gridRef}>
+        {/* Day navigator */}
+        <div className="flex items-center justify-between px-2 py-2 border-b border-border">
+          <button
+            onClick={() => onMobileDayChange?.(addDays(activeDay, -1))}
+            className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-muted transition-colors"
+          >
+            <ChevronLeft className="h-4 w-4 text-foreground" />
+          </button>
+
+          <div className="text-center">
+            <p className={cn("text-xs uppercase font-semibold", current ? "text-primary" : "text-muted-foreground")}>
+              {format(activeDay, "EEEE")}
+            </p>
+            <p className={cn("text-xl font-bold leading-none", current ? "text-primary" : "text-foreground")}>
+              {format(activeDay, "d")}
+            </p>
+          </div>
+
+          <button
+            onClick={() => onMobileDayChange?.(addDays(activeDay, 1))}
+            className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-muted transition-colors"
+          >
+            <ChevronRight className="h-4 w-4 text-foreground" />
+          </button>
+        </div>
+
+        {/* Scrollable time grid */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="relative flex">
+            {/* Time labels */}
+            <div className="w-14 flex-shrink-0">
+              {hours.map(h => (
+                <div key={h} className="flex items-start justify-end pr-2" style={{ height: slotHeight }}>
+                  <span className="text-[10px] text-muted-foreground -mt-1.5">
+                    {h % 12 || 12}{h < 12 ? " AM" : " PM"}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Single day column */}
+            <div className="relative flex-1 border-l border-border">
+              {hours.map(h => (
+                <div
+                  key={h}
+                  className="border-b border-border/50 cursor-pointer hover:bg-primary/5 transition-colors"
+                  style={{ height: slotHeight }}
+                  onClick={() => onCellClick(activeDay, `${String(h).padStart(2, "0")}:00`)}
+                />
+              ))}
+
+              {/* Task blocks */}
+              {daySchedules.map(s => {
+                if (!s.start_time) return null;
+                const [sh, sm] = s.start_time.split(":").map(Number);
+                const durationHours = Number(s.allocated_hours);
+                const top = ((sh + sm / 60 - workStart) / totalSlots) * (totalSlots * slotHeight);
+                const height = Math.max((durationHours / totalSlots) * (totalSlots * slotHeight), 24);
+                const priority = s.task?.priority || "none";
+
+                return (
+                  <div
+                    key={s.id}
+                    className={cn(
+                      "absolute left-1 right-1 rounded-lg border px-2 py-1 text-xs font-medium text-white overflow-hidden cursor-pointer shadow-sm",
+                      PRIORITY_COLORS[priority]
+                    )}
+                    style={{ top, height }}
+                    title={s.task?.title}
+                  >
+                    <span className="truncate block">{s.task?.title}</span>
+                  </div>
+                );
+              })}
+
+              {/* Current time indicator */}
+              {current && showTimeLine && (
+                <div
+                  className="absolute left-0 right-0 flex items-center z-10 pointer-events-none"
+                  style={{ top: timeLineTop }}
+                >
+                  <div className="h-2 w-2 rounded-full bg-destructive -ml-1" />
+                  <div className="flex-1 h-[2px] bg-destructive" />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── DESKTOP: 7-day grid ──────────────────────────────────────────
   return (
     <div className="overflow-x-auto" ref={gridRef}>
       <div className="min-w-[700px]">
         {/* Day headers */}
         <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-border mb-1">
-          <div /> {/* Time label corner */}
+          <div />
           {days.map(day => {
             const current = isToday(day);
             return (
               <div
                 key={day.toISOString()}
-                className={cn(
-                  "py-2 text-center",
-                  current && "border-t-2 border-t-primary"
-                )}
+                className={cn("py-2 text-center", current && "border-t-2 border-t-primary")}
               >
-                <p className={cn("text-xs uppercase", current ? "text-primary font-bold" : "text-muted-foreground")}>{format(day, "EEE")}</p>
-                <p className={cn("text-lg font-bold", current ? "text-primary" : "text-foreground")}>{format(day, "d")}</p>
+                <p className={cn("text-xs uppercase", current ? "text-primary font-bold" : "text-muted-foreground")}>
+                  {format(day, "EEE")}
+                </p>
+                <p className={cn("text-lg font-bold", current ? "text-primary" : "text-foreground")}>
+                  {format(day, "d")}
+                </p>
               </div>
             );
           })}
@@ -100,27 +214,24 @@ export function GridView({ weekStart, schedules, workStart = 8, workEnd = 18, on
 
           {/* Day columns */}
           {days.map(day => {
-            const dateKey = format(day, "yyyy-MM-dd");
-            const daySchedules = schedulesByDate[dateKey] || [];
+            const dKey = format(day, "yyyy-MM-dd");
+            const daySchedules = schedulesByDate[dKey] || [];
             const current = isToday(day);
 
             return (
-              <div key={dateKey} className="relative border-l border-border">
-                {/* Hour cells */}
+              <div key={dKey} className="relative border-l border-border">
                 {hours.map(h => (
                   <div
                     key={h}
-                    className="border-b border-border/50 cursor-pointer hover:bg-primary-light/20 transition-colors"
+                    className="border-b border-border/50 cursor-pointer hover:bg-primary/5 transition-colors"
                     style={{ height: slotHeight }}
                     onClick={() => onCellClick(day, `${String(h).padStart(2, "0")}:00`)}
                   />
                 ))}
 
-                {/* Task blocks */}
                 {daySchedules.map(s => {
                   if (!s.start_time) return null;
                   const [sh, sm] = s.start_time.split(":").map(Number);
-                  const startMinutes = sh * 60 + sm;
                   const durationHours = Number(s.allocated_hours);
                   const top = ((sh + sm / 60 - workStart) / totalSlots) * (totalSlots * slotHeight);
                   const height = Math.max((durationHours / totalSlots) * (totalSlots * slotHeight), 24);
@@ -141,7 +252,6 @@ export function GridView({ weekStart, schedules, workStart = 8, workEnd = 18, on
                   );
                 })}
 
-                {/* Current time indicator */}
                 {current && showTimeLine && (
                   <div
                     className="absolute left-0 right-0 flex items-center z-10 pointer-events-none"
