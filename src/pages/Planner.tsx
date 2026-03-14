@@ -224,6 +224,9 @@ export default function Planner() {
             weekStart={startOfWeek(baseDate, { weekStartsOn: 1 })}
             schedules={schedules}
             onCellClick={(date, time) => openAddModal(date, time)}
+            isMobile={isMobile}
+            selectedMobileDay={selectedMobileDay}
+            onMobileDayChange={setSelectedMobileDay}
           />
         )}
       </div>
