@@ -156,31 +156,34 @@ export default function Notes() {
 
         {/* Filter pills */}
         <div className="relative">
-        <div className="flex gap-2 overflow-x-auto px-4 py-2 scrollbar-none">
-          {["All", "Starred", ...allFolders].map((filter) => (
+          <div className="flex gap-2 overflow-x-auto px-4 py-2 scrollbar-none">
+            {["All", "Starred", ...allFolders].map((filter) => (
+              <button
+                key={filter}
+                onClick={() => setActiveFilter(filter)}
+                className={cn(
+                  "flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
+                  activeFilter === filter
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-foreground"
+                )}
+              >
+                {filter === "Starred" && <Star className="h-3 w-3" />}
+                {filter}
+              </button>
+            ))}
             <button
-              key={filter}
-              onClick={() => setActiveFilter(filter)}
-              className={cn(
-                "flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
-                activeFilter === filter
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary text-foreground"
-              )}
+              onClick={() => {
+                const name = prompt("New folder name:");
+                if (name) handleCreateFolder(name);
+              }}
+              className="shrink-0 rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-muted-foreground"
             >
-              {filter === "Starred" && <Star className="h-3 w-3" />}
-              {filter}
+              + New Folder
             </button>
-          ))}
-          <button
-            onClick={() => {
-              const name = prompt("New folder name:");
-              if (name) handleCreateFolder(name);
-            }}
-            className="shrink-0 rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-muted-foreground"
-          >
-            + New Folder
-          </button>
+          </div>
+          {/* Right fade indicator */}
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-background to-transparent" />
         </div>
 
         <div className="px-2">

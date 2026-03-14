@@ -63,7 +63,8 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
   });
 
   return (
-    <div className="flex items-center gap-0.5 overflow-x-auto border-b border-border px-4 py-1.5 scrollbar-none">
+    <div className="relative border-b border-border">
+    <div className="flex items-center gap-0.5 overflow-x-auto px-4 py-1.5 scrollbar-none">
       <ToolBtn onClick={() => editor.chain().focus().undo().run()} title="Undo">
         <Undo2 className={iconSize} />
       </ToolBtn>
