@@ -158,7 +158,7 @@ export function FolderPanel({
                 )}
               >
                 <Folder className="h-4 w-4" />
-                <span className="flex-1 text-left">{folder}</span>
+                <span className="relative flex-1 text-left overflow-hidden" style={{ maskImage: "linear-gradient(to right, black 70%, transparent 100%)", WebkitMaskImage: "linear-gradient(to right, black 70%, transparent 100%)" }}>{folder}</span>
                 <span className="text-xs opacity-70">{count}</span>
               </button>
               <DropdownMenu>
