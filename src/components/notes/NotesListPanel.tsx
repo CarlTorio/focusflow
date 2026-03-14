@@ -110,7 +110,14 @@ export function NotesListPanel({
         </DropdownMenu>
         <div className="flex items-center gap-1.5">
           <span className="text-[10px] text-muted-foreground">★ first</span>
-          <Switch checked={starredFirst} onCheckedChange={setStarredFirst} className="scale-75" />
+          <Switch
+            checked={starredFirst}
+            onCheckedChange={(val) => {
+              setStarredFirst(val);
+              localStorage.setItem("notes-starred-first", String(val));
+            }}
+            className="scale-75"
+          />
         </div>
       </div>
 
