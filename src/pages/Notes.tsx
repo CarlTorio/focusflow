@@ -26,6 +26,7 @@ export default function Notes() {
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [mobileView, setMobileView] = useState<"list" | "editor">("list");
   const [deleteTarget, setDeleteTarget] = useState<Note | null>(null);
+  const [folderVersion, setFolderVersion] = useState(0);
 
   // Derive folders from notes
   const folders = useMemo(() => {
