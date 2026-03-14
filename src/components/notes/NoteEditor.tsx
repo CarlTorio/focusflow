@@ -86,8 +86,13 @@ export function NoteEditor({ note, onUpdate, onBack, isMobile }: NoteEditorProps
   useEffect(() => {
     return () => {
       if (saveTimer.current) clearTimeout(saveTimer.current);
+      if (note && pendingSave.current) {
+        onUpdate({ id: note.id, ...pendingSave.current });
+        pendingSave.current = null;
+      }
     };
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [note?.id]);
 
   if (!note) {
     return (
