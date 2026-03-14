@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { useNotes, Note } from "@/hooks/useNotes";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileHeader } from "@/components/navigation/MobileHeader";
