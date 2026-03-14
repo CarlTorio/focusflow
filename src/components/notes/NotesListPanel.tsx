@@ -14,6 +14,7 @@ import { Switch } from "@/components/ui/switch";
 interface NotesListPanelProps {
   notes: Note[];
   selectedNoteId?: string;
+  activeFilter: string;
   onSelectNote: (note: Note) => void;
   onToggleStar: (note: Note) => void;
   onDelete: (note: Note) => void;
@@ -24,9 +25,12 @@ interface NotesListPanelProps {
 
 type SortMode = "lastModified" | "newest";
 
+const GLOBAL_FILTERS = ["All", "Starred", "Archived"];
+
 export function NotesListPanel({
   notes,
   selectedNoteId,
+  activeFilter,
   onSelectNote,
   onToggleStar,
   onDelete,
@@ -34,6 +38,8 @@ export function NotesListPanel({
   onMoveToFolder,
   folders,
 }: NotesListPanelProps) {
+  const isGlobalFilter = GLOBAL_FILTERS.includes(activeFilter);
+
   const [search, setSearch] = useState("");
   const [sortMode, setSortMode] = useState<SortMode>(
     () => (localStorage.getItem("notes-sort-mode") as SortMode) || "lastModified"
@@ -55,6 +61,13 @@ export function NotesListPanel({
       return;
     }
     const sorted = [...notes].sort((a, b) => {
+      // Folder view: starred always floats to top, then newest first by created_at
+      if (!isGlobalFilter) {
+        if (a.is_starred && !b.is_starred) return -1;
+        if (!a.is_starred && b.is_starred) return 1;
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+      // Global views: respect user preferences
       if (starredFirst) {
         if (a.is_starred && !b.is_starred) return -1;
         if (!a.is_starred && b.is_starred) return 1;
@@ -65,7 +78,7 @@ export function NotesListPanel({
     });
     setStableIds(sorted.map((n) => n.id));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [noteIdsKey, starredKey, sortMode, starredFirst]);
+  }, [noteIdsKey, starredKey, sortMode, starredFirst, isGlobalFilter]);
 
   // Build display list using the stable order, then apply search filter
   const orderedNotes = stableIds
@@ -96,30 +109,32 @@ export function NotesListPanel({
         </div>
       </div>
 
-      {/* Sort */}
-      <div className="flex items-center justify-between border-b border-border px-3 py-2">
-        <DropdownMenu>
-          <DropdownMenuTrigger className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-            {sortMode === "lastModified" ? "Last Modified" : "Newest First"}
-            <ChevronDown className="h-3 w-3" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            <DropdownMenuItem onClick={() => { setSortMode("lastModified"); localStorage.setItem("notes-sort-mode", "lastModified"); }}>Last Modified</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => { setSortMode("newest"); localStorage.setItem("notes-sort-mode", "newest"); }}>Newest First</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <div className="flex items-center gap-1.5">
-          <span className="text-[10px] text-muted-foreground">★ first</span>
-          <Switch
-            checked={starredFirst}
-            onCheckedChange={(val) => {
-              setStarredFirst(val);
-              localStorage.setItem("notes-starred-first", String(val));
-            }}
-            className="scale-75"
-          />
+      {/* Sort bar — only shown for global filters */}
+      {isGlobalFilter && (
+        <div className="flex items-center justify-between border-b border-border px-3 py-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+              {sortMode === "lastModified" ? "Last Modified" : "Newest First"}
+              <ChevronDown className="h-3 w-3" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              <DropdownMenuItem onClick={() => { setSortMode("lastModified"); localStorage.setItem("notes-sort-mode", "lastModified"); }}>Last Modified</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setSortMode("newest"); localStorage.setItem("notes-sort-mode", "newest"); }}>Newest First</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] text-muted-foreground">★ first</span>
+            <Switch
+              checked={starredFirst}
+              onCheckedChange={(val) => {
+                setStarredFirst(val);
+                localStorage.setItem("notes-starred-first", String(val));
+              }}
+              className="scale-75"
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* List */}
       <div className="flex-1 overflow-y-auto p-2 space-y-1.5">
