@@ -52,7 +52,7 @@ export default function Onboarding() {
     if (!user) return;
     await supabase.from("profiles").update({ onboarding_completed: true } as any).eq("id", user.id);
     await refreshProfile();
-    navigate("/hub");
+    navigate("/hub", { replace: true });
   };
 
   return (
