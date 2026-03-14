@@ -45,7 +45,7 @@ export default function Onboarding() {
     } as any).eq("id", user.id);
     await refreshProfile();
     setSaving(false);
-    navigate("/hub");
+    navigate("/hub", { replace: true });
   };
 
   const skipOnboarding = async () => {
