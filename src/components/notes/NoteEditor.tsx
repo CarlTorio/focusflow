@@ -116,12 +116,12 @@ export function NoteEditor({ note, onUpdate, onBack, isMobile }: NoteEditorProps
       {/* Top bar */}
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
         {isMobile && onBack && (
-          <button onClick={onBack} className="mr-3 rounded-lg bg-foreground px-3 py-1.5 text-sm font-medium text-background">
+          <button onClick={() => { flushSave(); onBack(); }} className="mr-3 rounded-lg bg-foreground px-3 py-1.5 text-sm font-medium text-background">
             <ArrowLeft className="h-4 w-4" />
           </button>
         )}
         {!isMobile && onBack && (
-          <button onClick={onBack} className="rounded-lg bg-foreground px-3 py-1.5 text-sm font-medium text-background">
+          <button onClick={() => { flushSave(); onBack(); }} className="rounded-lg bg-foreground px-3 py-1.5 text-sm font-medium text-background">
             Go Back
           </button>
         )}
