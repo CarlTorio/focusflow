@@ -24,6 +24,7 @@ export function NoteEditor({ note, onUpdate, onBack, isMobile }: NoteEditorProps
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
   const saveTimer = useRef<ReturnType<typeof setTimeout>>();
   const currentNoteId = useRef(note?.id);
+  const pendingSave = useRef<{ title?: string; content?: string } | null>(null);
 
   const editor = useEditor({
     extensions: [
@@ -53,16 +54,26 @@ export function NoteEditor({ note, onUpdate, onBack, isMobile }: NoteEditorProps
   const scheduleSave = useCallback(
     (updates: { title?: string; content?: string }) => {
       if (!note) return;
+      pendingSave.current = { ...pendingSave.current, ...updates };
       setSaveStatus("saving");
       if (saveTimer.current) clearTimeout(saveTimer.current);
       saveTimer.current = setTimeout(() => {
         onUpdate({ id: note.id, ...updates });
+        pendingSave.current = null;
         setSaveStatus("saved");
         setTimeout(() => setSaveStatus("idle"), 1500);
       }, 1500);
     },
     [note, onUpdate]
   );
+
+  const flushSave = useCallback(() => {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    if (note && pendingSave.current) {
+      onUpdate({ id: note.id, ...pendingSave.current });
+      pendingSave.current = null;
+    }
+  }, [note, onUpdate]);
 
   useEffect(() => {
     if (note && note.id !== currentNoteId.current) {
@@ -75,8 +86,13 @@ export function NoteEditor({ note, onUpdate, onBack, isMobile }: NoteEditorProps
   useEffect(() => {
     return () => {
       if (saveTimer.current) clearTimeout(saveTimer.current);
+      if (note && pendingSave.current) {
+        onUpdate({ id: note.id, ...pendingSave.current });
+        pendingSave.current = null;
+      }
     };
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [note?.id]);
 
   if (!note) {
     return (
@@ -100,12 +116,12 @@ export function NoteEditor({ note, onUpdate, onBack, isMobile }: NoteEditorProps
       {/* Top bar */}
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
         {isMobile && onBack && (
-          <button onClick={onBack} className="mr-3 rounded-lg bg-foreground px-3 py-1.5 text-sm font-medium text-background">
+          <button onClick={() => { flushSave(); onBack(); }} className="mr-3 rounded-lg bg-foreground px-3 py-1.5 text-sm font-medium text-background">
             <ArrowLeft className="h-4 w-4" />
           </button>
         )}
         {!isMobile && onBack && (
-          <button onClick={onBack} className="rounded-lg bg-foreground px-3 py-1.5 text-sm font-medium text-background">
+          <button onClick={() => { flushSave(); onBack(); }} className="rounded-lg bg-foreground px-3 py-1.5 text-sm font-medium text-background">
             Go Back
           </button>
         )}
