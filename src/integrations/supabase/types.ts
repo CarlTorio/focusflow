@@ -14,7 +14,104 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      mood_entries: {
+        Row: {
+          id: string
+          logged_at: string | null
+          mood: string
+          mood_zone: string
+          note: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          logged_at?: string | null
+          mood: string
+          mood_zone: string
+          note?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          logged_at?: string | null
+          mood?: string
+          mood_zone?: string
+          note?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mood_entries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          break_interval_hours: number | null
+          created_at: string | null
+          daily_hour_limit: number | null
+          email: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          nudge_enabled: boolean | null
+          nudge_frequency: string | null
+          quiet_hours_end: string | null
+          quiet_hours_start: string | null
+          theme_color: string | null
+          theme_intensity: number | null
+          theme_mode: string | null
+          updated_at: string | null
+          working_hours_end: string | null
+          working_hours_start: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          break_interval_hours?: number | null
+          created_at?: string | null
+          daily_hour_limit?: number | null
+          email?: string | null
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          nudge_enabled?: boolean | null
+          nudge_frequency?: string | null
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          theme_color?: string | null
+          theme_intensity?: number | null
+          theme_mode?: string | null
+          updated_at?: string | null
+          working_hours_end?: string | null
+          working_hours_start?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          break_interval_hours?: number | null
+          created_at?: string | null
+          daily_hour_limit?: number | null
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          nudge_enabled?: boolean | null
+          nudge_frequency?: string | null
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          theme_color?: string | null
+          theme_intensity?: number | null
+          theme_mode?: string | null
+          updated_at?: string | null
+          working_hours_end?: string | null
+          working_hours_start?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
