@@ -4,12 +4,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAlarmContext } from "@/contexts/AlarmContext";
 import { supabase } from "@/lib/supabase";
 import { AlarmManagement } from "@/components/alarms/AlarmManagement";
+import { FocusBuddySettings } from "@/components/settings/FocusBuddySettings";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bell, BellOff, Moon, Clock, Coffee, AlertTriangle, LogOut, User, Palette } from "lucide-react";
+import { Bell, BellOff, Moon, Clock, Coffee, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
@@ -41,12 +42,8 @@ export default function SettingsPage() {
       })
       .eq("id", profile.id);
     setSaving(false);
-    if (error) {
-      toast.error("Failed to save settings");
-    } else {
-      toast.success("Settings saved");
-      refreshProfile();
-    }
+    if (error) toast.error("Failed to save settings");
+    else { toast.success("Settings saved"); refreshProfile(); }
   };
 
   const handleLogout = async () => {
@@ -71,22 +68,17 @@ export default function SettingsPage() {
           <CardContent className="space-y-4">
             {notificationPermission === "granted" ? (
               <div className="flex items-center gap-2 rounded-lg bg-success/10 p-3 text-sm text-success">
-                <Bell className="h-4 w-4" />
-                Notifications enabled
+                <Bell className="h-4 w-4" /> Notifications enabled
               </div>
             ) : notificationPermission === "denied" ? (
               <div className="flex items-center gap-2 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-                <BellOff className="h-4 w-4" />
-                Notifications blocked. Enable them in your browser settings.
+                <BellOff className="h-4 w-4" /> Notifications blocked. Enable them in your browser settings.
               </div>
             ) : (
               <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">
-                  Enable notifications to receive task reminders and alarms
-                </p>
+                <p className="text-sm text-muted-foreground">Enable notifications to receive task reminders and alarms</p>
                 <Button onClick={requestPermission} size="sm" className="gap-1.5">
-                  <Bell className="h-4 w-4" />
-                  Enable Notifications
+                  <Bell className="h-4 w-4" /> Enable Notifications
                 </Button>
               </div>
             )}
@@ -97,8 +89,7 @@ export default function SettingsPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
-              <Moon className="h-5 w-5 text-primary" />
-              Quiet Hours
+              <Moon className="h-5 w-5 text-primary" /> Quiet Hours
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -125,8 +116,7 @@ export default function SettingsPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
-              <Clock className="h-5 w-5 text-primary" />
-              Task Reminders
+              <Clock className="h-5 w-5 text-primary" /> Task Reminders
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -139,14 +129,10 @@ export default function SettingsPage() {
                 <Label className="text-xs text-muted-foreground">Minutes before</Label>
                 <div className="flex gap-2">
                   {[5, 10, 15, 30].map((m) => (
-                    <button
-                      key={m}
-                      onClick={() => setReminderMinutes(m)}
-                      className={cn(
-                        "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
-                        reminderMinutes === m ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
-                      )}
-                    >
+                    <button key={m} onClick={() => setReminderMinutes(m)} className={cn(
+                      "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
+                      reminderMinutes === m ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
+                    )}>
                       {m} min
                     </button>
                   ))}
@@ -164,8 +150,7 @@ export default function SettingsPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
-              <Coffee className="h-5 w-5 text-primary" />
-              Break Reminders
+              <Coffee className="h-5 w-5 text-primary" /> Break Reminders
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -178,14 +163,10 @@ export default function SettingsPage() {
                 <Label className="text-xs text-muted-foreground">After every</Label>
                 <div className="flex gap-2">
                   {[1, 1.5, 2, 3].map((h) => (
-                    <button
-                      key={h}
-                      onClick={() => setBreakInterval(h)}
-                      className={cn(
-                        "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
-                        breakInterval === h ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
-                      )}
-                    >
+                    <button key={h} onClick={() => setBreakInterval(h)} className={cn(
+                      "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
+                      breakInterval === h ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
+                    )}>
                       {h}h
                     </button>
                   ))}
@@ -199,7 +180,10 @@ export default function SettingsPage() {
           {saving ? "Saving..." : "Save Notification Settings"}
         </Button>
 
-        {/* Alarms Section */}
+        {/* Focus Buddy */}
+        <FocusBuddySettings />
+
+        {/* Alarms */}
         <div className="pt-4">
           <AlarmManagement />
         </div>
@@ -208,8 +192,7 @@ export default function SettingsPage() {
         <Card>
           <CardContent className="pt-6">
             <Button onClick={handleLogout} variant="ghost" className="w-full justify-start gap-3 rounded-xl bg-destructive/10 text-destructive hover:bg-destructive/20">
-              <LogOut className="h-5 w-5" />
-              Logout
+              <LogOut className="h-5 w-5" /> Logout
             </Button>
           </CardContent>
         </Card>
