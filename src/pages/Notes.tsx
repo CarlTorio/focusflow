@@ -26,6 +26,7 @@ export default function Notes() {
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [mobileView, setMobileView] = useState<"list" | "editor">("list");
   const [deleteTarget, setDeleteTarget] = useState<Note | null>(null);
+  const [folderVersion, setFolderVersion] = useState(0);
 
   // Derive folders from notes
   const folders = useMemo(() => {
@@ -92,47 +93,45 @@ export default function Notes() {
   }, [updateNote]);
 
   const handleCreateFolder = useCallback((name: string) => {
-    // Folders are derived from notes, so we don't need a separate table
-    // Just creating a note with this folder would add it, but for UX we'll
-    // store custom folders in localStorage as a lightweight solution
-    const stored = JSON.parse(localStorage.getItem("note-folders") || "[]");
+    const stored = JSON.parse(localStorage.getItem("note-folders") || "[]") as string[];
     if (!stored.includes(name) && !folders.includes(name)) {
       localStorage.setItem("note-folders", JSON.stringify([...stored, name]));
-      // Force re-render by creating a dummy state update
+      setFolderVersion((v) => v + 1);
       setActiveFilter(name);
     }
   }, [folders]);
 
   const handleRenameFolder = useCallback((oldName: string, newName: string) => {
-    // Update all notes in this folder
     allNotes.filter((n) => n.folder === oldName).forEach((n) => {
       updateNote.mutate({ id: n.id, folder: newName });
     });
-    // Update localStorage
     const stored = JSON.parse(localStorage.getItem("note-folders") || "[]") as string[];
     const updated = stored.map((f) => (f === oldName ? newName : f));
     localStorage.setItem("note-folders", JSON.stringify(updated));
+    setFolderVersion((v) => v + 1);
     if (activeFilter === oldName) setActiveFilter(newName);
     toast.success("Folder renamed");
   }, [allNotes, updateNote, activeFilter]);
 
   const handleDeleteFolder = useCallback((name: string) => {
-    // Move all notes in this folder to General
     allNotes.filter((n) => n.folder === name).forEach((n) => {
       updateNote.mutate({ id: n.id, folder: "General" });
     });
     const stored = JSON.parse(localStorage.getItem("note-folders") || "[]") as string[];
     localStorage.setItem("note-folders", JSON.stringify(stored.filter((f) => f !== name)));
+    setFolderVersion((v) => v + 1);
     if (activeFilter === name) setActiveFilter("All");
     toast.success("Folder deleted, notes moved to General");
   }, [allNotes, updateNote, activeFilter]);
 
   // Merge localStorage folders with DB-derived folders
+  // folderVersion is included so the memo re-runs whenever localStorage changes
   const allFolders = useMemo(() => {
     const stored = JSON.parse(localStorage.getItem("note-folders") || "[]") as string[];
     const set = new Set([...folders, ...stored]);
     return Array.from(set);
-  }, [folders]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [folders, folderVersion]);
 
   // MOBILE LAYOUT
   if (isMobile) {
