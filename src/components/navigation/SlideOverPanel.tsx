@@ -71,6 +71,9 @@ export function SlideOverPanel({ open, onClose }: { open: boolean; onClose: () =
           ].map((item) => (
             <button
               key={item.label}
+              onClick={() => {
+                if ((item as any).to) { navigate((item as any).to); onClose(); }
+              }}
               className="flex w-full items-center gap-3 rounded-xl p-3 text-sm text-foreground hover:bg-secondary"
             >
               <item.icon className="h-5 w-5 text-muted-foreground" />
