@@ -19,7 +19,7 @@ export default function SettingsPage() {
   const { notificationPermission, requestPermission } = useAlarmContext();
   const navigate = useNavigate();
 
-  const [quietEnabled, setQuietEnabled] = useState(!!profile?.quiet_hours_start);
+  const [quietEnabled, setQuietEnabled] = useState(!!(profile as any)?.quiet_hours_start);
   const [quietStart, setQuietStart] = useState((profile as any)?.quiet_hours_start || "22:00");
   const [quietEnd, setQuietEnd] = useState((profile as any)?.quiet_hours_end || "07:00");
   const [breakEnabled, setBreakEnabled] = useState(true);

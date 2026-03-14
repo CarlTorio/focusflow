@@ -250,7 +250,7 @@ export function CreateAlarmModal({ open, onClose }: CreateAlarmModalProps) {
                 >
                   <div className={cn(
                     "h-4 w-4 rounded-full border-2",
-                    soundType === opt.value && soundType !== "custom"
+                    soundType === opt.value
                       ? "border-primary bg-primary"
                       : "border-muted-foreground"
                   )} />
