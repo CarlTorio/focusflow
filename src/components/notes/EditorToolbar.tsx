@@ -63,73 +63,77 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
   });
 
   return (
-    <div className="flex items-center gap-0.5 overflow-x-auto border-b border-border px-4 py-1.5 scrollbar-none">
-      <ToolBtn onClick={() => editor.chain().focus().undo().run()} title="Undo">
-        <Undo2 className={iconSize} />
-      </ToolBtn>
-      <ToolBtn onClick={() => editor.chain().focus().redo().run()} title="Redo">
-        <Redo2 className={iconSize} />
-      </ToolBtn>
+    <div className="flex flex-col border-b border-border px-2 py-1 gap-0.5">
+      {/* Row 1: history, formatting, headings */}
+      <div className="flex items-center gap-0.5 flex-wrap">
+        <ToolBtn onClick={() => editor.chain().focus().undo().run()} title="Undo">
+          <Undo2 className={iconSize} />
+        </ToolBtn>
+        <ToolBtn onClick={() => editor.chain().focus().redo().run()} title="Redo">
+          <Redo2 className={iconSize} />
+        </ToolBtn>
 
-      <div className="mx-1 h-5 w-px bg-border shrink-0" />
+        <div className="mx-1 h-5 w-px bg-border shrink-0" />
 
-      <ToolBtn active={editorState.isBold} onClick={() => editor.chain().focus().toggleBold().run()} title="Bold">
-        <Bold className={iconSize} />
-      </ToolBtn>
-      <ToolBtn active={editorState.isItalic} onClick={() => editor.chain().focus().toggleItalic().run()} title="Italic">
-        <Italic className={iconSize} />
-      </ToolBtn>
-      <ToolBtn active={editorState.isUnderline} onClick={() => editor.chain().focus().toggleUnderline().run()} title="Underline">
-        <UnderlineIcon className={iconSize} />
-      </ToolBtn>
-      <ToolBtn active={editorState.isStrike} onClick={() => editor.chain().focus().toggleStrike().run()} title="Strikethrough">
-        <Strikethrough className={iconSize} />
-      </ToolBtn>
-      <ToolBtn active={editorState.isCode} onClick={() => editor.chain().focus().toggleCode().run()} title="Inline Code">
-        <Code className={iconSize} />
-      </ToolBtn>
+        <ToolBtn active={editorState.isBold} onClick={() => editor.chain().focus().toggleBold().run()} title="Bold">
+          <Bold className={iconSize} />
+        </ToolBtn>
+        <ToolBtn active={editorState.isItalic} onClick={() => editor.chain().focus().toggleItalic().run()} title="Italic">
+          <Italic className={iconSize} />
+        </ToolBtn>
+        <ToolBtn active={editorState.isUnderline} onClick={() => editor.chain().focus().toggleUnderline().run()} title="Underline">
+          <UnderlineIcon className={iconSize} />
+        </ToolBtn>
+        <ToolBtn active={editorState.isStrike} onClick={() => editor.chain().focus().toggleStrike().run()} title="Strikethrough">
+          <Strikethrough className={iconSize} />
+        </ToolBtn>
+        <ToolBtn active={editorState.isCode} onClick={() => editor.chain().focus().toggleCode().run()} title="Inline Code">
+          <Code className={iconSize} />
+        </ToolBtn>
 
-      <div className="mx-1 h-5 w-px bg-border shrink-0" />
+        <div className="mx-1 h-5 w-px bg-border shrink-0" />
 
-      <ToolBtn active={editorState.isH1} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} title="Heading 1">
-        <Heading1 className={iconSize} />
-      </ToolBtn>
-      <ToolBtn active={editorState.isH2} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} title="Heading 2">
-        <Heading2 className={iconSize} />
-      </ToolBtn>
-      <ToolBtn active={editorState.isH3} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} title="Heading 3">
-        <Heading3 className={iconSize} />
-      </ToolBtn>
+        <ToolBtn active={editorState.isH1} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} title="Heading 1">
+          <Heading1 className={iconSize} />
+        </ToolBtn>
+        <ToolBtn active={editorState.isH2} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} title="Heading 2">
+          <Heading2 className={iconSize} />
+        </ToolBtn>
+        <ToolBtn active={editorState.isH3} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} title="Heading 3">
+          <Heading3 className={iconSize} />
+        </ToolBtn>
+      </div>
 
-      <div className="mx-1 h-5 w-px bg-border shrink-0" />
+      {/* Row 2: lists, alignment, highlight */}
+      <div className="flex items-center gap-0.5 flex-wrap">
+        <ToolBtn active={editorState.isBulletList} onClick={() => editor.chain().focus().toggleBulletList().run()} title="Bullet List">
+          <List className={iconSize} />
+        </ToolBtn>
+        <ToolBtn active={editorState.isOrderedList} onClick={() => editor.chain().focus().toggleOrderedList().run()} title="Ordered List">
+          <ListOrdered className={iconSize} />
+        </ToolBtn>
+        <ToolBtn active={editorState.isTaskList} onClick={() => editor.chain().focus().toggleTaskList().run()} title="Task List">
+          <CheckSquare className={iconSize} />
+        </ToolBtn>
 
-      <ToolBtn active={editorState.isBulletList} onClick={() => editor.chain().focus().toggleBulletList().run()} title="Bullet List">
-        <List className={iconSize} />
-      </ToolBtn>
-      <ToolBtn active={editorState.isOrderedList} onClick={() => editor.chain().focus().toggleOrderedList().run()} title="Ordered List">
-        <ListOrdered className={iconSize} />
-      </ToolBtn>
-      <ToolBtn active={editorState.isTaskList} onClick={() => editor.chain().focus().toggleTaskList().run()} title="Task List">
-        <CheckSquare className={iconSize} />
-      </ToolBtn>
+        <div className="mx-1 h-5 w-px bg-border shrink-0" />
 
-      <div className="mx-1 h-5 w-px bg-border shrink-0" />
+        <ToolBtn active={editorState.isAlignLeft} onClick={() => editor.chain().focus().setTextAlign("left").run()} title="Align Left">
+          <AlignLeft className={iconSize} />
+        </ToolBtn>
+        <ToolBtn active={editorState.isAlignCenter} onClick={() => editor.chain().focus().setTextAlign("center").run()} title="Align Center">
+          <AlignCenter className={iconSize} />
+        </ToolBtn>
+        <ToolBtn active={editorState.isAlignRight} onClick={() => editor.chain().focus().setTextAlign("right").run()} title="Align Right">
+          <AlignRight className={iconSize} />
+        </ToolBtn>
 
-      <ToolBtn active={editorState.isAlignLeft} onClick={() => editor.chain().focus().setTextAlign("left").run()} title="Align Left">
-        <AlignLeft className={iconSize} />
-      </ToolBtn>
-      <ToolBtn active={editorState.isAlignCenter} onClick={() => editor.chain().focus().setTextAlign("center").run()} title="Align Center">
-        <AlignCenter className={iconSize} />
-      </ToolBtn>
-      <ToolBtn active={editorState.isAlignRight} onClick={() => editor.chain().focus().setTextAlign("right").run()} title="Align Right">
-        <AlignRight className={iconSize} />
-      </ToolBtn>
+        <div className="mx-1 h-5 w-px bg-border shrink-0" />
 
-      <div className="mx-1 h-5 w-px bg-border shrink-0" />
-
-      <ToolBtn active={editorState.isHighlight} onClick={() => editor.chain().focus().toggleHighlight().run()} title="Highlight">
-        <Minus className={iconSize} />
-      </ToolBtn>
+        <ToolBtn active={editorState.isHighlight} onClick={() => editor.chain().focus().toggleHighlight().run()} title="Highlight">
+          <Minus className={iconSize} />
+        </ToolBtn>
+      </div>
     </div>
   );
 }
