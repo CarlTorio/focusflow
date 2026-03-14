@@ -237,19 +237,21 @@ export default function Notes() {
       </div>
 
       {/* Middle Panel — Notes List */}
-      <div className="w-[300px] shrink-0 border-r border-border">
-        <NotesListPanel
-          notes={filteredNotes}
-          selectedNoteId={selectedNote?.id}
-          onSelectNote={handleSelectNote}
-          onToggleStar={handleToggleStar}
-          onDelete={handleDelete}
-          onArchive={handleArchive}
-          onMoveToFolder={handleMoveToFolder}
-          folders={allFolders}
-        />
-        {/* Create note button in list header */}
-        <div className="border-t border-border p-3">
+      <div className="flex h-full w-[300px] shrink-0 flex-col border-r border-border">
+        <div className="min-h-0 flex-1">
+          <NotesListPanel
+            notes={filteredNotes}
+            selectedNoteId={selectedNote?.id}
+            onSelectNote={handleSelectNote}
+            onToggleStar={handleToggleStar}
+            onDelete={handleDelete}
+            onArchive={handleArchive}
+            onMoveToFolder={handleMoveToFolder}
+            folders={allFolders}
+          />
+        </div>
+        {/* Create note button — always visible, pinned at bottom */}
+        <div className="shrink-0 border-t border-border p-3">
           <button
             onClick={handleCreateNote}
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
