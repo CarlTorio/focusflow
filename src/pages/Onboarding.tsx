@@ -45,14 +45,14 @@ export default function Onboarding() {
     } as any).eq("id", user.id);
     await refreshProfile();
     setSaving(false);
-    navigate("/hub");
+    navigate("/hub", { replace: true });
   };
 
   const skipOnboarding = async () => {
     if (!user) return;
     await supabase.from("profiles").update({ onboarding_completed: true } as any).eq("id", user.id);
     await refreshProfile();
-    navigate("/hub");
+    navigate("/hub", { replace: true });
   };
 
   return (
