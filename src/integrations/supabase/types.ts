@@ -112,6 +112,157 @@ export type Database = {
         }
         Relationships: []
       }
+      subtasks: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_completed: boolean | null
+          order_index: number
+          task_id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_completed?: boolean | null
+          order_index?: number
+          task_id: string
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_completed?: boolean | null
+          order_index?: number
+          task_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subtasks_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_schedules: {
+        Row: {
+          allocated_hours: number
+          created_at: string | null
+          end_time: string | null
+          id: string
+          is_locked: boolean | null
+          scheduled_date: string
+          start_time: string | null
+          status: string
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          allocated_hours: number
+          created_at?: string | null
+          end_time?: string | null
+          id?: string
+          is_locked?: boolean | null
+          scheduled_date: string
+          start_time?: string | null
+          status?: string
+          task_id: string
+          user_id: string
+        }
+        Update: {
+          allocated_hours?: number
+          created_at?: string | null
+          end_time?: string | null
+          id?: string
+          is_locked?: boolean | null
+          scheduled_date?: string
+          start_time?: string | null
+          status?: string
+          task_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_schedules_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_schedules_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          description: string | null
+          due_date: string
+          estimated_hours: number
+          icon_color: string | null
+          icon_emoji: string | null
+          id: string
+          image_url: string | null
+          preferred_time: string | null
+          priority: string
+          status: string
+          tags: string[] | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date: string
+          estimated_hours: number
+          icon_color?: string | null
+          icon_emoji?: string | null
+          id?: string
+          image_url?: string | null
+          preferred_time?: string | null
+          priority?: string
+          status?: string
+          tags?: string[] | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          due_date?: string
+          estimated_hours?: number
+          icon_color?: string | null
+          icon_emoji?: string | null
+          id?: string
+          image_url?: string | null
+          preferred_time?: string | null
+          priority?: string
+          status?: string
+          tags?: string[] | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

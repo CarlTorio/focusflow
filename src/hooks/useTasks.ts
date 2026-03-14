@@ -3,46 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
+import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 
-export interface Task {
-  id: string;
-  user_id: string;
-  title: string;
-  description: string | null;
-  estimated_hours: number;
-  due_date: string;
-  preferred_time: string | null;
-  priority: "high" | "medium" | "low" | "none";
-  status: "pending" | "in_progress" | "completed" | "skipped";
-  tags: string[] | null;
-  icon_emoji: string | null;
-  icon_color: string | null;
-  image_url: string | null;
-  created_at: string;
-  completed_at: string | null;
-}
-
-export interface TaskSchedule {
-  id: string;
-  task_id: string;
-  user_id: string;
-  scheduled_date: string;
-  allocated_hours: number;
-  start_time: string | null;
-  end_time: string | null;
-  status: string;
-  is_locked: boolean;
-  created_at: string;
-}
-
-export interface Subtask {
-  id: string;
-  task_id: string;
-  title: string;
-  is_completed: boolean;
-  order_index: number;
-  created_at: string;
-}
+export type Task = Tables<"tasks">;
+export type TaskSchedule = Tables<"task_schedules">;
+export type Subtask = Tables<"subtasks">;
 
 export interface CreateTaskInput {
   title: string;
@@ -50,7 +15,7 @@ export interface CreateTaskInput {
   estimated_hours: number;
   due_date: string;
   preferred_time?: string;
-  priority: "high" | "medium" | "low" | "none";
+  priority: string;
   tags?: string[];
   subtasks?: string[];
 }
@@ -92,7 +57,7 @@ export function useTasks() {
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as unknown as Task[];
+      return data;
     },
     enabled: !!user,
   });
@@ -105,7 +70,7 @@ export function useTasks() {
         .select("*")
         .order("scheduled_date", { ascending: true });
       if (error) throw error;
-      return data as unknown as TaskSchedule[];
+      return data;
     },
     enabled: !!user,
   });
@@ -114,7 +79,6 @@ export function useTasks() {
     mutationFn: async (input: CreateTaskInput) => {
       if (!user) throw new Error("Not authenticated");
 
-      // Insert task
       const { data: task, error: taskError } = await supabase
         .from("tasks")
         .insert({
@@ -126,28 +90,27 @@ export function useTasks() {
           preferred_time: input.preferred_time || null,
           priority: input.priority,
           tags: input.tags && input.tags.length > 0 ? input.tags : null,
-        } as any)
+        })
         .select()
         .single();
 
       if (taskError) throw taskError;
-      const createdTask = task as unknown as Task;
 
       // Insert subtasks
       if (input.subtasks && input.subtasks.length > 0) {
-        const subtaskRows = input.subtasks.map((title, i) => ({
-          task_id: createdTask.id,
+        const subtaskRows: TablesInsert<"subtasks">[] = input.subtasks.map((title, i) => ({
+          task_id: task.id,
           title,
           order_index: i,
         }));
-        const { error: subError } = await supabase.from("subtasks").insert(subtaskRows as any);
+        const { error: subError } = await supabase.from("subtasks").insert(subtaskRows);
         if (subError) console.error("Subtask insert error:", subError);
       }
 
-      // Auto-distribution: schedule across days
-      await autoDistributeTask(createdTask, user.id);
+      // Auto-distribution
+      await autoDistributeTask(task, user.id);
 
-      return createdTask;
+      return task;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
@@ -165,8 +128,7 @@ export function useTasks() {
     tomorrow.setHours(0, 0, 0, 0);
 
     const dueDate = new Date(task.due_date + "T00:00:00");
-    
-    // Calculate days available
+
     const days: string[] = [];
     const current = new Date(tomorrow);
     while (current <= dueDate) {
@@ -175,13 +137,12 @@ export function useTasks() {
     }
 
     if (days.length === 0) {
-      // Due date is today or past, schedule everything for tomorrow
       days.push(tomorrow.toISOString().split("T")[0]);
     }
 
-    const hoursPerDay = task.estimated_hours / days.length;
+    const hoursPerDay = Number(task.estimated_hours) / days.length;
 
-    // Get existing schedules for these days
+    // Get existing schedules
     const { data: existingSchedules } = await supabase
       .from("task_schedules")
       .select("scheduled_date, allocated_hours")
@@ -189,21 +150,21 @@ export function useTasks() {
       .in("scheduled_date", days);
 
     const existingHoursMap: Record<string, number> = {};
-    (existingSchedules as any[] || []).forEach((s: any) => {
+    (existingSchedules || []).forEach(s => {
       existingHoursMap[s.scheduled_date] = (existingHoursMap[s.scheduled_date] || 0) + Number(s.allocated_hours);
     });
 
-    // Get user's daily hour limit (default 8)
     const { data: profile } = await supabase
       .from("profiles")
       .select("daily_hour_limit")
       .eq("id", userId)
       .single();
-    const dailyLimit = (profile as any)?.daily_hour_limit || 8;
+    const dailyLimit = profile?.daily_hour_limit || 8;
 
-    const scheduleRows: any[] = [];
-    let remainingHours = task.estimated_hours;
+    const scheduleRows: TablesInsert<"task_schedules">[] = [];
+    let remainingHours = Number(task.estimated_hours);
     let hasOverflow = false;
+    const today = new Date().toISOString().split("T")[0];
 
     for (const day of days) {
       if (remainingHours <= 0) break;
@@ -212,8 +173,7 @@ export function useTasks() {
       const allocate = Math.min(hoursPerDay, available, remainingHours);
 
       if (allocate > 0) {
-        const today = new Date().toISOString().split("T")[0];
-        const row: any = {
+        const row: TablesInsert<"task_schedules"> = {
           task_id: task.id,
           user_id: userId,
           scheduled_date: day,
@@ -230,15 +190,11 @@ export function useTasks() {
         scheduleRows.push(row);
         remainingHours -= allocate;
       } else if (available <= 0) {
-        // Day is full, try to push remaining hours
         hasOverflow = true;
       }
     }
 
-    // If there are still remaining hours, try extra days after due date
-    if (remainingHours > 0) {
-      hasOverflow = true;
-    }
+    if (remainingHours > 0) hasOverflow = true;
 
     if (scheduleRows.length > 0) {
       const { error } = await supabase.from("task_schedules").insert(scheduleRows);
@@ -258,14 +214,13 @@ export function useTasks() {
     mutationFn: async (taskId: string) => {
       const { error } = await supabase
         .from("tasks")
-        .update({ status: "completed", completed_at: new Date().toISOString() } as any)
+        .update({ status: "completed", completed_at: new Date().toISOString() })
         .eq("id", taskId);
       if (error) throw error;
 
-      // Also complete all schedules for this task
       await supabase
         .from("task_schedules")
-        .update({ status: "completed" } as any)
+        .update({ status: "completed" })
         .eq("task_id", taskId);
     },
     onSuccess: () => {
@@ -281,7 +236,7 @@ export function useTasks() {
     mutationFn: async (taskId: string) => {
       const { error } = await supabase
         .from("tasks")
-        .update({ status: "pending", completed_at: null } as any)
+        .update({ status: "pending", completed_at: null })
         .eq("id", taskId);
       if (error) throw error;
     },
