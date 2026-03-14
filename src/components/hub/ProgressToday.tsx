@@ -57,6 +57,7 @@ export function ProgressToday() {
         {cards.map((card) => (
           <button
             key={card.label}
+            onClick={card.action}
             className="flex flex-col items-center rounded-2xl bg-card p-5 shadow-sm transition-shadow hover:shadow-md"
           >
             <card.icon className={`mb-2 h-8 w-8 ${card.color}`} />
