@@ -14,6 +14,78 @@ export type Database = {
   }
   public: {
     Tables: {
+      alarms: {
+        Row: {
+          alarm_time: string
+          alarm_type: string
+          created_at: string
+          custom_sound_url: string | null
+          id: string
+          is_active: boolean
+          is_recurring: boolean
+          max_snoozes: number
+          recurrence_days: number[] | null
+          recurrence_pattern: string | null
+          snooze_count: number
+          snooze_duration_minutes: number
+          sound_type: string
+          task_schedule_id: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          alarm_time: string
+          alarm_type: string
+          created_at?: string
+          custom_sound_url?: string | null
+          id?: string
+          is_active?: boolean
+          is_recurring?: boolean
+          max_snoozes?: number
+          recurrence_days?: number[] | null
+          recurrence_pattern?: string | null
+          snooze_count?: number
+          snooze_duration_minutes?: number
+          sound_type?: string
+          task_schedule_id?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          alarm_time?: string
+          alarm_type?: string
+          created_at?: string
+          custom_sound_url?: string | null
+          id?: string
+          is_active?: boolean
+          is_recurring?: boolean
+          max_snoozes?: number
+          recurrence_days?: number[] | null
+          recurrence_pattern?: string | null
+          snooze_count?: number
+          snooze_duration_minutes?: number
+          sound_type?: string
+          task_schedule_id?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alarms_task_schedule_id_fkey"
+            columns: ["task_schedule_id"]
+            isOneToOne: false
+            referencedRelation: "task_schedules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alarms_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mood_entries: {
         Row: {
           id: string
