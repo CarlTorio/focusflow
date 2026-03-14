@@ -58,7 +58,7 @@ export function NotesListPanel({
   });
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col overflow-hidden">
       {/* Search */}
       <div className="border-b border-border p-3">
         <div className="relative">
