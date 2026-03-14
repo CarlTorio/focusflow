@@ -132,5 +132,8 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
         <Minus className={iconSize} />
       </ToolBtn>
     </div>
+    {/* Right fade indicator — mobile only */}
+    <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-background to-transparent md:hidden" />
+    </div>
   );
 }
