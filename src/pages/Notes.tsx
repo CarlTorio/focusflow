@@ -242,6 +242,7 @@ export default function Notes() {
           <NotesListPanel
             notes={filteredNotes}
             selectedNoteId={selectedNote?.id}
+            activeFilter={activeFilter}
             onSelectNote={handleSelectNote}
             onToggleStar={handleToggleStar}
             onDelete={handleDelete}
