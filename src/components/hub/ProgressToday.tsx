@@ -1,13 +1,47 @@
 import { CheckCircle2, CalendarX2, ListChecks, BookOpen } from "lucide-react";
-
-const cards = [
-  { label: "Completed", sub: "Activities", count: 0, icon: CheckCircle2, color: "text-success" },
-  { label: "Outstanding", sub: "Activities", count: 0, icon: CalendarX2, color: "text-destructive" },
-  { label: "Todos", sub: "Outstanding", count: 0, icon: ListChecks, color: "text-primary" },
-  { label: "Journal", sub: "Entries", count: 0, icon: BookOpen, color: "text-primary-dark" },
-];
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function ProgressToday() {
+  const { user } = useAuth();
+  const today = new Date().toISOString().split("T")[0];
+
+  const { data: taskCounts } = useQuery({
+    queryKey: ["progress-today", today],
+    queryFn: async () => {
+      const [completedRes, outstandingRes, todosRes] = await Promise.all([
+        supabase
+          .from("task_schedules")
+          .select("id", { count: "exact", head: true })
+          .eq("scheduled_date", today)
+          .eq("status", "completed"),
+        supabase
+          .from("task_schedules")
+          .select("id", { count: "exact", head: true })
+          .eq("scheduled_date", today)
+          .neq("status", "completed"),
+        supabase
+          .from("tasks")
+          .select("id", { count: "exact", head: true })
+          .neq("status", "completed"),
+      ]);
+      return {
+        completed: completedRes.count || 0,
+        outstanding: outstandingRes.count || 0,
+        todos: todosRes.count || 0,
+      };
+    },
+    enabled: !!user,
+  });
+
+  const cards = [
+    { label: "Completed", sub: "Activities", count: taskCounts?.completed || 0, icon: CheckCircle2, color: "text-success" },
+    { label: "Outstanding", sub: "Activities", count: taskCounts?.outstanding || 0, icon: CalendarX2, color: "text-destructive" },
+    { label: "Todos", sub: "Outstanding", count: taskCounts?.todos || 0, icon: ListChecks, color: "text-primary" },
+    { label: "Journal", sub: "Entries", count: 0, icon: BookOpen, color: "text-primary-dark" },
+  ];
+
   return (
     <div className="space-y-3">
       <h3 className="text-lg font-bold text-foreground">Progress Today</h3>
