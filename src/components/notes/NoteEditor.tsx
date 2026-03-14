@@ -24,6 +24,7 @@ export function NoteEditor({ note, onUpdate, onBack, isMobile }: NoteEditorProps
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
   const saveTimer = useRef<ReturnType<typeof setTimeout>>();
   const currentNoteId = useRef(note?.id);
+  const pendingSave = useRef<{ title?: string; content?: string } | null>(null);
 
   const editor = useEditor({
     extensions: [
