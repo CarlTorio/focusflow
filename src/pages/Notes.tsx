@@ -155,6 +155,7 @@ export default function Notes() {
         <MobileHeader title="Notes" />
 
         {/* Filter pills */}
+        <div className="relative">
         <div className="flex gap-2 overflow-x-auto px-4 py-2 scrollbar-none">
           {["All", "Starred", ...allFolders].map((filter) => (
             <button
