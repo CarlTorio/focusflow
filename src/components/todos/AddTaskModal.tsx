@@ -24,7 +24,7 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { CreateTaskInput } from "@/hooks/useTasks";
 
-const HOUR_OPTIONS = [0.5, 1, 1.5, 2, 3, 4, 5, 6, 8, 10, 12];
+const HOUR_OPTIONS = [1, 2, 3, 4, 5, 6, 8, 10, 12];
 
 const PRIORITY_OPTIONS = [
   { value: "high" as const, label: "HIGH", color: "bg-red-500", textColor: "text-red-500", bgLight: "bg-red-50 dark:bg-red-950" },
