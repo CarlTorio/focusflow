@@ -61,6 +61,7 @@ const App = () => (
                   >
                     <Route path="/hub" element={<Hub />} />
                     <Route path="/planner" element={<Planner />} />
+                    <Route path="/add-task" element={<AddTask />} />
                     <Route path="/alarm" element={<Alarm />} />
                     <Route path="/notes" element={<Notes />} />
                     <Route path="/breathing" element={<Breathing />} />
