@@ -213,6 +213,9 @@ export default function Planner() {
                 }
               />
 
+              {/* Due date warnings */}
+              <DueDateWarnings tasks={dueSoonTasks} />
+
               {/* Daily Routine Section */}
               <DailyRoutineSection onEditRoutine={handleEditRoutine} />
 
