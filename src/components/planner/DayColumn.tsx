@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { format, isToday, isTomorrow } from "date-fns";
-import { ChevronDown, ChevronRight, Plus } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PlannerTaskCard } from "./PlannerTaskCard";
 import type { ScheduleWithTask } from "@/hooks/usePlanner";
