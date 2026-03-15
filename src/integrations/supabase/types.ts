@@ -14,7 +14,71 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      routine_completions: {
+        Row: {
+          completed_at: string | null
+          completed_date: string
+          id: string
+          routine_id: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_date: string
+          id?: string
+          routine_id: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_date?: string
+          id?: string
+          routine_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "routine_completions_routine_id_fkey"
+            columns: ["routine_id"]
+            isOneToOne: false
+            referencedRelation: "routines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      routines: {
+        Row: {
+          created_at: string | null
+          deadline_time: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          order_index: number
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          deadline_time?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          order_index?: number
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          deadline_time?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          order_index?: number
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
