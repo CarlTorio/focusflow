@@ -1,7 +1,8 @@
-import { Check, Lock, RefreshCw } from "lucide-react";
+import { Check, Lock, RefreshCw, AlertTriangle, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ScheduleWithTask } from "@/hooks/usePlanner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { differenceInCalendarDays, parseISO } from "date-fns";
 
 const DEFAULT_EMOJIS = ["📋", "✏️", "📌", "🎯", "💡", "🔧", "📝", "🚀"];
 
@@ -10,13 +11,6 @@ const PRIORITY_BORDER: Record<string, string> = {
   medium: "border-l-amber-500",
   low: "border-l-emerald-500",
   none: "border-l-gray-300 dark:border-l-gray-600",
-};
-
-const PRIORITY_DOT: Record<string, string> = {
-  high: "bg-red-500",
-  medium: "bg-amber-500",
-  low: "bg-emerald-500",
-  none: "bg-gray-300",
 };
 
 interface PlannerTaskCardProps {
@@ -44,9 +38,34 @@ export function PlannerTaskCard({
   const isLocked = lockState !== "unlocked";
   const priority = task?.priority || "none";
   const hours = Number(schedule.allocated_hours);
-  const subtasks = task?.subtasks || [];
-  const completedSubtasks = subtasks.filter((s) => s.is_completed).length;
   const isRecurring = (task as any)?.task_type === "recurring";
+
+  const subtaskId = (schedule as any).subtask_id;
+  const displayTitle = (schedule as any).display_title || task?.title || "Untitled";
+  const parentTitle = task?.title || "";
+  const showParentSubtitle = subtaskId && displayTitle !== parentTitle;
+
+  // Due date warnings
+  const dueDate = task?.due_date;
+  let dueBadge: { text: string; className: string } | null = null;
+  let borderExtra = "";
+
+  if (dueDate && !isCompleted) {
+    const daysUntilDue = differenceInCalendarDays(parseISO(dueDate), new Date());
+    if (daysUntilDue < 0) {
+      dueBadge = { text: "OVERDUE", className: "bg-destructive text-destructive-foreground" };
+      borderExtra = "ring-2 ring-destructive/50";
+    } else if (daysUntilDue === 0) {
+      dueBadge = { text: "Due TODAY", className: "bg-destructive text-destructive-foreground animate-pulse" };
+      borderExtra = "ring-2 ring-destructive/40";
+    } else if (daysUntilDue === 1) {
+      dueBadge = { text: "Due tomorrow", className: "bg-destructive/80 text-destructive-foreground" };
+      borderExtra = "ring-1 ring-destructive/30";
+    } else if (daysUntilDue === 2) {
+      dueBadge = { text: "Due in 2 days", className: "bg-warning text-warning-foreground" };
+      borderExtra = "ring-1 ring-warning/30";
+    }
+  }
 
   const opacity =
     lockState === "future"
@@ -54,15 +73,6 @@ export function PlannerTaskCard({
       : lockState === "tomorrow"
       ? "opacity-70"
       : "opacity-100";
-
-  // Determine display title — use task title (display_title column not in schema)
-  const displayTitle = task?.title || "Untitled";
-
-  // Sub-label: show parent task hint if subtask name differs from task title
-  const subLabel = (() => {
-    if (hours > 0 && schedule.start_time) return null; // handled inline
-    return null;
-  })();
 
   const emoji =
     task?.icon_emoji ||
@@ -75,6 +85,7 @@ export function PlannerTaskCard({
         PRIORITY_BORDER[priority],
         isCompleted && "opacity-50",
         isLocked ? "bg-muted/40 border-dashed" : "bg-card shadow-sm hover:shadow-md",
+        borderExtra,
         opacity
       )}
     >
@@ -92,39 +103,38 @@ export function PlannerTaskCard({
         className="flex-1 min-w-0 text-left"
         onClick={() => !isLocked && !isCompleted && onOpenFocus?.(schedule.id)}
       >
-        <p
-          className={cn(
-            "text-sm font-semibold leading-tight",
-            isCompleted ? "line-through text-muted-foreground" : "text-foreground"
-          )}
-        >
-          {displayTitle}
-          {isRecurring && (
-            <span className="ml-1.5 inline-flex items-center">
-              <RefreshCw className="h-3 w-3 text-muted-foreground" />
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <p
+            className={cn(
+              "text-sm font-semibold leading-tight",
+              isCompleted ? "line-through text-muted-foreground" : "text-foreground"
+            )}
+          >
+            {displayTitle}
+            {isRecurring && (
+              <span className="ml-1.5 inline-flex items-center">
+                <RefreshCw className="h-3 w-3 text-muted-foreground" />
+              </span>
+            )}
+          </p>
+          {dueBadge && (
+            <span className={cn("rounded-full px-1.5 py-0.5 text-[9px] font-bold", dueBadge.className)}>
+              {dueBadge.text}
             </span>
           )}
-        </p>
+        </div>
+
+        {/* Parent task subtitle for subtask schedules */}
+        {showParentSubtitle && (
+          <p className="mt-0.5 text-xs text-muted-foreground truncate">
+            ↳ {parentTitle}
+          </p>
+        )}
 
         <p className="mt-0.5 text-xs text-muted-foreground">
           {hours}h
           {schedule.start_time && ` · ${formatTime12(schedule.start_time)}`}
         </p>
-
-        {/* Subtask progress */}
-        {subtasks.length > 0 && !isCompleted && (
-          <div className="mt-1.5 flex items-center gap-2">
-            <div className="flex-1 h-1 rounded-full bg-secondary overflow-hidden">
-              <div
-                className="h-full bg-primary rounded-full transition-all duration-300"
-                style={{ width: `${(completedSubtasks / subtasks.length) * 100}%` }}
-              />
-            </div>
-            <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-              {completedSubtasks}/{subtasks.length}
-            </span>
-          </div>
-        )}
       </button>
 
       {/* Checkbox or Lock */}
