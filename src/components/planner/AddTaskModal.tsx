@@ -185,7 +185,10 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
       <div className="rounded-xl border border-border p-4 space-y-3">
         <div>
           <p className="text-sm font-semibold">Break it down into steps</p>
-          <p className="text-xs text-muted-foreground">Adding subtasks helps you know exactly what to do each day</p>
+          <p className="text-xs text-muted-foreground">Each step gets scheduled on a different day so you know exactly what to do.</p>
+          {subtasks.length > 1 && (
+            <p className="text-[10px] text-primary mt-1 font-medium">↕ Drag to reorder. First step = first day.</p>
+          )}
         </div>
         {subtasks.map((st, i) => (
           <div

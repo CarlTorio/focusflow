@@ -86,6 +86,62 @@ export type Database = {
           },
         ]
       }
+      daily_summaries: {
+        Row: {
+          ai_insight: string | null
+          completion_rate: number | null
+          created_at: string | null
+          hours_worked: number | null
+          id: string
+          mood_average: string | null
+          routines_completed: number | null
+          routines_total: number | null
+          summary_date: string
+          tasks_completed: number | null
+          tasks_on_time: number | null
+          tasks_total: number | null
+          user_id: string
+        }
+        Insert: {
+          ai_insight?: string | null
+          completion_rate?: number | null
+          created_at?: string | null
+          hours_worked?: number | null
+          id?: string
+          mood_average?: string | null
+          routines_completed?: number | null
+          routines_total?: number | null
+          summary_date: string
+          tasks_completed?: number | null
+          tasks_on_time?: number | null
+          tasks_total?: number | null
+          user_id: string
+        }
+        Update: {
+          ai_insight?: string | null
+          completion_rate?: number | null
+          created_at?: string | null
+          hours_worked?: number | null
+          id?: string
+          mood_average?: string | null
+          routines_completed?: number | null
+          routines_total?: number | null
+          summary_date?: string
+          tasks_completed?: number | null
+          tasks_on_time?: number | null
+          tasks_total?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_summaries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mood_entries: {
         Row: {
           id: string
@@ -311,6 +367,7 @@ export type Database = {
       subtasks: {
         Row: {
           created_at: string | null
+          estimated_hours: number | null
           id: string
           is_completed: boolean | null
           order_index: number
@@ -319,6 +376,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          estimated_hours?: number | null
           id?: string
           is_completed?: boolean | null
           order_index?: number
@@ -327,6 +385,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          estimated_hours?: number | null
           id?: string
           is_completed?: boolean | null
           order_index?: number
@@ -345,42 +404,58 @@ export type Database = {
       }
       task_schedules: {
         Row: {
+          actual_hours_spent: number | null
           allocated_hours: number
           created_at: string | null
+          display_title: string
           end_time: string | null
           id: string
           is_locked: boolean | null
           scheduled_date: string
           start_time: string | null
           status: string
+          subtask_id: string | null
           task_id: string
           user_id: string
         }
         Insert: {
+          actual_hours_spent?: number | null
           allocated_hours: number
           created_at?: string | null
+          display_title?: string
           end_time?: string | null
           id?: string
           is_locked?: boolean | null
           scheduled_date: string
           start_time?: string | null
           status?: string
+          subtask_id?: string | null
           task_id: string
           user_id: string
         }
         Update: {
+          actual_hours_spent?: number | null
           allocated_hours?: number
           created_at?: string | null
+          display_title?: string
           end_time?: string | null
           id?: string
           is_locked?: boolean | null
           scheduled_date?: string
           start_time?: string | null
           status?: string
+          subtask_id?: string | null
           task_id?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "task_schedules_subtask_id_fkey"
+            columns: ["subtask_id"]
+            isOneToOne: false
+            referencedRelation: "subtasks"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "task_schedules_task_id_fkey"
             columns: ["task_id"]

@@ -6,6 +6,7 @@ import { MobileHeader } from "@/components/navigation/MobileHeader";
 import { DayColumn } from "@/components/planner/DayColumn";
 import { AddTaskModal } from "@/components/planner/AddTaskModal";
 import { MissedTaskBanner } from "@/components/planner/MissedTaskBanner";
+import { DueDateWarnings } from "@/components/planner/DueDateWarnings";
 import { FocusMode } from "@/components/planner/FocusMode";
 import { DailyRoutineSection } from "@/components/planner/DailyRoutineSection";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -43,6 +44,7 @@ export default function Planner() {
     schedules,
     isLoading,
     missedSchedules,
+    dueSoonTasks,
     completeSchedule,
     handleMissed,
     createTask,
@@ -210,6 +212,9 @@ export default function Planner() {
                   handleMissed.mutate({ scheduleId: id, action })
                 }
               />
+
+              {/* Due date warnings */}
+              <DueDateWarnings tasks={dueSoonTasks} />
 
               {/* Daily Routine Section */}
               <DailyRoutineSection onEditRoutine={handleEditRoutine} />
