@@ -168,6 +168,12 @@ export function useRoutines() {
     },
   });
 
+  const getCompletionsForDate = (dateStr: string) => {
+    if (dateStr === today) return completionsQuery.data || [];
+    // For other dates, we return undefined — caller should use a separate query
+    return undefined;
+  };
+
   return {
     routines: routinesQuery.data || [],
     completions: completionsQuery.data || [],
@@ -177,5 +183,6 @@ export function useRoutines() {
     removeRoutine,
     toggleCompletion,
     reorderRoutines,
+    getCompletionsForDate,
   };
 }

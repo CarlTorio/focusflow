@@ -189,7 +189,7 @@ export function DailyRoutineSection({ onEditRoutine, selectedDate }: DailyRoutin
           <span className="text-sm font-bold text-foreground">Daily Routine</span>
           <span className={cn(
             "text-xs font-semibold",
-            allDone ? "text-green-500" : "text-muted-foreground"
+            allDone ? "text-primary" : "text-muted-foreground"
           )}>
             {completedCount}/{visibleRoutines.length}
             {allDone && " ✓"}
