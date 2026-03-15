@@ -18,6 +18,7 @@ import ResetPassword from "./pages/ResetPassword";
 import Onboarding from "./pages/Onboarding";
 import Hub from "./pages/Hub";
 import Planner from "./pages/Planner";
+import AddTask from "./pages/AddTask";
 import Alarm from "./pages/Alarm";
 import Notes from "./pages/Notes";
 import Breathing from "./pages/Breathing";
