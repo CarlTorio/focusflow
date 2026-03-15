@@ -95,9 +95,9 @@ export function PriorityOverview({ tasks }: PriorityOverviewProps) {
               (s) => s.status === "completed"
             ).length;
             const totalSchedules = task.schedules.length;
-            const hoursCompleted = task.schedules
+        const hoursCompleted = task.schedules
               .filter((s) => s.status === "completed")
-              .reduce((sum, s) => sum + Number(s.actual_hours_spent || s.allocated_hours), 0);
+              .reduce((sum, s) => sum + Number(s.allocated_hours), 0);
             const progressPct =
               task.subtasks.length > 0
                 ? Math.round((completedSubtasks / task.subtasks.length) * 100)
