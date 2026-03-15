@@ -16,7 +16,9 @@ import {
   Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription,
 } from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { RoutineForm } from "@/components/planner/RoutineForm";
 import type { CreateTaskInput, SubtaskInput } from "@/hooks/usePlanner";
+import type { Routine } from "@/hooks/useRoutines";
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
 const PROJECT_HOURS = [0.5, 1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20];
@@ -374,7 +376,7 @@ function RecurringTab({ onSave }: { onSave: (i: CreateTaskInput) => void }) {
         disabled={!canSave}
         className="w-full rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
       >
-        Add Routine
+        Add Recurring Task
       </Button>
     </div>
   );
@@ -485,24 +487,41 @@ interface AddTaskModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (input: CreateTaskInput) => void;
+  onSaveRoutine: (input: { id?: string; title: string; description?: string; deadline_time?: string }) => void;
   defaultDate?: Date;
   defaultTime?: string;
+  defaultTab?: "project" | "recurring" | "routine" | "simple";
+  editRoutine?: Routine | null;
   isSaving?: boolean;
 }
 
-export function AddTaskModal({ open, onOpenChange, onSave, defaultDate, isSaving }: AddTaskModalProps) {
+export function AddTaskModal({
+  open, onOpenChange, onSave, onSaveRoutine, defaultDate, isSaving, defaultTab, editRoutine,
+}: AddTaskModalProps) {
   const isMobile = useIsMobile();
-  const [tab, setTab] = useState<"project" | "recurring" | "simple">("project");
+  const [tab, setTab] = useState<"project" | "recurring" | "routine" | "simple">(defaultTab || "project");
   const resolvedDate = defaultDate || new Date();
+
+  // Sync tab when defaultTab changes (e.g., editing a routine)
+  const [prevDefaultTab, setPrevDefaultTab] = useState(defaultTab);
+  if (defaultTab !== prevDefaultTab) {
+    setPrevDefaultTab(defaultTab);
+    if (defaultTab) setTab(defaultTab);
+  }
 
   const handleSave = (input: CreateTaskInput) => {
     onSave(input);
     onOpenChange(false);
   };
 
+  const handleSaveRoutine = (input: { id?: string; title: string; description?: string; deadline_time?: string }) => {
+    onSaveRoutine(input);
+    onOpenChange(false);
+  };
+
   const tabs = [
     { id: "project" as const, label: "Project" },
-    { id: "recurring" as const, label: "Routine" },
+    { id: "routine" as const, label: "Routine" },
     { id: "simple" as const, label: "Quick" },
   ];
 
@@ -527,17 +546,26 @@ export function AddTaskModal({ open, onOpenChange, onSave, defaultDate, isSaving
 
       {tab === "project" && <ProjectTab onSave={handleSave} defaultDate={resolvedDate} />}
       {tab === "recurring" && <RecurringTab onSave={handleSave} />}
+      {tab === "routine" && (
+        <RoutineForm
+          onSave={handleSaveRoutine}
+          editRoutine={editRoutine}
+          isSaving={isSaving}
+        />
+      )}
       {tab === "simple" && <SimpleTab onSave={handleSave} defaultDate={resolvedDate} />}
     </div>
   );
+
+  const modalTitle = editRoutine ? "Edit Routine" : "Add Task";
 
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerContent className="max-h-[92vh]">
           <DrawerHeader className="pb-0">
-            <DrawerTitle className="font-heading">Add Task</DrawerTitle>
-            <DrawerDescription className="sr-only">Create a new task</DrawerDescription>
+            <DrawerTitle className="font-heading">{modalTitle}</DrawerTitle>
+            <DrawerDescription className="sr-only">Create a new task or routine</DrawerDescription>
           </DrawerHeader>
           <div className="overflow-y-auto px-4 pb-8 pt-2">{content}</div>
         </DrawerContent>
@@ -549,8 +577,8 @@ export function AddTaskModal({ open, onOpenChange, onSave, defaultDate, isSaving
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[88vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="font-heading">Add Task</DialogTitle>
-          <DialogDescription className="sr-only">Create a new task</DialogDescription>
+          <DialogTitle className="font-heading">{modalTitle}</DialogTitle>
+          <DialogDescription className="sr-only">Create a new task or routine</DialogDescription>
         </DialogHeader>
         {content}
       </DialogContent>
