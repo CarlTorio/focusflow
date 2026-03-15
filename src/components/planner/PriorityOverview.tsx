@@ -27,7 +27,7 @@ function getTaskStatus(task: TaskWithAnalytics): {
   const completedSchedules = task.schedules.filter((s) => s.status === "completed");
   const totalSchedules = task.schedules.length;
   const completedHours = completedSchedules.reduce(
-    (sum, s) => sum + Number(s.actual_hours_spent || s.allocated_hours),
+    (sum, s) => sum + Number(s.allocated_hours),
     0
   );
   const totalHours = Number(task.estimated_hours);
