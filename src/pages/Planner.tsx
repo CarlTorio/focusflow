@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { format, addDays, startOfWeek, isToday } from "date-fns";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { MobileHeader } from "@/components/navigation/MobileHeader";
 import { cn } from "@/lib/utils";
 import { DayColumn } from "@/components/planner/DayColumn";
 import { MissedTaskBanner } from "@/components/planner/MissedTaskBanner";
@@ -98,11 +99,7 @@ export default function Planner() {
       )}
 
       <div className="pb-20 md:pb-8">
-        <header className="sticky top-0 z-30 bg-background md:hidden">
-          <div className="px-4 pt-4 pb-2 text-center">
-            <h1 className="text-lg font-bold uppercase tracking-wider" style={{ color: "#7C4DFF" }}>PLANNER</h1>
-          </div>
-        </header>
+        <MobileHeader title="Planner" />
 
         <div className="mx-auto max-w-6xl px-4 py-2">
           <div className="hidden md:block mb-4 text-center">
