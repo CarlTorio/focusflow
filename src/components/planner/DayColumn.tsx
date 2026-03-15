@@ -78,12 +78,6 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus 
             </span>
           )}
         </div>
-        <button
-          onClick={onAddTask}
-          className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-all"
-        >
-          <Plus className="h-4 w-4" />
-        </button>
       </div>
 
       {/* Priority Groups */}
