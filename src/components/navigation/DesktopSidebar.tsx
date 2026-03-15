@@ -1,24 +1,19 @@
 import {
-  Home, Clock, CalendarDays, CheckSquare, FileText,
-  Box, UserPlus, Settings, Palette, RotateCcw,
+  Home, CalendarDays, Bell, FileText,
+  Settings,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
 const mainNav = [
   { label: "Hub", icon: Home, to: "/hub" },
-  { label: "Now", icon: Clock, to: "/focus" },
   { label: "Plan", icon: CalendarDays, to: "/planner" },
-  { label: "Todos", icon: CheckSquare, to: "/todos" },
+  { label: "Alarm", icon: Bell, to: "/alarm" },
   { label: "Notes", icon: FileText, to: "/notes" },
 ];
 
 const secondaryNav = [
-  { label: "Templates", icon: Box, disabled: true },
-  { label: "Invite", icon: UserPlus, disabled: true },
   { label: "Settings", icon: Settings, to: "/settings" },
-  { label: "Theme", icon: Palette, disabled: true },
-  { label: "Undo", icon: RotateCcw, disabled: true },
 ];
 
 export function DesktopSidebar() {
@@ -60,30 +55,20 @@ export function DesktopSidebar() {
 
         <div className="my-2 h-px w-8 bg-border" />
 
-        {secondaryNav.map((item) =>
-          item.to ? (
-            <NavLink
-              key={item.label}
-              to={item.to}
-              className={({ isActive }) =>
-                `flex w-14 flex-col items-center gap-0.5 rounded-xl py-2 text-[10px] transition-colors ${
-                  isActive ? "text-primary" : "text-muted-foreground hover:bg-secondary"
-                }`
-              }
-            >
-              <item.icon className="h-5 w-5" />
-              <span>{item.label}</span>
-            </NavLink>
-          ) : (
-            <div
-              key={item.label}
-              className="flex w-14 cursor-not-allowed flex-col items-center gap-0.5 rounded-xl py-2 text-[10px] text-muted-foreground/50"
-            >
-              <item.icon className="h-5 w-5" />
-              <span>{item.label}</span>
-            </div>
-          )
-        )}
+        {secondaryNav.map((item) => (
+          <NavLink
+            key={item.label}
+            to={item.to}
+            className={({ isActive }) =>
+              `flex w-14 flex-col items-center gap-0.5 rounded-xl py-2 text-[10px] transition-colors ${
+                isActive ? "text-primary" : "text-muted-foreground hover:bg-secondary"
+              }`
+            }
+          >
+            <item.icon className="h-5 w-5" />
+            <span>{item.label}</span>
+          </NavLink>
+        ))}
       </nav>
 
       <div className="mt-auto flex h-10 w-10 items-center justify-center rounded-full bg-primary-light text-xs font-semibold text-primary-dark">

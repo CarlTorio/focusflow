@@ -1,11 +1,10 @@
-import { Home, CalendarDays, Clock, CheckSquare, FileText } from "lucide-react";
+import { Home, CalendarDays, Bell, FileText } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 const tabs = [
   { label: "Hub", icon: Home, to: "/hub" },
   { label: "Planner", icon: CalendarDays, to: "/planner" },
-  { label: "Focus", icon: Clock, to: "/focus" },
-  { label: "Todos", icon: CheckSquare, to: "/todos" },
+  { label: "Alarm", icon: Bell, to: "/alarm" },
   { label: "Notes", icon: FileText, to: "/notes" },
 ];
 
