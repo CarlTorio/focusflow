@@ -111,15 +111,15 @@ export function PriorityOverview({ tasks }: PriorityOverviewProps) {
               <div key={task.id} className="flex items-start gap-3 px-4 py-3">
                 {/* Priority dot */}
                 <div
-                  className={cn(
-                    "mt-0.5 h-2.5 w-2.5 rounded-full shrink-0",
-                    task.priority === "high"
-                      ? "bg-red-500"
-                      : task.priority === "medium"
-                      ? "bg-amber-500"
-                      : "bg-emerald-500"
-                  )}
-                />
+                   className={cn(
+                     "mt-0.5 h-2.5 w-2.5 rounded-full shrink-0",
+                     task.priority === "high"
+                       ? "bg-destructive"
+                       : task.priority === "medium"
+                       ? "bg-warning"
+                       : "bg-success"
+                   )}
+                 />
 
                 {/* Details */}
                 <div className="flex-1 min-w-0 space-y-1.5">
