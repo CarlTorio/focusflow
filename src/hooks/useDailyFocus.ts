@@ -23,28 +23,43 @@ function saveState(date: Date, state: DailyFocusState) {
   localStorage.setItem(getStorageKey(date), JSON.stringify(state));
 }
 
+// Get unique project schedules (has subtasks, not completed/skipped)
+function getUniqueProjects(schedules: ScheduleWithTask[], completedFocusIds: string[]) {
+  const seen = new Set<string>();
+  return schedules.filter((s) => {
+    if (!s.task) return false;
+    if (!s.task.subtasks || s.task.subtasks.length === 0) {
+      // Also include projects without subtasks
+      if (s.status === "completed" || s.status === "skipped") return false;
+    } else {
+      if (s.status === "completed" || s.status === "skipped") return false;
+    }
+    if (completedFocusIds.includes(s.task_id)) return false;
+    if (seen.has(s.task_id)) return false;
+    seen.add(s.task_id);
+    return true;
+  });
+}
+
 export function useDailyFocus(date: Date, schedules: ScheduleWithTask[]) {
   const [state, setState] = useState<DailyFocusState>(() => loadState(date));
   const [showAll, setShowAll] = useState(false);
 
-  // High-priority project schedules (unique by task_id)
-  const highProjects = useMemo(() => {
-    const seen = new Set<string>();
-    return schedules.filter((s) => {
-      if (!s.task) return false;
-      if (s.task.priority !== "high") return false;
-      if (!s.task.subtasks || s.task.subtasks.length === 0) return false;
-      if (s.status === "completed" || s.status === "skipped") return false;
-      if (seen.has(s.task_id)) return false;
-      seen.add(s.task_id);
-      return true;
-    });
-  }, [schedules]);
+  // All project schedules not yet completed in focus flow
+  const allProjects = useMemo(() => {
+    return getUniqueProjects(schedules, state.completedFocusIds);
+  }, [schedules, state.completedFocusIds]);
 
-  // Available projects (not yet completed in focus flow)
+  // High-priority projects (shown prominently)
   const availableProjects = useMemo(
-    () => highProjects.filter((s) => !state.completedFocusIds.includes(s.task_id)),
-    [highProjects, state.completedFocusIds]
+    () => allProjects.filter((s) => s.task?.priority === "high"),
+    [allProjects]
+  );
+
+  // Non-high priority projects (collapsible section)
+  const otherProjects = useMemo(
+    () => allProjects.filter((s) => s.task?.priority !== "high"),
+    [allProjects]
   );
 
   // Check if focused project's today schedule is done
@@ -60,13 +75,11 @@ export function useDailyFocus(date: Date, schedules: ScheduleWithTask[]) {
 
   // Should show prompt?
   const needsPrompt = useMemo(() => {
-    if (availableProjects.length === 0) return false;
-    // No active focus yet
+    if (allProjects.length === 0) return false;
     if (!state.focusedTaskId) return true;
-    // Focused task is done today → "What's next?"
     if (focusedTaskDoneToday) return true;
     return false;
-  }, [availableProjects, state.focusedTaskId, focusedTaskDoneToday]);
+  }, [allProjects, state.focusedTaskId, focusedTaskDoneToday]);
 
   const isWhatsNext = state.focusedTaskId !== null && focusedTaskDoneToday;
 
@@ -98,13 +111,9 @@ export function useDailyFocus(date: Date, schedules: ScheduleWithTask[]) {
   const filteredSchedules = useMemo(() => {
     if (!state.focusedTaskId || needsPrompt) return schedules;
     return schedules.filter((s) => {
-      // Always show non-project items
       if (!s.task?.subtasks || s.task.subtasks.length === 0) return true;
-      // Show focused project
       if (s.task_id === state.focusedTaskId) return true;
-      // Show completed focus projects
       if (state.completedFocusIds.includes(s.task_id)) return true;
-      // Show all toggle
       if (showAll) return true;
       return false;
     });
@@ -129,6 +138,7 @@ export function useDailyFocus(date: Date, schedules: ScheduleWithTask[]) {
     needsPrompt,
     isWhatsNext,
     availableProjects,
+    otherProjects,
     filteredSchedules,
     hiddenProjects,
     showAll,

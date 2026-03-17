@@ -290,15 +290,11 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
     setSubtasks((prev) => prev.map((s, j) => (j === i ? { ...s, title: val } : s)));
 
   const validSubtasks = subtasks.filter((s) => s.title.trim());
-  const canSave = title.trim() && validSubtasks.length >= 1;
+  const canSave = !!title.trim();
 
   const save = () => {
     setError("");
     if (!title.trim()) return;
-    if (validSubtasks.length === 0) {
-      setError("Add at least one subtask to your project.");
-      return;
-    }
     onSave({
       kind: "project",
       title: title.trim(),
