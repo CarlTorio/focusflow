@@ -124,7 +124,7 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
       kind: "project",
       title: title.trim(),
       estimated_hours: 0,
-      due_date: format(dueDate, "yyyy-MM-dd"),
+      due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : undefined,
       priority,
       subtasks: validSubtasks,
     });
