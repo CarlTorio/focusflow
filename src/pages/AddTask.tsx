@@ -337,10 +337,10 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
       {/* Subtasks with drag-to-reorder */}
       <div className="rounded-xl border border-border p-4 space-y-3">
         <div>
-          <p className="text-sm font-semibold">Break it down into steps</p>
-          <p className="text-xs text-muted-foreground">Each step gets scheduled on a different day</p>
+          <p className="text-sm font-semibold">Break it down into subtasks</p>
+          <p className="text-xs text-muted-foreground">Each subtask gets scheduled on a different day</p>
           {subtasks.length > 1 && (
-            <p className="text-[10px] text-primary mt-1 font-medium">↕ Drag to reorder. First step = first day.</p>
+            <p className="text-[10px] text-primary mt-1 font-medium">↕ Drag to reorder. First subtask = first day.</p>
           )}
         </div>
 
