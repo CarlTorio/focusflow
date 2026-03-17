@@ -10,14 +10,12 @@ const PRIORITY_BORDER: Record<string, string> = {
   high: "border-l-red-500",
   medium: "border-l-amber-500",
   low: "border-l-emerald-500",
-  none: "border-l-border",
 };
 
 const PRIORITY_DOT: Record<string, string> = {
   high: "bg-red-500",
   medium: "bg-amber-500",
   low: "bg-emerald-500",
-  none: "bg-muted-foreground/40",
 };
 
 interface PlannerTaskCardProps {
