@@ -117,7 +117,7 @@ function SortableSubtaskItem({
       <Input
         value={title}
         onChange={(e) => onUpdate(e.target.value)}
-        placeholder={`Step ${index + 1}`}
+        placeholder={`Subtask ${index + 1}`}
         className="rounded-xl flex-1 text-sm"
       />
       <button type="button" onClick={onRemove} className="text-muted-foreground hover:text-destructive shrink-0">
