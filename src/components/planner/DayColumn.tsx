@@ -108,7 +108,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
       </div>
 
       {/* Focus Selection Prompt (only today) */}
-      {promptActive && availableProjects.length > 0 && (
+      {promptActive && (availableProjects.length > 0 || otherProjects.length > 0) && (
         <FocusPrompt
           userName={userName || "there"}
           projects={availableProjects}
