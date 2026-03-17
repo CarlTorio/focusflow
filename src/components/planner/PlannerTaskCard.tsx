@@ -122,7 +122,7 @@ export function PlannerTaskCard({
           onClick={() => setExpanded(false)}
           className="flex items-start gap-3 w-full text-left mb-3"
         >
-          <div className={cn("mt-1 h-2.5 w-2.5 rounded-full shrink-0", PRIORITY_DOT[priority])} />
+          
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <p className="text-sm font-bold text-foreground">{parentTitle}</p>
