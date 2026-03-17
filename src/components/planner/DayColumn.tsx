@@ -145,6 +145,8 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
                       onComplete={onComplete}
                       onOpenFocus={onOpenFocus}
                       allTodaySchedules={activeSchedules}
+                      isFocusedProject={isCurrentDay && s.task_id === focusedTaskId}
+                      onCompleteSubtask={onCompleteSubtask}
                     />
                   ))}
                 </div>
