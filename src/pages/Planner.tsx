@@ -17,6 +17,8 @@ import { useAuth } from "@/contexts/AuthContext";
 export default function Planner() {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const { profile } = useAuth();
+  const userName = profile?.first_name ? `${profile.first_name} ${profile.last_name || ""}`.trim() : "";
   const [baseDate, setBaseDate] = useState(new Date());
   const [selectedMobileDay, setSelectedMobileDay] = useState(new Date());
   const [focusScheduleId, setFocusScheduleId] = useState<string | null>(null);
