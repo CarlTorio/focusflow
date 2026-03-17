@@ -632,9 +632,9 @@ export function usePlanner(startDate: string, endDate: string) {
           insertedSubtasks = sts || [];
         }
 
-        // Distribute subtasks across days
+        // Distribute subtasks across days (or create single schedule if no subtasks)
+        const startStr = input.start_date || tomorrowStr;
         if (insertedSubtasks.length > 0) {
-          const startStr = input.start_date || todayStr;
           const slots = distributeSubtasks(
             insertedSubtasks.map((st) => ({ id: st.id, title: st.title })),
             startStr,
@@ -655,6 +655,17 @@ export function usePlanner(startDate: string, endDate: string) {
           if (scheduleRows.length > 0) {
             await supabase.from("task_schedules").insert(scheduleRows as any);
           }
+        } else {
+          // No subtasks — create a single schedule entry so it appears in planner
+          await supabase.from("task_schedules").insert({
+            task_id: task.id,
+            user_id: user.id,
+            scheduled_date: startStr,
+            allocated_hours: 0,
+            status: "scheduled",
+            is_locked: false,
+            display_title: input.title,
+          });
         }
 
         return task;
