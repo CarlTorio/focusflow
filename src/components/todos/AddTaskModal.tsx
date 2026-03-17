@@ -30,7 +30,6 @@ const PRIORITY_OPTIONS = [
   { value: "high" as const, label: "HIGH", color: "bg-red-500", textColor: "text-red-500", bgLight: "bg-red-50 dark:bg-red-950" },
   { value: "medium" as const, label: "MED", color: "bg-amber-500", textColor: "text-amber-500", bgLight: "bg-amber-50 dark:bg-amber-950" },
   { value: "low" as const, label: "LOW", color: "bg-emerald-500", textColor: "text-emerald-500", bgLight: "bg-emerald-50 dark:bg-emerald-950" },
-  { value: "none" as const, label: "NONE", color: "bg-gray-400", textColor: "text-gray-400", bgLight: "bg-gray-50 dark:bg-gray-800" },
 ];
 
 interface AddTaskModalProps {
