@@ -29,6 +29,7 @@ export interface CreateProjectInput {
   preferred_time?: string;
   tags?: string[];
   subtasks?: SubtaskInput[];
+  start_date?: string;
 }
 
 export interface CreateRecurringInput {
