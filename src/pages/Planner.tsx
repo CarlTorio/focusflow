@@ -156,7 +156,7 @@ export default function Planner() {
                   <>
                     <DayColumn date={baseDate} schedules={schedulesByDate[format(baseDate, "yyyy-MM-dd")] || []} onComplete={(id) => completeSchedule.mutate({ scheduleId: id })} onAddTask={() => openAddTask(baseDate)} onOpenFocus={() => {}} userName={userName} onCompleteSubtask={(sid, tid) => completeSubtaskDirect.mutate({ subtaskId: sid, taskId: tid })} onUpdateTask={(input) => updateTask.mutate(input)} />
                     <div className="w-px bg-border hidden md:block" />
-                    <DayColumn date={addDays(baseDate, 1)} schedules={schedulesByDate[format(addDays(baseDate, 1), "yyyy-MM-dd")] || []} onComplete={(id) => completeSchedule.mutate({ scheduleId: id })} onAddTask={() => openAddTask(addDays(baseDate, 1))} onOpenFocus={(id) => setFocusScheduleId(id)} userName={userName} onCompleteSubtask={(sid, tid) => completeSubtaskDirect.mutate({ subtaskId: sid, taskId: tid })} onUpdateTask={(input) => updateTask.mutate(input)} />
+                    <DayColumn date={addDays(baseDate, 1)} schedules={schedulesByDate[format(addDays(baseDate, 1), "yyyy-MM-dd")] || []} onComplete={(id) => completeSchedule.mutate({ scheduleId: id })} onAddTask={() => openAddTask(addDays(baseDate, 1))} onOpenFocus={() => {}} userName={userName} onCompleteSubtask={(sid, tid) => completeSubtaskDirect.mutate({ subtaskId: sid, taskId: tid })} onUpdateTask={(input) => updateTask.mutate(input)} />
                   </>
                 )}
               </div>
