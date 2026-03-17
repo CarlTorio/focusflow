@@ -296,7 +296,7 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
     setError("");
     if (!title.trim()) return;
     if (validSubtasks.length === 0) {
-      setError("Add at least one step to your project.");
+      setError("Add at least one subtask to your project.");
       return;
     }
     onSave({
