@@ -333,39 +333,41 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
       </div>
 
       {/* Advanced Options */}
-      <button
-        type="button"
-        onClick={() => setShowAdvanced(!showAdvanced)}
-        className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <ChevronDown className={cn("h-4 w-4 transition-transform", showAdvanced && "rotate-180")} />
-        Advanced Options
-        {startDate && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
-      </button>
-      {showAdvanced && (
-        <div className="rounded-xl border border-border p-4 space-y-3 animate-in fade-in-0 slide-in-from-top-2 duration-200">
-          <div>
-            <label className="mb-2 block text-sm font-semibold">Start Date</label>
-            <p className="text-xs text-muted-foreground mb-2">When should this project appear in your tasks?</p>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className={cn("w-full justify-start rounded-xl font-normal", !startDate && "text-muted-foreground")}>
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {startDate ? format(startDate, "MMM d, yyyy") : "Today (default)"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 z-[200]" align="start">
-                <Calendar mode="single" selected={startDate ?? undefined} onSelect={(d) => setStartDate(d ?? null)} initialFocus className="p-3 pointer-events-auto" />
-              </PopoverContent>
-            </Popover>
-            {startDate && (
-              <button type="button" onClick={() => setStartDate(null)} className="mt-1.5 text-xs text-muted-foreground hover:text-foreground underline">
-                Reset to today
-              </button>
-            )}
+      <div className="rounded-xl border border-border overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          className="flex items-center gap-2 w-full px-4 py-3 text-sm font-semibold text-foreground hover:bg-muted/50 transition-colors"
+        >
+          <ChevronDown className={cn("h-4 w-4 transition-transform text-muted-foreground", showAdvanced && "rotate-180")} />
+          Advanced Options
+          {startDate && <span className="ml-auto text-xs text-primary font-medium">{format(startDate, "MMM d")}</span>}
+        </button>
+        {showAdvanced && (
+          <div className="px-4 pb-4 pt-1 space-y-3 border-t border-border animate-in fade-in-0 slide-in-from-top-2 duration-200">
+            <div>
+              <label className="mb-2 block text-sm font-semibold">Start Date</label>
+              <p className="text-xs text-muted-foreground mb-2">When should this project appear in your tasks?</p>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start rounded-xl font-normal", !startDate && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, "MMM d, yyyy") : "Today (default)"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 z-[200]" align="start">
+                  <Calendar mode="single" selected={startDate ?? undefined} onSelect={(d) => setStartDate(d ?? null)} initialFocus className="p-3 pointer-events-auto" />
+                </PopoverContent>
+              </Popover>
+              {startDate && (
+                <button type="button" onClick={() => setStartDate(null)} className="mt-1.5 text-xs text-muted-foreground hover:text-foreground underline">
+                  Reset to today
+                </button>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Subtasks with drag-to-reorder */}
       <div className="rounded-xl border border-border p-4 space-y-3">
