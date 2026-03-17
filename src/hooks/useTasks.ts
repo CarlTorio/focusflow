@@ -230,7 +230,8 @@ export function useTasks() {
     const scheduleRows: TablesInsert<"task_schedules">[] = [];
     let remainingHours = Number(task.estimated_hours);
     let hasOverflow = false;
-    const today = new Date().toISOString().split("T")[0];
+    const nowLocal = new Date();
+    const today = `${nowLocal.getFullYear()}-${String(nowLocal.getMonth() + 1).padStart(2, "0")}-${String(nowLocal.getDate()).padStart(2, "0")}`;
 
     for (const day of days) {
       if (remainingHours <= 0) break;
