@@ -73,12 +73,12 @@ export function useDailyFocus(date: Date, schedules: ScheduleWithTask[]) {
     return subtasks.every((st) => st.is_completed);
   }, [schedules, state.focusedTaskId]);
 
-  // Should show prompt? Only when no focus selected (never auto-transition)
+  // Should show prompt? Only when no focus selected AND there are high-priority projects
   const needsPrompt = useMemo(() => {
-    if (allProjects.length === 0 && !state.focusedTaskId) return false;
+    if (availableProjects.length === 0) return false;
     if (!state.focusedTaskId) return true;
     return false;
-  }, [allProjects, state.focusedTaskId]);
+  }, [availableProjects, state.focusedTaskId]);
 
   const isWhatsNext = state.completedFocusIds.length > 0 && !state.focusedTaskId;
 
@@ -114,32 +114,30 @@ export function useDailyFocus(date: Date, schedules: ScheduleWithTask[]) {
 
   const toggleShowAll = useCallback(() => setShowAll((p) => !p), []);
 
-  // Filter schedules: if focused, ONLY show focused project
+  // Filter schedules: show focused project + all non-high priority (medium/low always visible)
   const filteredSchedules = useMemo(() => {
     if (!state.focusedTaskId || needsPrompt) return schedules;
     return schedules.filter((s) => {
+      // Always show focused project
       if (s.task_id === state.focusedTaskId) return true;
+      // Always show medium/low priority tasks
+      const priority = s.task?.priority === "none" ? "low" : (s.task?.priority || "low");
+      if (priority !== "high") return true;
       return false;
     });
   }, [schedules, state, needsPrompt]);
 
-  // Completed/done items today (hidden behind toggle when focused)
-  const completedTodaySchedules = useMemo(() => {
-    if (!state.focusedTaskId || needsPrompt) return [];
-    return schedules.filter((s) => {
-      if (s.task_id === state.focusedTaskId) return false;
-      return true;
-    });
-  }, [schedules, state, needsPrompt]);
-
-  // Hidden project schedules (for locked display)
-  const hiddenProjects = useMemo(() => {
+  // Other HIGH priority projects (locked/collapsed when one is focused)
+  const lockedHighProjects = useMemo(() => {
     if (!state.focusedTaskId || needsPrompt) return [];
     const seen = new Set<string>();
     return schedules.filter((s) => {
-      if (!s.task?.subtasks || s.task.subtasks.length === 0) return false;
+      if (!s.task) return false;
+      const priority = s.task.priority === "none" ? "low" : (s.task.priority || "low");
+      if (priority !== "high") return false;
       if (s.task_id === state.focusedTaskId) return false;
       if (state.completedFocusIds.includes(s.task_id)) return false;
+      if (s.status === "completed" || s.status === "skipped") return false;
       if (seen.has(s.task_id)) return false;
       seen.add(s.task_id);
       return true;
@@ -154,8 +152,7 @@ export function useDailyFocus(date: Date, schedules: ScheduleWithTask[]) {
     availableProjects,
     otherProjects,
     filteredSchedules,
-    completedTodaySchedules,
-    hiddenProjects,
+    lockedHighProjects,
     showAll,
     selectFocus,
     markFocusDone,
