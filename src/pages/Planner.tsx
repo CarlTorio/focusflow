@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { DayColumn } from "@/components/planner/DayColumn";
 import { MissedTaskBanner } from "@/components/planner/MissedTaskBanner";
 
-import { FocusMode } from "@/components/planner/FocusMode";
+
 import { DailyRoutineSection } from "@/components/planner/DailyRoutineSection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePlanner } from "@/hooks/usePlanner";
@@ -21,7 +21,7 @@ export default function Planner() {
   const userName = profile?.first_name ? `${profile.first_name} ${profile.last_name || ""}`.trim() : "";
   const [baseDate, setBaseDate] = useState(new Date());
   const [selectedMobileDay, setSelectedMobileDay] = useState(new Date());
-  const [focusScheduleId, setFocusScheduleId] = useState<string | null>(null);
+  
 
   // Date range calculations
   const dateRange = useMemo(() => {
@@ -85,23 +85,11 @@ export default function Planner() {
   }, [navigate]);
 
   // Focus mode
-  const focusSchedule = focusScheduleId ? schedules.find((s) => s.id === focusScheduleId) ?? null : null;
-  const focusIdx = focusScheduleId ? schedules.findIndex((s) => s.id === focusScheduleId) : -1;
-  const nextFocusSchedule = focusIdx >= 0 && focusIdx < schedules.length - 1 ? schedules[focusIdx + 1] : null;
 
   const selectedDate = isMobile ? selectedMobileDay : new Date();
 
   return (
     <>
-      {focusSchedule && (
-        <FocusMode
-          schedule={focusSchedule}
-          nextSchedule={nextFocusSchedule}
-          onBack={() => setFocusScheduleId(null)}
-          onDone={(id, hours) => { completeSchedule.mutate({ scheduleId: id, actualHours: hours }); setFocusScheduleId(null); }}
-          onSkip={(id) => { completeSchedule.mutate({ scheduleId: id }); setFocusScheduleId(null); }}
-        />
-      )}
 
       <div className="pb-20 md:pb-8">
         <MobileHeader title="Planner" />
@@ -159,16 +147,16 @@ export default function Planner() {
                     schedules={schedulesByDate[format(selectedMobileDay, "yyyy-MM-dd")] || []}
                     onComplete={(id) => completeSchedule.mutate({ scheduleId: id })}
                     onAddTask={() => openAddTask(selectedMobileDay)}
-                    onOpenFocus={(id) => setFocusScheduleId(id)}
+                    onOpenFocus={() => {}}
                     userName={userName}
                     onCompleteSubtask={(sid, tid) => completeSubtaskDirect.mutate({ subtaskId: sid, taskId: tid })}
                     onUpdateTask={(input) => updateTask.mutate(input)}
                   />
                 ) : (
                   <>
-                    <DayColumn date={baseDate} schedules={schedulesByDate[format(baseDate, "yyyy-MM-dd")] || []} onComplete={(id) => completeSchedule.mutate({ scheduleId: id })} onAddTask={() => openAddTask(baseDate)} onOpenFocus={(id) => setFocusScheduleId(id)} userName={userName} onCompleteSubtask={(sid, tid) => completeSubtaskDirect.mutate({ subtaskId: sid, taskId: tid })} onUpdateTask={(input) => updateTask.mutate(input)} />
+                    <DayColumn date={baseDate} schedules={schedulesByDate[format(baseDate, "yyyy-MM-dd")] || []} onComplete={(id) => completeSchedule.mutate({ scheduleId: id })} onAddTask={() => openAddTask(baseDate)} onOpenFocus={() => {}} userName={userName} onCompleteSubtask={(sid, tid) => completeSubtaskDirect.mutate({ subtaskId: sid, taskId: tid })} onUpdateTask={(input) => updateTask.mutate(input)} />
                     <div className="w-px bg-border hidden md:block" />
-                    <DayColumn date={addDays(baseDate, 1)} schedules={schedulesByDate[format(addDays(baseDate, 1), "yyyy-MM-dd")] || []} onComplete={(id) => completeSchedule.mutate({ scheduleId: id })} onAddTask={() => openAddTask(addDays(baseDate, 1))} onOpenFocus={(id) => setFocusScheduleId(id)} userName={userName} onCompleteSubtask={(sid, tid) => completeSubtaskDirect.mutate({ subtaskId: sid, taskId: tid })} onUpdateTask={(input) => updateTask.mutate(input)} />
+                    <DayColumn date={addDays(baseDate, 1)} schedules={schedulesByDate[format(addDays(baseDate, 1), "yyyy-MM-dd")] || []} onComplete={(id) => completeSchedule.mutate({ scheduleId: id })} onAddTask={() => openAddTask(addDays(baseDate, 1))} onOpenFocus={() => {}} userName={userName} onCompleteSubtask={(sid, tid) => completeSubtaskDirect.mutate({ subtaskId: sid, taskId: tid })} onUpdateTask={(input) => updateTask.mutate(input)} />
                   </>
                 )}
               </div>
