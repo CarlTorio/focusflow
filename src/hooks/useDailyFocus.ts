@@ -73,12 +73,12 @@ export function useDailyFocus(date: Date, schedules: ScheduleWithTask[]) {
     return subtasks.every((st) => st.is_completed);
   }, [schedules, state.focusedTaskId]);
 
-  // Should show prompt? Only when no focus selected (never auto-transition)
+  // Should show prompt? Only when no focus selected AND there are high-priority projects
   const needsPrompt = useMemo(() => {
-    if (allProjects.length === 0 && !state.focusedTaskId) return false;
+    if (availableProjects.length === 0) return false;
     if (!state.focusedTaskId) return true;
     return false;
-  }, [allProjects, state.focusedTaskId]);
+  }, [availableProjects, state.focusedTaskId]);
 
   const isWhatsNext = state.completedFocusIds.length > 0 && !state.focusedTaskId;
 
