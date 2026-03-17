@@ -239,7 +239,7 @@ function RecurringTab({ onSave }: { onSave: (i: CreateTaskInput) => void }) {
   const [pattern, setPattern] = useState<"daily" | "weekly">("daily");
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
   const [preferredTime, setPreferredTime] = useState("");
-  const [priority, setPriority] = useState("none");
+  const [priority, setPriority] = useState("low");
 
   const toggleDay = (d: number) =>
     setSelectedDays((prev) =>
