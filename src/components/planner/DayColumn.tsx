@@ -9,8 +9,8 @@ import { useDailyFocus } from "@/hooks/useDailyFocus";
 import type { ScheduleWithTask } from "@/hooks/usePlanner";
 import type { Tables } from "@/integrations/supabase/types";
 import {
-  Sheet, SheetContent, SheetHeader, SheetTitle,
-} from "@/components/ui/sheet";
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
