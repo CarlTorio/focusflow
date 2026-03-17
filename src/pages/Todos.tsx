@@ -97,7 +97,7 @@ export default function Todos() {
         )}
       </div>
 
-      <FloatingActionButton onClick={() => handleAdd("none")} />
+      <FloatingActionButton onClick={() => handleAdd("low")} />
 
       <AddTaskModal
         open={modalOpen}
