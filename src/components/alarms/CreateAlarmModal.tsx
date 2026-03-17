@@ -133,7 +133,7 @@ export function CreateAlarmModal({ open, onClose }: CreateAlarmModalProps) {
       onClose();
       // Reset form
       setTitle("");
-      setDate(new Date().toISOString().split("T")[0]);
+      { const n = new Date(); setDate(`${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, "0")}-${String(n.getDate()).padStart(2, "0")}`); }
       setTime("09:00");
       setIsRecurring(false);
       setSoundType("default");
