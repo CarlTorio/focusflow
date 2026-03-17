@@ -83,12 +83,12 @@ export function FocusPrompt({ userName, projects, otherProjects, isWhatsNext, on
         </div>
         <div>
           <h3 className="text-base font-bold text-foreground">
-            {isWhatsNext ? `Great job! What's next, ${firstName}?` : `What to focus on today, ${firstName}?`}
+            {isWhatsNext ? `Great job! What's next, ${firstName}?` : `What's your focus today, ${firstName}?`}
           </h3>
           <p className="text-xs text-muted-foreground">
             {isWhatsNext
-              ? "Pick your next priority to keep the momentum going"
-              : "Choose one project to focus on — one at a time"}
+              ? "Pick your next high-priority project"
+              : "Choose one high-priority project to focus on"}
           </p>
         </div>
       </div>
