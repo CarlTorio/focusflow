@@ -8,7 +8,6 @@ const PRIORITY_DOT: Record<string, string> = {
   high: "bg-red-500",
   medium: "bg-amber-500",
   low: "bg-emerald-500",
-  none: "bg-muted-foreground/40",
 };
 
 interface FocusPromptProps {
