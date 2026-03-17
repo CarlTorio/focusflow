@@ -144,7 +144,7 @@ export default function Planner() {
               )}
 
               <MissedTaskBanner missed={missedSchedules} onAction={(id, action) => handleMissed.mutate({ scheduleId: id, action })} />
-              <DueDateWarnings tasks={dueSoonTasks} />
+              
               <DailyRoutineSection onEditRoutine={handleEditRoutine} selectedDate={selectedDate} />
 
               <div className={cn("flex gap-6", isMobile && "flex-col")}>
