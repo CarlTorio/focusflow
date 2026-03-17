@@ -63,14 +63,13 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
     availableProjects,
     otherProjects,
     filteredSchedules,
-    completedTodaySchedules,
-    hiddenProjects,
+    lockedHighProjects,
     showAll,
     selectFocus,
     markFocusDone,
     toggleShowAll,
   } = useDailyFocus(date, schedules);
-  const [showOtherTasks, setShowOtherTasks] = useState(false);
+  const [showLockedHigh, setShowLockedHigh] = useState(false);
 
   const activeSchedules = isCurrentDay ? filteredSchedules : schedules;
 
