@@ -21,7 +21,7 @@ export default function Planner() {
   const userName = profile?.first_name ? `${profile.first_name} ${profile.last_name || ""}`.trim() : "";
   const [baseDate, setBaseDate] = useState(new Date());
   const [selectedMobileDay, setSelectedMobileDay] = useState(new Date());
-  const [focusScheduleId, setFocusScheduleId] = useState<string | null>(null);
+  
 
   // Date range calculations
   const dateRange = useMemo(() => {
