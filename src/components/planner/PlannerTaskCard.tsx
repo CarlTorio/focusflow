@@ -130,7 +130,7 @@ export function PlannerTaskCard({
               <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" />
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Due: {dueDate ? format(parseISO(dueDate), "MMM d") : "—"} · {doneSteps}/{totalSteps} steps done
+              Due: {dueDate ? format(parseISO(dueDate), "MMM d") : "—"} · {doneSteps}/{totalSteps} subtasks done
             </p>
           </div>
           {dueBadge && (
