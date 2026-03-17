@@ -255,7 +255,7 @@ export function PlannerTaskCard({
             className={cn(
               "text-sm font-semibold leading-tight",
               isCompleted && !isProject ? "line-through text-muted-foreground" : 
-              isCompleted && isProject && allSubtasksDone ? "line-through text-muted-foreground" :
+              isCompleted && isProject && totalSteps > 0 && doneSteps === totalSteps ? "line-through text-muted-foreground" :
               "text-foreground"
             )}
           >
