@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { format } from "date-fns";
 import type { ScheduleWithTask } from "@/hooks/usePlanner";
 
@@ -40,21 +40,13 @@ export function useDailyFocus(date: Date, schedules: ScheduleWithTask[]) {
   const [state, setState] = useState<DailyFocusState>(() => loadState(date));
   const [showAll, setShowAll] = useState(false);
 
-  // Validate focusedTaskId — if it doesn't exist in current schedules, auto-clear it
-  const validFocusedTaskId = useMemo(() => {
+  // Validate focusedTaskId — if task no longer in schedules, treat as null (pure derivation, no side effects)
+  const focusedTaskId = useMemo(() => {
     if (!state.focusedTaskId) return null;
+    if (schedules.length === 0) return state.focusedTaskId; // data not loaded yet
     const exists = schedules.some((s) => s.task_id === state.focusedTaskId);
     return exists ? state.focusedTaskId : null;
   }, [state.focusedTaskId, schedules]);
-
-  // Auto-clear invalid focus from state/storage (in useEffect, not during render)
-  useEffect(() => {
-    if (state.focusedTaskId && !validFocusedTaskId && schedules.length > 0) {
-      const next: DailyFocusState = { focusedTaskId: null, completedFocusIds: state.completedFocusIds };
-      setState(next);
-      saveState(date, next);
-    }
-  }, [state.focusedTaskId, validFocusedTaskId, schedules.length, state.completedFocusIds, date]);
 
   // All project schedules not yet completed in focus flow
   const allProjects = useMemo(() => {
@@ -75,28 +67,27 @@ export function useDailyFocus(date: Date, schedules: ScheduleWithTask[]) {
 
   // Check if ALL subtasks of focused project are completed
   const focusedAllSubtasksDone = useMemo(() => {
-    if (!state.focusedTaskId) return false;
-    const focusedSchedule = schedules.find((s) => s.task_id === state.focusedTaskId && s.task);
+    if (!focusedTaskId) return false;
+    const focusedSchedule = schedules.find((s) => s.task_id === focusedTaskId && s.task);
     if (!focusedSchedule?.task) return false;
     const subtasks = focusedSchedule.task.subtasks || [];
     if (subtasks.length === 0) {
-      // No subtasks — check if the schedule itself is done
-      const focusedSchedules = schedules.filter((s) => s.task_id === state.focusedTaskId);
+      const focusedSchedules = schedules.filter((s) => s.task_id === focusedTaskId);
       return focusedSchedules.length > 0 && focusedSchedules.every(
         (s) => s.status === "completed" || s.status === "skipped"
       );
     }
     return subtasks.every((st) => st.is_completed);
-  }, [schedules, state.focusedTaskId]);
+  }, [schedules, focusedTaskId]);
 
   // Should show prompt? Only when no focus selected AND there are high-priority projects
   const needsPrompt = useMemo(() => {
     if (availableProjects.length === 0) return false;
-    if (!state.focusedTaskId) return true;
+    if (!focusedTaskId) return true;
     return false;
-  }, [availableProjects, state.focusedTaskId]);
+  }, [availableProjects, focusedTaskId]);
 
-  const isWhatsNext = state.completedFocusIds.length > 0 && !state.focusedTaskId;
+  const isWhatsNext = state.completedFocusIds.length > 0 && !focusedTaskId;
 
   const selectFocus = useCallback(
     (taskId: string) => {
@@ -111,16 +102,15 @@ export function useDailyFocus(date: Date, schedules: ScheduleWithTask[]) {
     [date, state.completedFocusIds]
   );
 
-  // User explicitly marks focus as done
   const markFocusDone = useCallback(() => {
-    if (!state.focusedTaskId) return;
+    if (!focusedTaskId) return;
     const next: DailyFocusState = {
       focusedTaskId: null,
-      completedFocusIds: [...state.completedFocusIds, state.focusedTaskId],
+      completedFocusIds: [...state.completedFocusIds, focusedTaskId],
     };
     setState(next);
     saveState(date, next);
-  }, [date, state]);
+  }, [date, state, focusedTaskId]);
 
   const clearFocus = useCallback(() => {
     const next: DailyFocusState = { focusedTaskId: null, completedFocusIds: [] };
@@ -132,36 +122,34 @@ export function useDailyFocus(date: Date, schedules: ScheduleWithTask[]) {
 
   // Filter schedules: show focused project + all non-high priority (medium/low always visible)
   const filteredSchedules = useMemo(() => {
-    if (!state.focusedTaskId || needsPrompt) return schedules;
+    if (!focusedTaskId || needsPrompt) return schedules;
     return schedules.filter((s) => {
-      // Always show focused project
-      if (s.task_id === state.focusedTaskId) return true;
-      // Always show medium/low priority tasks
+      if (s.task_id === focusedTaskId) return true;
       const priority = s.task?.priority === "none" ? "low" : (s.task?.priority || "low");
       if (priority !== "high") return true;
       return false;
     });
-  }, [schedules, state, needsPrompt]);
+  }, [schedules, focusedTaskId, needsPrompt]);
 
   // Other HIGH priority projects (locked/collapsed when one is focused)
   const lockedHighProjects = useMemo(() => {
-    if (!state.focusedTaskId || needsPrompt) return [];
+    if (!focusedTaskId || needsPrompt) return [];
     const seen = new Set<string>();
     return schedules.filter((s) => {
       if (!s.task) return false;
       const priority = s.task.priority === "none" ? "low" : (s.task.priority || "low");
       if (priority !== "high") return false;
-      if (s.task_id === state.focusedTaskId) return false;
+      if (s.task_id === focusedTaskId) return false;
       if (state.completedFocusIds.includes(s.task_id)) return false;
       if (s.status === "completed" || s.status === "skipped") return false;
       if (seen.has(s.task_id)) return false;
       seen.add(s.task_id);
       return true;
     });
-  }, [schedules, state, needsPrompt]);
+  }, [schedules, focusedTaskId, state.completedFocusIds, needsPrompt]);
 
   return {
-    focusedTaskId: state.focusedTaskId,
+    focusedTaskId,
     needsPrompt,
     isWhatsNext,
     focusedAllSubtasksDone,
