@@ -4,8 +4,15 @@ import { ChevronDown, ChevronRight, Plus, Eye, EyeOff, Lock, CheckCircle2, Archi
 import { cn } from "@/lib/utils";
 import { PlannerTaskCard } from "./PlannerTaskCard";
 import { FocusPrompt } from "./FocusPrompt";
+import { EditProjectSheet } from "./EditProjectSheet";
 import { useDailyFocus } from "@/hooks/useDailyFocus";
 import type { ScheduleWithTask } from "@/hooks/usePlanner";
+import type { Tables } from "@/integrations/supabase/types";
+import {
+  Sheet, SheetContent, SheetHeader, SheetTitle,
+} from "@/components/ui/sheet";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 
 const PRIORITY_ORDER = ["high", "medium", "low"];
 
@@ -23,12 +30,24 @@ interface DayColumnProps {
   onOpenFocus: (scheduleId: string) => void;
   userName?: string;
   onCompleteSubtask?: (subtaskId: string, taskId: string) => void;
+  onUpdateTask?: (input: {
+    taskId: string;
+    title?: string;
+    priority?: string;
+    due_date?: string;
+    description?: string;
+    addSubtasks?: { title: string }[];
+    removeSubtaskIds?: string[];
+  }) => void;
 }
 
-export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus, userName, onCompleteSubtask }: DayColumnProps) {
+export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus, userName, onCompleteSubtask, onUpdateTask }: DayColumnProps) {
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({
     completed: true,
   });
+  const [editTask, setEditTask] = useState<(Tables<"tasks"> & { subtasks?: Tables<"subtasks">[] }) | null>(null);
+  const [notesTask, setNotesTask] = useState<Tables<"tasks"> | null>(null);
+  const [notesText, setNotesText] = useState("");
 
   const isCurrentDay = isToday(date);
   const isTomorrowDay = isTomorrow(date);
