@@ -303,6 +303,7 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
       due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : format(addDays(new Date(), 365), "yyyy-MM-dd"),
       priority,
       subtasks: validSubtasks,
+      start_date: startDate ? format(startDate, "yyyy-MM-dd") : undefined,
     });
   };
 
