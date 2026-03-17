@@ -114,6 +114,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus 
                       lockState={lockState}
                       onComplete={onComplete}
                       onOpenFocus={onOpenFocus}
+                      allTodaySchedules={schedules}
                     />
                   ))}
                 </div>
@@ -149,6 +150,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus 
                     lockState={lockState}
                     onComplete={onComplete}
                     onOpenFocus={onOpenFocus}
+                    allTodaySchedules={schedules}
                   />
                 ))}
               </div>
@@ -173,7 +175,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus 
           </div>
         )}
 
-        {/* Routine placeholder */}
+        {/* Add task */}
         <button
           onClick={onAddTask}
           className="flex w-full items-center gap-2 rounded-xl border-2 border-dashed border-border px-3 py-3 text-left transition-colors hover:border-primary/30 hover:bg-primary/5"

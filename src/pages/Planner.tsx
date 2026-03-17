@@ -6,7 +6,7 @@ import { MobileHeader } from "@/components/navigation/MobileHeader";
 import { cn } from "@/lib/utils";
 import { DayColumn } from "@/components/planner/DayColumn";
 import { MissedTaskBanner } from "@/components/planner/MissedTaskBanner";
-import { DueDateWarnings } from "@/components/planner/DueDateWarnings";
+
 import { FocusMode } from "@/components/planner/FocusMode";
 import { DailyRoutineSection } from "@/components/planner/DailyRoutineSection";
 import { Skeleton } from "@/components/ui/skeleton";

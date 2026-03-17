@@ -53,102 +53,48 @@ export interface CreateSimpleInput {
 
 export type CreateTaskInput = CreateProjectInput | CreateRecurringInput | CreateSimpleInput;
 
-// ─── Distribution Algorithm ───────────────────────────────────────────────────
+// ─── Subtask-based Distribution ───────────────────────────────────────────────
 
-interface DistributeOptions {
-  startDate: string;
-  dueDate: string;
-  dailyLimit: number;
-  existingHoursByDate: Record<string, number>;
-}
-
-interface ScheduleSlot {
-  date: string;
-  hours: number;
-  displayTitle: string;
-  subtaskIndex?: number;
-  subtaskId?: string;
-}
-
-function distributeTasks(
-  subtasks: SubtaskInput[],
-  taskHours: number,
-  taskTitle: string,
-  opts: DistributeOptions
-): ScheduleSlot[] {
-  const { startDate, dueDate, dailyLimit, existingHoursByDate } = opts;
-  const slots: ScheduleSlot[] = [];
-
+function distributeSubtasks(
+  subtasks: { id: string; title: string }[],
+  startDate: string,
+  dueDate: string
+): { subtaskId: string; subtaskTitle: string; scheduledDate: string }[] {
   const start = parseISO(startDate);
   const end = parseISO(dueDate);
-  const days: string[] = [];
-  let d = start;
-  while (d <= end) {
-    days.push(format(d, "yyyy-MM-dd"));
-    d = addDays(d, 1);
-  }
+  const daysAvailable = Math.max(1, differenceInCalendarDays(end, start) + 1);
+  const result: { subtaskId: string; subtaskTitle: string; scheduledDate: string }[] = [];
 
-  if (days.length === 0) return [];
+  if (subtasks.length <= daysAvailable) {
+    // Assign one subtask per day, front-loaded
+    subtasks.forEach((st, i) => {
+      result.push({
+        subtaskId: st.id,
+        subtaskTitle: st.title,
+        scheduledDate: format(addDays(start, i), "yyyy-MM-dd"),
+      });
+    });
+  } else {
+    // More subtasks than days — multiple per day
+    const perDay = Math.ceil(subtasks.length / daysAvailable);
+    let dayIdx = 0;
+    let assigned = 0;
 
-  const hasSubtasks = subtasks.length > 0 && subtasks[0].title !== taskTitle;
-
-  const resolved = subtasks.map((st, i) => ({
-    index: i,
-    title: st.title,
-    hours:
-      st.estimated_hours && st.estimated_hours > 0
-        ? st.estimated_hours
-        : taskHours / subtasks.length,
-  }));
-
-  let dayIdx = 0;
-  const remainingPerDay: number[] = days.map(
-    (d) => dailyLimit - (existingHoursByDate[d] || 0)
-  );
-
-  for (let si = 0; si < resolved.length; si++) {
-    let remaining = resolved[si].hours;
-    let part = 1;
-
-    while (remaining > 0.01) {
-      while (dayIdx < days.length && remainingPerDay[dayIdx] <= 0) {
+    subtasks.forEach((st) => {
+      result.push({
+        subtaskId: st.id,
+        subtaskTitle: st.title,
+        scheduledDate: format(addDays(start, Math.min(dayIdx, daysAvailable - 1)), "yyyy-MM-dd"),
+      });
+      assigned++;
+      if (assigned >= perDay) {
         dayIdx++;
+        assigned = 0;
       }
-      if (dayIdx >= days.length) {
-        const lastIdx = days.length - 1;
-        slots.push({
-          date: days[lastIdx],
-          hours: Math.round(remaining * 100) / 100,
-          displayTitle:
-            part > 1
-              ? `${resolved[si].title} (pt ${part})`
-              : resolved[si].title,
-          subtaskIndex: hasSubtasks ? resolved[si].index : undefined,
-        });
-        remaining = 0;
-      } else {
-        const canFit = Math.min(remainingPerDay[dayIdx], remaining);
-        const isPartial = remaining - canFit > 0.01;
-
-        slots.push({
-          date: days[dayIdx],
-          hours: Math.round(canFit * 100) / 100,
-          displayTitle: isPartial
-            ? `${resolved[si].title} (pt ${part})`
-            : part > 1
-            ? `${resolved[si].title} (pt ${part})`
-            : resolved[si].title,
-          subtaskIndex: hasSubtasks ? resolved[si].index : undefined,
-        });
-
-        remainingPerDay[dayIdx] -= canFit;
-        remaining -= canFit;
-        part++;
-      }
-    }
+    });
   }
 
-  return slots;
+  return result;
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
@@ -192,13 +138,12 @@ export function usePlanner(startDate: string, endDate: string) {
         subtasksByTask.set(st.task_id, arr);
       });
 
-      // Build subtask map by id for linking
       const subtaskMap = new Map<string, Tables<"subtasks">>();
       (subtaskRows || []).forEach((st) => subtaskMap.set(st.id, st));
 
       return schedules.map((s) => {
         const task = taskMap.get(s.task_id) || null;
-        const subtask = (s as any).subtask_id ? subtaskMap.get((s as any).subtask_id) || null : null;
+        const subtask = s.subtask_id ? subtaskMap.get(s.subtask_id) || null : null;
         return {
           ...s,
           task: task
@@ -214,7 +159,7 @@ export function usePlanner(startDate: string, endDate: string) {
     enabled: !!user,
   });
 
-  // ─── Missed tasks query (yesterday's incomplete) ────────────────────────────
+  // ─── Missed tasks query ────────────────────────────────────────────────────
   const yesterday = format(addDays(new Date(), -1), "yyyy-MM-dd");
   const missedQuery = useQuery({
     queryKey: ["missed_schedules", yesterday],
@@ -234,8 +179,7 @@ export function usePlanner(startDate: string, endDate: string) {
         .in("id", taskIds);
       const taskMap = new Map((tasks || []).map((t) => [t.id, t]));
 
-      // Get subtasks for display
-      const subtaskIds = data.map((s) => (s as any).subtask_id).filter(Boolean);
+      const subtaskIds = data.map((s) => s.subtask_id).filter(Boolean) as string[];
       const subtaskMap = new Map<string, Tables<"subtasks">>();
       if (subtaskIds.length > 0) {
         const { data: sts } = await supabase.from("subtasks").select("*").in("id", subtaskIds);
@@ -245,14 +189,13 @@ export function usePlanner(startDate: string, endDate: string) {
       return data.map((s) => ({
         ...s,
         task: taskMap.get(s.task_id) || null,
-        subtask: (s as any).subtask_id ? subtaskMap.get((s as any).subtask_id) || null : null,
+        subtask: s.subtask_id ? subtaskMap.get(s.subtask_id) || null : null,
       })) as ScheduleWithTask[];
     },
     enabled: !!user,
   });
 
   // ─── Due date warnings query ──────────────────────────────────────────────
-  const today = format(new Date(), "yyyy-MM-dd");
   const dueSoonQuery = useQuery({
     queryKey: ["due_soon_tasks"],
     queryFn: async () => {
@@ -271,29 +214,37 @@ export function usePlanner(startDate: string, endDate: string) {
         .select("*")
         .in("task_id", taskIds);
 
+      // Get subtasks for projects
+      const { data: subtaskRows } = await supabase
+        .from("subtasks")
+        .select("*")
+        .in("task_id", taskIds);
+
       return tasks.map((t) => {
         const taskSchedules = (schedules || []).filter((s) => s.task_id === t.id);
-        const completedHours = taskSchedules
-          .filter((s) => s.status === "completed")
-          .reduce((sum, s) => sum + Number(s.allocated_hours), 0);
-        const remainingHours = Number(t.estimated_hours) - completedHours;
+        const taskSubtasks = (subtaskRows || []).filter((st) => st.task_id === t.id);
+        const completedSubtasks = taskSubtasks.filter((st) => st.is_completed);
+        const totalSubtasks = taskSubtasks.length;
+        const remainingSubtasks = totalSubtasks - completedSubtasks.length;
         const daysUntilDue = differenceInCalendarDays(parseISO(t.due_date), new Date());
 
         return {
           ...t,
-          remainingHours: Math.max(0, remainingHours),
+          remainingSubtasks,
+          totalSubtasks,
+          remainingHours: Math.max(0, Number(t.estimated_hours) - taskSchedules.filter((s) => s.status === "completed").reduce((sum, s) => sum + Number(s.allocated_hours), 0)),
           daysUntilDue,
           isOverdue: daysUntilDue < 0,
           isDueToday: daysUntilDue === 0,
           isDueTomorrow: daysUntilDue === 1,
           isDueIn2Days: daysUntilDue === 2,
         };
-      }).filter((t) => t.remainingHours > 0);
+      }).filter((t) => t.totalSubtasks > 0 ? t.remainingSubtasks > 0 : t.remainingHours > 0);
     },
     enabled: !!user,
   });
 
-  // ─── Complete schedule ─────────────────────────────────────────────────────
+  // ─── Complete schedule (with advancing logic) ─────────────────────────────
   const completeSchedule = useMutation({
     mutationFn: async ({
       scheduleId,
@@ -305,33 +256,110 @@ export function usePlanner(startDate: string, endDate: string) {
       const schedule = schedulesQuery.data?.find((s) => s.id === scheduleId);
       if (!schedule) throw new Error("Schedule not found");
 
+      // Mark schedule as completed
       await supabase
         .from("task_schedules")
         .update({
           status: "completed",
           actual_hours_spent: actualHours ?? schedule.allocated_hours,
-        } as any)
+        })
         .eq("id", scheduleId);
 
-      // If this schedule has a subtask_id, check if all schedules for that subtask are done
-      const subtaskId = (schedule as any).subtask_id;
+      // Mark subtask as completed if it has one
+      const subtaskId = schedule.subtask_id;
       if (subtaskId) {
-        const { data: subtaskSchedules } = await supabase
-          .from("task_schedules")
-          .select("id, status")
-          .eq("subtask_id", subtaskId)
-          .neq("id", scheduleId);
+        await supabase
+          .from("subtasks")
+          .update({ is_completed: true })
+          .eq("id", subtaskId);
 
-        const allDone = !subtaskSchedules || subtaskSchedules.every((s) => s.status === "completed");
-        if (allDone) {
-          await supabase
-            .from("subtasks")
-            .update({ is_completed: true })
-            .eq("id", subtaskId);
+        // Check if there's a next subtask to unlock (advancing feature)
+        const task = schedule.task;
+        if (task?.subtasks && task.subtasks.length > 0) {
+          const allSubtasks = [...task.subtasks].sort((a, b) => a.order_index - b.order_index);
+          const currentIdx = allSubtasks.findIndex((st) => st.id === subtaskId);
+          
+          // Find the next uncompleted subtask
+          let nextSubtask: Tables<"subtasks"> | null = null;
+          for (let i = currentIdx + 1; i < allSubtasks.length; i++) {
+            if (!allSubtasks[i].is_completed) {
+              nextSubtask = allSubtasks[i];
+              break;
+            }
+          }
+
+          // Check if ALL subtasks are now done (project complete)
+          const completedCount = allSubtasks.filter((st) => st.is_completed || st.id === subtaskId).length;
+          
+          if (completedCount >= allSubtasks.length) {
+            // Project complete!
+            await supabase
+              .from("tasks")
+              .update({ status: "completed", completed_at: new Date().toISOString() })
+              .eq("id", task.id);
+
+            // Complete all remaining schedules
+            await supabase
+              .from("task_schedules")
+              .update({ status: "completed" })
+              .eq("task_id", task.id)
+              .neq("status", "completed");
+
+            return { displayTitle: task.title, projectComplete: true };
+          }
+
+          // If there's a next subtask, redistribute remaining
+          if (nextSubtask) {
+            const todayStr = format(new Date(), "yyyy-MM-dd");
+            const tomorrowStr = format(addDays(new Date(), 1), "yyyy-MM-dd");
+
+            // Get remaining uncompleted subtasks
+            const remainingSubtasks = allSubtasks.filter(
+              (st) => !st.is_completed && st.id !== subtaskId
+            );
+
+            // Delete future scheduled schedules for this task
+            await supabase
+              .from("task_schedules")
+              .delete()
+              .eq("task_id", task.id)
+              .in("status", ["scheduled"])
+              .gte("scheduled_date", tomorrowStr);
+
+            // Redistribute remaining subtasks starting from tomorrow
+            if (remainingSubtasks.length > 0 && task.due_date) {
+              const slots = distributeSubtasks(
+                remainingSubtasks.map((st) => ({ id: st.id, title: st.title })),
+                tomorrowStr,
+                task.due_date
+              );
+
+              const newSchedules = slots.map((slot) => ({
+                task_id: task.id,
+                user_id: schedule.user_id,
+                scheduled_date: slot.scheduledDate,
+                allocated_hours: 0,
+                status: "scheduled",
+                is_locked: slot.scheduledDate !== todayStr,
+                display_title: slot.subtaskTitle,
+                subtask_id: slot.subtaskId,
+              }));
+
+              if (newSchedules.length > 0) {
+                await supabase.from("task_schedules").insert(newSchedules as any);
+              }
+            }
+
+            return {
+              displayTitle: schedule.display_title || task.title,
+              nextSubtaskTitle: nextSubtask.title,
+              projectComplete: false,
+            };
+          }
         }
       }
 
-      // Check if ALL task schedules are completed
+      // Check if ALL task schedules are completed (non-project tasks)
       const { data: remaining } = await supabase
         .from("task_schedules")
         .select("id")
@@ -346,18 +374,24 @@ export function usePlanner(startDate: string, endDate: string) {
           .eq("id", schedule.task_id);
       }
 
-      // Get display title for toast
-      const displayTitle = (schedule as any).display_title || schedule.task?.title || "Task";
-      return displayTitle;
+      const displayTitle = schedule.display_title || schedule.task?.title || "Task";
+      return { displayTitle, projectComplete: false };
     },
-    onSuccess: (displayTitle) => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["planner_schedules"] });
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["focus_schedules"] });
       queryClient.invalidateQueries({ queryKey: ["progress-today"] });
       queryClient.invalidateQueries({ queryKey: ["priority_tasks_overview"] });
       queryClient.invalidateQueries({ queryKey: ["due_soon_tasks"] });
-      toast({ title: `✓ ${displayTitle} done!` });
+
+      if (result?.projectComplete) {
+        toast({ title: `🎉 Project Complete! "${result.displayTitle}" is done!` });
+      } else if (result?.nextSubtaskTitle) {
+        toast({ title: `✓ Step done! Next: ${result.nextSubtaskTitle}` });
+      } else {
+        toast({ title: `✓ ${result?.displayTitle || "Task"} done!` });
+      }
     },
     onError: (err: Error) => {
       toast({ title: "Error", description: err.message, variant: "destructive" });
@@ -401,29 +435,60 @@ export function usePlanner(startDate: string, endDate: string) {
           end_time: missed.end_time,
           status: "scheduled",
           is_locked: false,
-          subtask_id: (missed as any).subtask_id || null,
-          display_title: (missed as any).display_title || missed.task?.title || "",
-        } as any);
+          subtask_id: missed.subtask_id || null,
+          display_title: missed.display_title || missed.task?.title || "",
+        });
       } else if (action === "adjust") {
         await supabase
           .from("task_schedules")
           .update({ status: "missed" })
           .eq("id", scheduleId);
 
-        const subtaskId = (missed as any).subtask_id;
+        const subtaskId = missed.subtask_id;
 
-        if (subtaskId) {
-          // Smart adjust: shift this and all future subtask schedules forward by 1 day
-          const { data: futureSchedules } = await supabase
-            .from("task_schedules")
+        if (subtaskId && missed.task) {
+          // For project tasks: reschedule missed + shift remaining
+          // Get all remaining subtasks for this project
+          const { data: allSubtasks } = await supabase
+            .from("subtasks")
             .select("*")
             .eq("task_id", missed.task_id)
-            .in("status", ["scheduled", "in_progress"])
-            .neq("id", scheduleId)
-            .gte("scheduled_date", yesterday)
-            .order("scheduled_date", { ascending: true });
+            .eq("is_completed", false)
+            .order("order_index", { ascending: true });
 
-          // Create new schedule for missed subtask today
+          // Delete future scheduled schedules
+          await supabase
+            .from("task_schedules")
+            .delete()
+            .eq("task_id", missed.task_id)
+            .in("status", ["scheduled"])
+            .gte("scheduled_date", todayStr);
+
+          // Redistribute all remaining subtasks from today
+          if (allSubtasks && allSubtasks.length > 0) {
+            const slots = distributeSubtasks(
+              allSubtasks.map((st) => ({ id: st.id, title: st.title })),
+              todayStr,
+              missed.task.due_date
+            );
+
+            const newSchedules = slots.map((slot) => ({
+              task_id: missed.task_id,
+              user_id: missed.user_id,
+              scheduled_date: slot.scheduledDate,
+              allocated_hours: 0,
+              status: "scheduled",
+              is_locked: slot.scheduledDate !== todayStr,
+              display_title: slot.subtaskTitle,
+              subtask_id: slot.subtaskId,
+            }));
+
+            if (newSchedules.length > 0) {
+              await supabase.from("task_schedules").insert(newSchedules as any);
+            }
+          }
+        } else {
+          // Non-project task: just reschedule to today
           await supabase.from("task_schedules").insert({
             task_id: missed.task_id,
             user_id: missed.user_id,
@@ -431,61 +496,8 @@ export function usePlanner(startDate: string, endDate: string) {
             allocated_hours: missed.allocated_hours,
             status: "scheduled",
             is_locked: false,
-            subtask_id: subtaskId,
-            display_title: (missed as any).display_title || "",
-          } as any);
-
-          // Shift all future schedules forward by 1 day
-          if (futureSchedules && futureSchedules.length > 0) {
-            for (const fs of futureSchedules) {
-              const newDate = format(addDays(parseISO(fs.scheduled_date), 1), "yyyy-MM-dd");
-              // Check if shifting past due date — compress if needed
-              await supabase
-                .from("task_schedules")
-                .update({ scheduled_date: newDate })
-                .eq("id", fs.id);
-            }
-          }
-        } else {
-          // No subtasks — redistribute remaining hours evenly
-          const { data: allSchedules } = await supabase
-            .from("task_schedules")
-            .select("*")
-            .eq("task_id", missed.task_id);
-
-          const completedHours = (allSchedules || [])
-            .filter((s) => s.status === "completed")
-            .reduce((sum, s) => sum + Number(s.allocated_hours), 0);
-          const totalHours = Number(missed.task?.estimated_hours || 0);
-          const remainingHours = totalHours - completedHours;
-
-          if (missed.task?.due_date) {
-            const daysLeft = Math.max(1, differenceInCalendarDays(parseISO(missed.task.due_date), new Date()));
-            const newDailyHours = remainingHours / daysLeft;
-
-            // Update future schedules
-            const futureSchedules = (allSchedules || []).filter(
-              (s) => s.status === "scheduled" && s.scheduled_date >= todayStr && s.id !== scheduleId
-            );
-
-            for (const fs of futureSchedules) {
-              await supabase
-                .from("task_schedules")
-                .update({ allocated_hours: Math.round(newDailyHours * 100) / 100 })
-                .eq("id", fs.id);
-            }
-
-            // Also add today's portion
-            await supabase.from("task_schedules").insert({
-              task_id: missed.task_id,
-              user_id: missed.user_id,
-              scheduled_date: todayStr,
-              allocated_hours: Math.round(newDailyHours * 100) / 100,
-              status: "scheduled",
-              is_locked: false,
-              display_title: (missed as any).display_title || missed.task?.title || "",
-            } as any);
-          }
+            display_title: missed.display_title || missed.task?.title || "",
+          });
         }
       }
     },
@@ -507,6 +519,7 @@ export function usePlanner(startDate: string, endDate: string) {
       if (!user) throw new Error("Not authenticated");
 
       const todayStr = format(new Date(), "yyyy-MM-dd");
+      const tomorrowStr = format(addDays(new Date(), 1), "yyyy-MM-dd");
 
       if (input.kind === "simple") {
         const { data: task, error: tErr } = await supabase
@@ -533,7 +546,7 @@ export function usePlanner(startDate: string, endDate: string) {
           status: "scheduled",
           is_locked: input.scheduled_date !== todayStr,
           display_title: input.title,
-        } as any);
+        });
         return task;
       }
 
@@ -586,19 +599,16 @@ export function usePlanner(startDate: string, endDate: string) {
       }
 
       if (input.kind === "project") {
+        // Create the task (estimated_hours=0 for subtask-based projects)
         const { data: task, error: tErr } = await supabase
           .from("tasks")
           .insert({
             user_id: user.id,
             title: input.title,
             description: input.description || null,
-            estimated_hours: input.estimated_hours,
+            estimated_hours: 0,
             due_date: input.due_date,
             priority: input.priority,
-            preferred_time: input.preferred_time || null,
-            icon_emoji: input.icon_emoji || null,
-            icon_color: input.icon_color || null,
-            tags: input.tags || null,
             status: "pending",
           })
           .select()
@@ -614,7 +624,6 @@ export function usePlanner(startDate: string, endDate: string) {
               input.subtasks.map((st, i) => ({
                 task_id: task.id,
                 title: st.title,
-                estimated_hours: st.estimated_hours ?? null,
                 order_index: i,
               }))
             )
@@ -622,63 +631,28 @@ export function usePlanner(startDate: string, endDate: string) {
           insertedSubtasks = sts || [];
         }
 
-        // Fetch user's daily hour limit
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("daily_hour_limit")
-          .eq("id", user.id)
-          .single();
-        const dailyLimit = Number(profile?.daily_hour_limit) || 8;
+        // Distribute subtasks across days
+        if (insertedSubtasks.length > 0) {
+          const slots = distributeSubtasks(
+            insertedSubtasks.map((st) => ({ id: st.id, title: st.title })),
+            tomorrowStr,
+            input.due_date
+          );
 
-        // Fetch existing hours on each day
-        const tomorrow = format(addDays(new Date(), 1), "yyyy-MM-dd");
-        const { data: existingSchedules } = await supabase
-          .from("task_schedules")
-          .select("scheduled_date, allocated_hours")
-          .gte("scheduled_date", tomorrow)
-          .lte("scheduled_date", input.due_date)
-          .eq("user_id", user.id);
+          const scheduleRows = slots.map((slot) => ({
+            task_id: task.id,
+            user_id: user.id,
+            scheduled_date: slot.scheduledDate,
+            allocated_hours: 0,
+            status: "scheduled",
+            is_locked: slot.scheduledDate !== todayStr,
+            display_title: slot.subtaskTitle,
+            subtask_id: slot.subtaskId,
+          }));
 
-        const existingByDate: Record<string, number> = {};
-        (existingSchedules || []).forEach((s) => {
-          existingByDate[s.scheduled_date] =
-            (existingByDate[s.scheduled_date] || 0) + Number(s.allocated_hours);
-        });
-
-        // Run distribution
-        const subtasksToDistribute =
-          input.subtasks && input.subtasks.length > 0
-            ? input.subtasks
-            : [{ title: task.title, estimated_hours: input.estimated_hours }];
-
-        const slots = distributeTasks(subtasksToDistribute, input.estimated_hours, task.title, {
-          startDate: tomorrow,
-          dueDate: input.due_date,
-          dailyLimit,
-          existingHoursByDate: existingByDate,
-        });
-
-        if (slots.length > 0) {
-          const scheduleRows: any[] = slots.map((slot) => {
-            const matchedSubtask =
-              slot.subtaskIndex !== undefined
-                ? insertedSubtasks[slot.subtaskIndex]
-                : undefined;
-
-            return {
-              task_id: task.id,
-              user_id: user.id,
-              scheduled_date: slot.date,
-              allocated_hours: slot.hours,
-              start_time: input.preferred_time || null,
-              status: "scheduled",
-              is_locked: slot.date !== todayStr,
-              display_title: slot.displayTitle,
-              subtask_id: matchedSubtask?.id || null,
-            };
-          });
-
-          await supabase.from("task_schedules").insert(scheduleRows);
+          if (scheduleRows.length > 0) {
+            await supabase.from("task_schedules").insert(scheduleRows as any);
+          }
         }
 
         return task;
