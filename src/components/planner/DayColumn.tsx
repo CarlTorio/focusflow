@@ -1,8 +1,10 @@
 import { useState, useMemo } from "react";
 import { format, isToday, isTomorrow } from "date-fns";
-import { ChevronDown, ChevronRight, Plus } from "lucide-react";
+import { ChevronDown, ChevronRight, Plus, Eye, EyeOff, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PlannerTaskCard } from "./PlannerTaskCard";
+import { FocusPrompt } from "./FocusPrompt";
+import { useDailyFocus } from "@/hooks/useDailyFocus";
 import type { ScheduleWithTask } from "@/hooks/usePlanner";
 
 const PRIORITY_ORDER = ["high", "medium", "low", "none"];
