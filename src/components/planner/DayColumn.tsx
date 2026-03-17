@@ -244,7 +244,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
         )}
 
         {/* Empty state */}
-        {totalActive === 0 && totalCompleted === 0 && !needsPrompt && (
+        {schedules.length === 0 && !needsPrompt && (
           <div className="rounded-xl border-2 border-dashed border-border p-6 text-center">
             <p className="text-sm font-medium text-foreground">Nothing planned</p>
             <p className="text-xs text-muted-foreground mt-0.5">Add a task to get started</p>
