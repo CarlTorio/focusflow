@@ -22,6 +22,7 @@ interface DayColumnProps {
   onComplete: (scheduleId: string) => void;
   onAddTask: () => void;
   onOpenFocus: (scheduleId: string) => void;
+  userName?: string;
 }
 
 export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus }: DayColumnProps) {
