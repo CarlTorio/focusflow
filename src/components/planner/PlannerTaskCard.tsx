@@ -51,6 +51,8 @@ export function PlannerTaskCard({
   allTodaySchedules,
   isFocusedProject,
   onCompleteSubtask,
+  onEdit,
+  onViewNotes,
 }: PlannerTaskCardProps) {
   const task = schedule.task;
   const isCompleted = schedule.status === "completed";
