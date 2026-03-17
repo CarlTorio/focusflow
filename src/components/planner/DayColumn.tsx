@@ -68,7 +68,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
       if ((s.status === "completed" || s.status === "skipped") && !isProjectSubtask) {
         groups.completed.push(s);
       } else {
-        const p = s.task?.priority || "none";
+        const p = s.task?.priority === "none" ? "low" : (s.task?.priority || "low");
         groups[p] = groups[p] || [];
         groups[p].push(s);
       }
