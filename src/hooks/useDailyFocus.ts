@@ -23,17 +23,12 @@ function saveState(date: Date, state: DailyFocusState) {
   localStorage.setItem(getStorageKey(date), JSON.stringify(state));
 }
 
-// Get unique project schedules (has subtasks, not completed/skipped)
+// Get unique project schedules (not yet completed in focus flow)
 function getUniqueProjects(schedules: ScheduleWithTask[], completedFocusIds: string[]) {
   const seen = new Set<string>();
   return schedules.filter((s) => {
     if (!s.task) return false;
-    if (!s.task.subtasks || s.task.subtasks.length === 0) {
-      // Also include projects without subtasks
-      if (s.status === "completed" || s.status === "skipped") return false;
-    } else {
-      if (s.status === "completed" || s.status === "skipped") return false;
-    }
+    if (s.status === "completed" || s.status === "skipped") return false;
     if (completedFocusIds.includes(s.task_id)) return false;
     if (seen.has(s.task_id)) return false;
     seen.add(s.task_id);
@@ -62,42 +57,54 @@ export function useDailyFocus(date: Date, schedules: ScheduleWithTask[]) {
     [allProjects]
   );
 
-  // Check if focused project's today schedule is done
-  const focusedTaskDoneToday = useMemo(() => {
+  // Check if ALL subtasks of focused project are completed
+  const focusedAllSubtasksDone = useMemo(() => {
     if (!state.focusedTaskId) return false;
-    const focusedSchedules = schedules.filter(
-      (s) => s.task_id === state.focusedTaskId
-    );
-    return focusedSchedules.length > 0 && focusedSchedules.every(
-      (s) => s.status === "completed" || s.status === "skipped"
-    );
+    const focusedSchedule = schedules.find((s) => s.task_id === state.focusedTaskId && s.task);
+    if (!focusedSchedule?.task) return false;
+    const subtasks = focusedSchedule.task.subtasks || [];
+    if (subtasks.length === 0) {
+      // No subtasks — check if the schedule itself is done
+      const focusedSchedules = schedules.filter((s) => s.task_id === state.focusedTaskId);
+      return focusedSchedules.length > 0 && focusedSchedules.every(
+        (s) => s.status === "completed" || s.status === "skipped"
+      );
+    }
+    return subtasks.every((st) => st.is_completed);
   }, [schedules, state.focusedTaskId]);
 
-  // Should show prompt?
+  // Should show prompt? Only when no focus selected (never auto-transition)
   const needsPrompt = useMemo(() => {
-    if (allProjects.length === 0) return false;
+    if (allProjects.length === 0 && !state.focusedTaskId) return false;
     if (!state.focusedTaskId) return true;
-    if (focusedTaskDoneToday) return true;
     return false;
-  }, [allProjects, state.focusedTaskId, focusedTaskDoneToday]);
+  }, [allProjects, state.focusedTaskId]);
 
-  const isWhatsNext = state.focusedTaskId !== null && focusedTaskDoneToday;
+  const isWhatsNext = state.completedFocusIds.length > 0 && !state.focusedTaskId;
 
   const selectFocus = useCallback(
     (taskId: string) => {
-      const newCompleted = focusedTaskDoneToday && state.focusedTaskId
-        ? [...state.completedFocusIds, state.focusedTaskId]
-        : state.completedFocusIds;
       const next: DailyFocusState = {
         focusedTaskId: taskId,
-        completedFocusIds: newCompleted,
+        completedFocusIds: state.completedFocusIds,
       };
       setState(next);
       saveState(date, next);
       setShowAll(false);
     },
-    [date, state, focusedTaskDoneToday]
+    [date, state.completedFocusIds]
   );
+
+  // User explicitly marks focus as done
+  const markFocusDone = useCallback(() => {
+    if (!state.focusedTaskId) return;
+    const next: DailyFocusState = {
+      focusedTaskId: null,
+      completedFocusIds: [...state.completedFocusIds, state.focusedTaskId],
+    };
+    setState(next);
+    saveState(date, next);
+  }, [date, state]);
 
   const clearFocus = useCallback(() => {
     const next: DailyFocusState = { focusedTaskId: null, completedFocusIds: [] };
@@ -143,6 +150,7 @@ export function useDailyFocus(date: Date, schedules: ScheduleWithTask[]) {
     focusedTaskId: state.focusedTaskId,
     needsPrompt,
     isWhatsNext,
+    focusedAllSubtasksDone,
     availableProjects,
     otherProjects,
     filteredSchedules,
@@ -150,6 +158,7 @@ export function useDailyFocus(date: Date, schedules: ScheduleWithTask[]) {
     hiddenProjects,
     showAll,
     selectFocus,
+    markFocusDone,
     clearFocus,
     toggleShowAll,
   };
