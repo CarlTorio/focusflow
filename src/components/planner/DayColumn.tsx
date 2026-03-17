@@ -7,13 +7,12 @@ import { FocusPrompt } from "./FocusPrompt";
 import { useDailyFocus } from "@/hooks/useDailyFocus";
 import type { ScheduleWithTask } from "@/hooks/usePlanner";
 
-const PRIORITY_ORDER = ["high", "medium", "low", "none"];
+const PRIORITY_ORDER = ["high", "medium", "low"];
 
 const PRIORITY_META: Record<string, { label: string; dot: string; header: string }> = {
   high: { label: "HIGH", dot: "bg-red-500", header: "text-red-600 dark:text-red-400" },
   medium: { label: "MED", dot: "bg-amber-500", header: "text-amber-600 dark:text-amber-400" },
   low: { label: "LOW", dot: "bg-emerald-500", header: "text-emerald-600 dark:text-emerald-400" },
-  none: { label: "NONE", dot: "bg-gray-400", header: "text-muted-foreground" },
 };
 
 interface DayColumnProps {
