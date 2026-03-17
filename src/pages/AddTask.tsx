@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, GripVertical, MoreHorizontal, Clock, CalendarIcon, ChevronDown } from "lucide-react";
+import { ArrowLeft, GripVertical, MoreHorizontal, Clock, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
