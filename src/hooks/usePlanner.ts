@@ -386,11 +386,11 @@ export function usePlanner(startDate: string, endDate: string) {
       queryClient.invalidateQueries({ queryKey: ["due_soon_tasks"] });
 
       if (result?.projectComplete) {
-        toast({ title: `Project complete — "${result.displayTitle}"` });
+        toast({ title: `🎉 Project Complete! "${result.displayTitle}" is done!` });
       } else if (result?.nextSubtaskTitle) {
-        toast({ title: `Done. Next: ${result.nextSubtaskTitle}` });
+        toast({ title: `✓ Subtask done! Next: ${result.nextSubtaskTitle}` });
       } else {
-        toast({ title: `${result?.displayTitle || "Task"} completed` });
+        toast({ title: `✓ ${result?.displayTitle || "Task"} done!` });
       }
     },
     onError: (err: Error) => {
@@ -666,10 +666,10 @@ export function usePlanner(startDate: string, endDate: string) {
       toast({
         title:
           input.kind === "project"
-            ? "Project scheduled"
+            ? "Project scheduled! 🗓️"
             : input.kind === "recurring"
-            ? "Routine added"
-            : "Task added",
+            ? "Routine added! 🔄"
+            : "Task added! ✅",
       });
     },
     onError: (err: Error) => {

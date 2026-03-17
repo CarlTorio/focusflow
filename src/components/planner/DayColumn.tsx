@@ -162,7 +162,8 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus 
         {/* Empty state */}
         {totalActive === 0 && totalCompleted === 0 && (
           <div className="rounded-xl border-2 border-dashed border-border p-6 text-center">
-            <p className="text-sm font-medium text-foreground">Nothing planned</p>
+            <p className="text-2xl mb-1">✨</p>
+            <p className="text-sm font-medium text-foreground">Nothing planned!</p>
             <p className="text-xs text-muted-foreground mt-0.5">Add a task to get started</p>
           </div>
         )}
@@ -170,7 +171,8 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus 
         {/* All done */}
         {totalActive === 0 && totalCompleted > 0 && (
           <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-center">
-            <p className="text-sm font-semibold text-primary">All done for today</p>
+            <p className="text-xl mb-1">🎉</p>
+            <p className="text-sm font-semibold text-primary">All done for today!</p>
           </div>
         )}
 
