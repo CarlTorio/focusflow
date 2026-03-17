@@ -147,7 +147,7 @@ export default function Planner() {
                     schedules={schedulesByDate[format(selectedMobileDay, "yyyy-MM-dd")] || []}
                     onComplete={(id) => completeSchedule.mutate({ scheduleId: id })}
                     onAddTask={() => openAddTask(selectedMobileDay)}
-                    onOpenFocus={(id) => setFocusScheduleId(id)}
+                    onOpenFocus={() => {}}
                     userName={userName}
                     onCompleteSubtask={(sid, tid) => completeSubtaskDirect.mutate({ subtaskId: sid, taskId: tid })}
                     onUpdateTask={(input) => updateTask.mutate(input)}
