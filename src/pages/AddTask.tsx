@@ -259,7 +259,8 @@ function RoutineTabWithManagement({
 // ─── Project Tab (Simplified) ─────────────────────────────────────────────────
 function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => void; defaultDate: Date }) {
   const [title, setTitle] = useState("");
-  const [dueDate, setDueDate] = useState<Date | null>(addDays(new Date(), 3));
+  const [dueDate, setDueDate] = useState<Date | null>(null);
+  const [hasDueDate, setHasDueDate] = useState(false);
   const [priority, setPriority] = useState("low");
   const [subtasks, setSubtasks] = useState<SubtaskInput[]>([{ title: "" }]);
   const [error, setError] = useState("");
@@ -312,23 +313,27 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
 
       <div>
         <label className="mb-2 block text-sm font-semibold">Due Date</label>
-        <div className="flex gap-2">
+        <div className="flex gap-2 mb-2">
+          {([false, true] as const).map((v) => (
+            <button key={String(v)} type="button"
+              onClick={() => { setHasDueDate(v); if (v && !dueDate) setDueDate(addDays(new Date(), 3)); if (!v) setDueDate(null); }}
+              className={cn("rounded-xl px-3 py-1.5 text-sm font-medium border-2 transition-all",
+                hasDueDate === v ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"
+              )}>{v ? "Set due date" : "No due date"}</button>
+          ))}
+        </div>
+        {hasDueDate && dueDate && (
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" className={cn("flex-1 justify-start rounded-xl font-normal", !dueDate && "text-muted-foreground")}>
-                <CalendarIcon className="mr-2 h-4 w-4" />{dueDate ? format(dueDate, "MMM d, yyyy") : "No due date"}
+              <Button variant="outline" className="w-full justify-start rounded-xl font-normal">
+                <CalendarIcon className="mr-2 h-4 w-4" />{format(dueDate, "MMM d, yyyy")}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0 z-[200]" align="start">
-              <Calendar mode="single" selected={dueDate ?? undefined} onSelect={(d) => d && setDueDate(d)} disabled={(d) => d <= new Date()} initialFocus className="p-3 pointer-events-auto" />
+              <Calendar mode="single" selected={dueDate} onSelect={(d) => d && setDueDate(d)} disabled={(d) => d <= new Date()} initialFocus className="p-3 pointer-events-auto" />
             </PopoverContent>
           </Popover>
-          {dueDate && (
-            <Button variant="ghost" size="icon" className="shrink-0 rounded-xl text-muted-foreground hover:text-destructive" onClick={() => setDueDate(null)}>
-              <X className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
+        )}
       </div>
 
       <div>
