@@ -372,7 +372,7 @@ export function PlannerTaskCard({
             </p>
           </TooltipContent>
         </Tooltip>
-      ) : (
+      ) : !isProject ? (
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -387,7 +387,7 @@ export function PlannerTaskCard({
         >
           {isCompleted && <Check className="h-4 w-4" />}
         </button>
-      )}
+      ) : null}
     </div>
   );
 }
