@@ -259,13 +259,6 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
         )}
 
         {/* Add task */}
-        <button
-          onClick={onAddTask}
-          className="flex w-full items-center gap-2 rounded-xl border-2 border-dashed border-border px-3 py-3 text-left transition-colors hover:border-primary/30 hover:bg-primary/5"
-        >
-          <Plus className="h-4 w-4 text-muted-foreground" />
-          <span className="text-xs text-muted-foreground">Tap to add a routine or appointment</span>
-        </button>
       </div>
 
       {/* Edit Project Sheet */}
