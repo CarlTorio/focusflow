@@ -259,7 +259,7 @@ function RoutineTabWithManagement({
 // ─── Project Tab (Simplified) ─────────────────────────────────────────────────
 function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => void; defaultDate: Date }) {
   const [title, setTitle] = useState("");
-  const [dueDate, setDueDate] = useState<Date>(addDays(new Date(), 3));
+  const [dueDate, setDueDate] = useState<Date | null>(null);
   const [priority, setPriority] = useState("low");
   const [subtasks, setSubtasks] = useState<SubtaskInput[]>([{ title: "" }]);
   const [error, setError] = useState("");
@@ -298,7 +298,7 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
       kind: "project",
       title: title.trim(),
       estimated_hours: 0,
-      due_date: format(dueDate, "yyyy-MM-dd"),
+      due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : undefined,
       priority,
       subtasks: validSubtasks,
     });
@@ -314,8 +314,8 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
         <label className="mb-2 block text-sm font-semibold">Due Date</label>
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" className="w-full justify-start rounded-xl font-normal">
-              <CalendarIcon className="mr-2 h-4 w-4" />{format(dueDate, "MMM d, yyyy")}
+            <Button variant="outline" className={cn("w-full justify-start rounded-xl font-normal", !dueDate && "text-muted-foreground")}>
+              <CalendarIcon className="mr-2 h-4 w-4" />{dueDate ? format(dueDate, "MMM d, yyyy") : "No due date"}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0 z-[200]" align="start">
