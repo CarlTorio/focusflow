@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { format, isToday, isTomorrow } from "date-fns";
-import { ChevronDown, ChevronRight, Plus, Eye, EyeOff, Lock } from "lucide-react";
+import { ChevronDown, ChevronRight, Plus, Eye, EyeOff, Lock, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PlannerTaskCard } from "./PlannerTaskCard";
 import { FocusPrompt } from "./FocusPrompt";
