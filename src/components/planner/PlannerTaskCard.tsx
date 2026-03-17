@@ -26,6 +26,8 @@ interface PlannerTaskCardProps {
   onComplete: (scheduleId: string) => void;
   onOpenFocus?: (scheduleId: string) => void;
   allTodaySchedules?: ScheduleWithTask[];
+  isFocusedProject?: boolean;
+  onCompleteSubtask?: (subtaskId: string, taskId: string) => void;
 }
 
 function formatTime12(time: string): string {
@@ -41,6 +43,8 @@ export function PlannerTaskCard({
   onComplete,
   onOpenFocus,
   allTodaySchedules,
+  isFocusedProject,
+  onCompleteSubtask,
 }: PlannerTaskCardProps) {
   const task = schedule.task;
   const isCompleted = schedule.status === "completed";
@@ -155,8 +159,13 @@ export function PlannerTaskCard({
             const priorDone = sortedSubtasks.slice(0, i).every(
               (prev) => prev.is_completed
             );
-            const canCheck = !isLocked && !isDone && (isCurrent || priorDone);
-            const isFuture = !isDone && !isCurrent && !priorDone;
+            // When focused, all uncompleted subtasks are unlocked
+            const canCheck = isFocusedProject
+              ? !isLocked && !isDone
+              : !isLocked && !isDone && (isCurrent || priorDone);
+            const isFuture = isFocusedProject
+              ? false
+              : !isDone && !isCurrent && !priorDone;
 
             const stSchedule = allTodaySchedules?.find((s) => s.subtask_id === st.id);
 
@@ -174,7 +183,11 @@ export function PlannerTaskCard({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (stSchedule) handleComplete(stSchedule.id);
+                      if (stSchedule) {
+                        handleComplete(stSchedule.id);
+                      } else if (onCompleteSubtask) {
+                        onCompleteSubtask(st.id, schedule.task_id);
+                      }
                     }}
                     className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[5px] border-2 border-border transition-all hover:border-primary hover:scale-110"
                   />
@@ -190,7 +203,7 @@ export function PlannerTaskCard({
 
                 <span className={cn(
                   "flex-1 min-w-0 truncate text-[13px]",
-                  isCurrent && "font-medium text-foreground",
+                  (isCurrent || (isFocusedProject && !isDone)) && "font-medium text-foreground",
                   isDone && "line-through text-muted-foreground",
                   isFuture && "text-muted-foreground",
                 )}>
@@ -200,7 +213,7 @@ export function PlannerTaskCard({
                 {isDone && (
                   <span className="text-[10px] text-muted-foreground shrink-0">Done</span>
                 )}
-                {isCurrent && (
+                {isCurrent && !isFocusedProject && (
                   <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary shrink-0">Today</span>
                 )}
                 {isFuture && (
