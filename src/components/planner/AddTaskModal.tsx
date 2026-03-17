@@ -89,6 +89,8 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
   const [priority, setPriority] = useState("low");
   const [subtasks, setSubtasks] = useState<SubtaskInput[]>([{ title: "" }]);
   const [error, setError] = useState("");
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [startDate, setStartDate] = useState<Date | null>(null);
   const dragIdx = useRef<number | null>(null);
 
   const addSubtask = () => {
