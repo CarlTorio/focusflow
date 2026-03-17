@@ -36,7 +36,7 @@ interface AddTaskModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (input: CreateTaskInput) => void;
-  defaultPriority?: "high" | "medium" | "low" | "none";
+  defaultPriority?: "high" | "medium" | "low";
   isSaving?: boolean;
 }
 
