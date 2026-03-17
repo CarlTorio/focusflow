@@ -290,7 +290,7 @@ export function PlannerTaskCard({
               ↳ {parentTitle}
             </p>
             <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-              {doneSteps}/{totalSteps} steps
+              {doneSteps}/{totalSteps} subtasks
             </span>
           </div>
         )}
