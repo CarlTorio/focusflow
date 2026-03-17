@@ -170,7 +170,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
             className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-primary bg-primary/10 px-4 py-3 text-sm font-semibold text-primary transition-all hover:bg-primary/20 active:scale-[0.98] animate-in fade-in-0 slide-in-from-bottom-2 duration-300"
           >
             <CheckCircle2 className="h-5 w-5" />
-            Done with this focus?
+            Done with this project?
           </button>
         )}
 
