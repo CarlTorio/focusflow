@@ -259,7 +259,8 @@ function RoutineTabWithManagement({
 // ─── Project Tab (Simplified) ─────────────────────────────────────────────────
 function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => void; defaultDate: Date }) {
   const [title, setTitle] = useState("");
-  const [dueDate, setDueDate] = useState<Date | null>(addDays(new Date(), 3));
+  const [dueDate, setDueDate] = useState<Date | null>(null);
+  const [hasDueDate, setHasDueDate] = useState(false);
   const [priority, setPriority] = useState("low");
   const [subtasks, setSubtasks] = useState<SubtaskInput[]>([{ title: "" }]);
   const [error, setError] = useState("");
