@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { DayColumn } from "@/components/planner/DayColumn";
 import { MissedTaskBanner } from "@/components/planner/MissedTaskBanner";
 
-import { FocusMode } from "@/components/planner/FocusMode";
+
 import { DailyRoutineSection } from "@/components/planner/DailyRoutineSection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePlanner } from "@/hooks/usePlanner";
