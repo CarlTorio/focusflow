@@ -40,7 +40,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus 
       high: [], medium: [], low: [], none: [], completed: [],
     };
     schedules.forEach((s) => {
-      const isProjectSubtask = s.task?.task_type === "project" && s.subtask_id;
+      const isProjectSubtask = s.task?.subtasks && s.task.subtasks.length > 0 && s.subtask_id;
       if ((s.status === "completed" || s.status === "skipped") && !isProjectSubtask) {
         groups.completed.push(s);
       } else {
