@@ -26,6 +26,8 @@ interface PlannerTaskCardProps {
   onComplete: (scheduleId: string) => void;
   onOpenFocus?: (scheduleId: string) => void;
   allTodaySchedules?: ScheduleWithTask[];
+  isFocusedProject?: boolean;
+  onCompleteSubtask?: (subtaskId: string, taskId: string) => void;
 }
 
 function formatTime12(time: string): string {
