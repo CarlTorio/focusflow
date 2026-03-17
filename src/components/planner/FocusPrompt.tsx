@@ -8,7 +8,6 @@ const PRIORITY_DOT: Record<string, string> = {
   high: "bg-red-500",
   medium: "bg-amber-500",
   low: "bg-emerald-500",
-  none: "bg-muted-foreground/40",
 };
 
 interface FocusPromptProps {
@@ -32,7 +31,7 @@ function ProjectButton({ s, onSelect }: { s: ScheduleWithTask; onSelect: (taskId
       onClick={() => onSelect(s.task_id)}
       className="group flex w-full items-center gap-3 rounded-xl border border-border bg-card p-3 text-left transition-all hover:border-primary/40 hover:shadow-md hover:bg-primary/5 active:scale-[0.98]"
     >
-      <div className={cn("h-3 w-3 rounded-full shrink-0", PRIORITY_DOT[task.priority || "none"])} />
+      <div className={cn("h-3 w-3 rounded-full shrink-0", PRIORITY_DOT[task.priority === "none" ? "low" : (task.priority || "low")])} />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-foreground truncate">{task.title}</p>
         <div className="flex items-center gap-2 mt-0.5">

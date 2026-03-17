@@ -4,16 +4,22 @@ import { ChevronDown, ChevronRight, Plus, Eye, EyeOff, Lock, CheckCircle2, Archi
 import { cn } from "@/lib/utils";
 import { PlannerTaskCard } from "./PlannerTaskCard";
 import { FocusPrompt } from "./FocusPrompt";
+import { EditProjectSheet } from "./EditProjectSheet";
 import { useDailyFocus } from "@/hooks/useDailyFocus";
 import type { ScheduleWithTask } from "@/hooks/usePlanner";
+import type { Tables } from "@/integrations/supabase/types";
+import {
+  Sheet, SheetContent, SheetHeader, SheetTitle,
+} from "@/components/ui/sheet";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 
-const PRIORITY_ORDER = ["high", "medium", "low", "none"];
+const PRIORITY_ORDER = ["high", "medium", "low"];
 
 const PRIORITY_META: Record<string, { label: string; dot: string; header: string }> = {
   high: { label: "HIGH", dot: "bg-red-500", header: "text-red-600 dark:text-red-400" },
   medium: { label: "MED", dot: "bg-amber-500", header: "text-amber-600 dark:text-amber-400" },
   low: { label: "LOW", dot: "bg-emerald-500", header: "text-emerald-600 dark:text-emerald-400" },
-  none: { label: "NONE", dot: "bg-gray-400", header: "text-muted-foreground" },
 };
 
 interface DayColumnProps {
@@ -24,12 +30,24 @@ interface DayColumnProps {
   onOpenFocus: (scheduleId: string) => void;
   userName?: string;
   onCompleteSubtask?: (subtaskId: string, taskId: string) => void;
+  onUpdateTask?: (input: {
+    taskId: string;
+    title?: string;
+    priority?: string;
+    due_date?: string;
+    description?: string;
+    addSubtasks?: { title: string }[];
+    removeSubtaskIds?: string[];
+  }) => void;
 }
 
-export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus, userName, onCompleteSubtask }: DayColumnProps) {
+export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus, userName, onCompleteSubtask, onUpdateTask }: DayColumnProps) {
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({
     completed: true,
   });
+  const [editTask, setEditTask] = useState<(Tables<"tasks"> & { subtasks?: Tables<"subtasks">[] }) | null>(null);
+  const [notesTask, setNotesTask] = useState<Tables<"tasks"> | null>(null);
+  const [notesText, setNotesText] = useState("");
 
   const isCurrentDay = isToday(date);
   const isTomorrowDay = isTomorrow(date);
@@ -62,14 +80,14 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
   // Group schedules by priority (use filtered schedules for today)
   const grouped = useMemo(() => {
     const groups: Record<string, ScheduleWithTask[]> = {
-      high: [], medium: [], low: [], none: [], completed: [],
+      high: [], medium: [], low: [], completed: [],
     };
     activeSchedules.forEach((s) => {
       const isProjectSubtask = s.task?.subtasks && s.task.subtasks.length > 0 && s.subtask_id;
       if ((s.status === "completed" || s.status === "skipped") && !isProjectSubtask) {
         groups.completed.push(s);
       } else {
-        const p = s.task?.priority || "none";
+        const p = s.task?.priority === "none" ? "low" : (s.task?.priority || "low");
         groups[p] = groups[p] || [];
         groups[p].push(s);
       }
@@ -156,6 +174,8 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
                       allTodaySchedules={activeSchedules}
                       isFocusedProject={isCurrentDay && s.task_id === focusedTaskId}
                       onCompleteSubtask={onCompleteSubtask}
+                      onEdit={(t) => setEditTask(t)}
+                      onViewNotes={(t) => { setNotesTask(t); setNotesText(t.description || ""); }}
                     />
                   ))}
                 </div>
@@ -163,106 +183,6 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
             </div>
           );
         })}
-
-        {/* "Done with this focus?" button — appears when all subtasks checked */}
-        {isCurrentDay && focusedTaskId && !needsPrompt && focusedAllSubtasksDone && (
-          <button
-            onClick={markFocusDone}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-primary bg-primary/10 px-4 py-3 text-sm font-semibold text-primary transition-all hover:bg-primary/20 active:scale-[0.98] animate-in fade-in-0 slide-in-from-bottom-2 duration-300"
-          >
-            <CheckCircle2 className="h-5 w-5" />
-            Done with this project?
-          </button>
-        )}
-
-        {/* Archives (past days) or Done (today) — hidden when focus prompt is active */}
-        {!promptActive && totalCompleted > 0 && (
-          <div>
-            <button
-              onClick={() => toggleGroup("completed")}
-              className="mb-2 flex w-full items-center gap-2 text-xs"
-            >
-              {isPastDay ? (
-                <Archive className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-              ) : (
-                <div className="h-2 w-2 rounded-full bg-primary shrink-0" />
-              )}
-              <span className="font-bold uppercase tracking-wider text-muted-foreground">
-                {isPastDay ? "ARCHIVES" : "DONE"} ({totalCompleted})
-              </span>
-              <div className="flex-1" />
-              {collapsedGroups.completed ? (
-                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
-              ) : (
-                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-              )}
-            </button>
-            {!collapsedGroups.completed && (
-              <div className="space-y-2 animate-in fade-in-0 duration-150">
-                {isPastDay ? (
-                  /* Archive compact view — group by project */
-                  (() => {
-                    const projectMap = new Map<string, { title: string; subtasksDone: number; subtasksTotal: number; completedAt: string | null; priority: string }>();
-                    grouped.completed.forEach((s) => {
-                      const taskId = s.task_id;
-                      if (!projectMap.has(taskId)) {
-                        const totalSubs = s.task?.subtasks?.length || 0;
-                        const doneSubs = s.task?.subtasks?.filter((st) => st.is_completed).length || 0;
-                        projectMap.set(taskId, {
-                          title: s.task?.title || "Untitled",
-                          subtasksDone: doneSubs,
-                          subtasksTotal: totalSubs,
-                          completedAt: s.task?.completed_at || null,
-                          priority: s.task?.priority || "none",
-                        });
-                      }
-                    });
-                    return Array.from(projectMap.entries()).map(([taskId, info]) => (
-                      <div
-                        key={taskId}
-                        className="flex items-center gap-3 rounded-lg border border-border/50 bg-muted/30 px-3 py-2.5"
-                      >
-                        <CheckCircle2 className="h-4 w-4 shrink-0 text-primary/60" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-muted-foreground line-through truncate">
-                            {info.title}
-                          </p>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            {info.subtasksTotal > 0 && (
-                              <span className="text-[10px] text-muted-foreground/60">
-                                {info.subtasksDone}/{info.subtasksTotal} subtasks
-                              </span>
-                            )}
-                            {info.completedAt && (
-                              <span className="text-[10px] text-muted-foreground/60">
-                                • {format(new Date(info.completedAt), "MMM d, h:mm a")}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <div className={cn("h-2 w-2 rounded-full shrink-0", PRIORITY_META[info.priority]?.dot || "bg-gray-400")} />
-                      </div>
-                    ));
-                  })()
-                ) : (
-                  /* Today: full cards */
-                  grouped.completed.map((s) => (
-                    <PlannerTaskCard
-                      key={s.id}
-                      schedule={s}
-                      lockState={lockState}
-                      onComplete={onComplete}
-                      onOpenFocus={onOpenFocus}
-                      allTodaySchedules={activeSchedules}
-                      isFocusedProject={isCurrentDay && s.task_id === focusedTaskId}
-                      onCompleteSubtask={onCompleteSubtask}
-                    />
-                  ))
-                )}
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Other tasks toggle (when focused, not during prompt) */}
         {isCurrentDay && focusedTaskId && !needsPrompt && completedTodaySchedules.length > 0 && (
@@ -340,6 +260,44 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
           <span className="text-xs text-muted-foreground">Tap to add a routine or appointment</span>
         </button>
       </div>
+
+      {/* Edit Project Sheet */}
+      {editTask && (
+        <EditProjectSheet
+          open={!!editTask}
+          onOpenChange={(open) => !open && setEditTask(null)}
+          task={editTask}
+          onSave={(input) => onUpdateTask?.(input)}
+        />
+      )}
+
+      {/* Notes Sheet */}
+      <Sheet open={!!notesTask} onOpenChange={(open) => !open && setNotesTask(null)}>
+        <SheetContent side="bottom" className="max-h-[60vh] rounded-t-2xl pb-8">
+          <SheetHeader className="mb-4">
+            <SheetTitle className="text-base font-bold">
+              Notes — {notesTask?.title}
+            </SheetTitle>
+          </SheetHeader>
+          <Textarea
+            value={notesText}
+            onChange={(e) => setNotesText(e.target.value)}
+            placeholder="Add notes about this project..."
+            className="rounded-xl min-h-[120px] text-sm mb-4"
+          />
+          <Button
+            onClick={() => {
+              if (notesTask) {
+                onUpdateTask?.({ taskId: notesTask.id, description: notesText });
+                setNotesTask(null);
+              }
+            }}
+            className="w-full rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            Save Notes
+          </Button>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

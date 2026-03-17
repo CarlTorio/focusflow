@@ -30,25 +30,24 @@ const PRIORITY_OPTIONS = [
   { value: "high" as const, label: "HIGH", color: "bg-red-500", textColor: "text-red-500", bgLight: "bg-red-50 dark:bg-red-950" },
   { value: "medium" as const, label: "MED", color: "bg-amber-500", textColor: "text-amber-500", bgLight: "bg-amber-50 dark:bg-amber-950" },
   { value: "low" as const, label: "LOW", color: "bg-emerald-500", textColor: "text-emerald-500", bgLight: "bg-emerald-50 dark:bg-emerald-950" },
-  { value: "none" as const, label: "NONE", color: "bg-gray-400", textColor: "text-gray-400", bgLight: "bg-gray-50 dark:bg-gray-800" },
 ];
 
 interface AddTaskModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (input: CreateTaskInput) => void;
-  defaultPriority?: "high" | "medium" | "low" | "none";
+  defaultPriority?: "high" | "medium" | "low";
   isSaving?: boolean;
 }
 
-export function AddTaskModal({ open, onOpenChange, onSave, defaultPriority = "none", isSaving }: AddTaskModalProps) {
+export function AddTaskModal({ open, onOpenChange, onSave, defaultPriority = "low", isSaving }: AddTaskModalProps) {
   const isMobile = useIsMobile();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [estimatedHours, setEstimatedHours] = useState<number | null>(null);
   const [dueDate, setDueDate] = useState<Date>(addDays(new Date(), 3));
   const [preferredTime, setPreferredTime] = useState("");
-  const [priority, setPriority] = useState<"high" | "medium" | "low" | "none">(defaultPriority);
+  const [priority, setPriority] = useState<"high" | "medium" | "low">(defaultPriority);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [subtasks, setSubtasks] = useState<string[]>([]);

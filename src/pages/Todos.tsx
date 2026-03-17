@@ -12,13 +12,12 @@ const SECTIONS = [
   { priority: "high" as const, label: "HIGH", dotColor: "#EF4444", placeholder: "Needs immediate attention" },
   { priority: "medium" as const, label: "MEDIUM", dotColor: "#F59E0B", placeholder: "Things you should get done soon" },
   { priority: "low" as const, label: "LOW", dotColor: "#10B981", placeholder: "Low priority todos" },
-  { priority: "none" as const, label: "NONE", dotColor: "#9CA3AF", placeholder: "General todos without priority" },
 ];
 
 export default function Todos() {
   const { tasks, isLoading, createTask, completeTask, uncompleteTask } = useTasks();
   const [modalOpen, setModalOpen] = useState(false);
-  const [defaultPriority, setDefaultPriority] = useState<"high" | "medium" | "low" | "none">("none");
+  const [defaultPriority, setDefaultPriority] = useState<"high" | "medium" | "low">("low");
 
   const grouped = useMemo(() => {
     const active = tasks.filter(t => t.status !== "completed");
@@ -30,7 +29,7 @@ export default function Todos() {
     return { ...byPriority, completed };
   }, [tasks]);
 
-  const handleAdd = (priority: "high" | "medium" | "low" | "none") => {
+  const handleAdd = (priority: "high" | "medium" | "low") => {
     setDefaultPriority(priority);
     setModalOpen(true);
   };
@@ -98,7 +97,7 @@ export default function Todos() {
         )}
       </div>
 
-      <FloatingActionButton onClick={() => handleAdd("none")} />
+      <FloatingActionButton onClick={() => handleAdd("low")} />
 
       <AddTaskModal
         open={modalOpen}

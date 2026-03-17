@@ -733,6 +733,93 @@ export function usePlanner(startDate: string, endDate: string) {
     },
   });
 
+  // ─── Update task (edit project) ─────────────────────────────────────────
+  const updateTask = useMutation({
+    mutationFn: async (input: {
+      taskId: string;
+      title?: string;
+      priority?: string;
+      due_date?: string;
+      description?: string;
+      addSubtasks?: { title: string }[];
+      removeSubtaskIds?: string[];
+    }) => {
+      const updates: Record<string, any> = {};
+      if (input.title !== undefined) updates.title = input.title;
+      if (input.priority !== undefined) updates.priority = input.priority;
+      if (input.due_date !== undefined) updates.due_date = input.due_date;
+      if (input.description !== undefined) updates.description = input.description;
+
+      if (Object.keys(updates).length > 0) {
+        await supabase.from("tasks").update(updates).eq("id", input.taskId);
+      }
+
+      // Remove subtasks
+      if (input.removeSubtaskIds && input.removeSubtaskIds.length > 0) {
+        await supabase.from("task_schedules").delete().in("subtask_id", input.removeSubtaskIds);
+        await supabase.from("subtasks").delete().in("id", input.removeSubtaskIds);
+      }
+
+      // Add new subtasks
+      if (input.addSubtasks && input.addSubtasks.length > 0) {
+        // Get current max order_index
+        const { data: existing } = await supabase
+          .from("subtasks")
+          .select("order_index")
+          .eq("task_id", input.taskId)
+          .order("order_index", { ascending: false })
+          .limit(1);
+        const maxIdx = existing?.[0]?.order_index ?? -1;
+
+        const { data: newSubs } = await supabase
+          .from("subtasks")
+          .insert(
+            input.addSubtasks.map((st, i) => ({
+              task_id: input.taskId,
+              title: st.title,
+              order_index: maxIdx + 1 + i,
+            }))
+          )
+          .select();
+
+        // Schedule new subtasks
+        if (newSubs && newSubs.length > 0 && user) {
+          const task = (await supabase.from("tasks").select("due_date").eq("id", input.taskId).single()).data;
+          if (task) {
+            const todayStr = format(new Date(), "yyyy-MM-dd");
+            const slots = distributeSubtasks(
+              newSubs.map((st) => ({ id: st.id, title: st.title })),
+              todayStr,
+              task.due_date
+            );
+            const scheduleRows = slots.map((slot) => ({
+              task_id: input.taskId,
+              user_id: user.id,
+              scheduled_date: slot.scheduledDate,
+              allocated_hours: 0,
+              status: "scheduled",
+              is_locked: slot.scheduledDate !== todayStr,
+              display_title: slot.subtaskTitle,
+              subtask_id: slot.subtaskId,
+            }));
+            if (scheduleRows.length > 0) {
+              await supabase.from("task_schedules").insert(scheduleRows as any);
+            }
+          }
+        }
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["planner_schedules"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["due_soon_tasks"] });
+      toast({ title: "Project updated!" });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
+  });
+
   return {
     schedules: schedulesQuery.data || [],
     isLoading: schedulesQuery.isLoading,
@@ -743,5 +830,6 @@ export function usePlanner(startDate: string, endDate: string) {
     handleMissed,
     createTask,
     createPlannerTask: createTask,
+    updateTask,
   };
 }

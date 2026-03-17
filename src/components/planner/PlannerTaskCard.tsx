@@ -1,8 +1,14 @@
 import { useState, useRef } from "react";
-import { Check, Lock, RefreshCw, ChevronDown, ChevronUp, CircleDot } from "lucide-react";
+import { Check, Lock, RefreshCw, ChevronDown, ChevronUp, CircleDot, MoreVertical, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ScheduleWithTask } from "@/hooks/usePlanner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { differenceInCalendarDays, parseISO, format, isToday, isTomorrow, addDays } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -10,14 +16,12 @@ const PRIORITY_BORDER: Record<string, string> = {
   high: "border-l-red-500",
   medium: "border-l-amber-500",
   low: "border-l-emerald-500",
-  none: "border-l-border",
 };
 
 const PRIORITY_DOT: Record<string, string> = {
   high: "bg-red-500",
   medium: "bg-amber-500",
   low: "bg-emerald-500",
-  none: "bg-muted-foreground/40",
 };
 
 interface PlannerTaskCardProps {
@@ -28,6 +32,8 @@ interface PlannerTaskCardProps {
   allTodaySchedules?: ScheduleWithTask[];
   isFocusedProject?: boolean;
   onCompleteSubtask?: (subtaskId: string, taskId: string) => void;
+  onEdit?: (task: Tables<"tasks"> & { subtasks?: Tables<"subtasks">[] }) => void;
+  onViewNotes?: (task: Tables<"tasks">) => void;
 }
 
 function formatTime12(time: string): string {
@@ -45,11 +51,13 @@ export function PlannerTaskCard({
   allTodaySchedules,
   isFocusedProject,
   onCompleteSubtask,
+  onEdit,
+  onViewNotes,
 }: PlannerTaskCardProps) {
   const task = schedule.task;
   const isCompleted = schedule.status === "completed";
   const isLocked = lockState !== "unlocked";
-  const priority = task?.priority || "none";
+  const priority = task?.priority === "none" ? "low" : (task?.priority || "low");
   const hours = Number(schedule.allocated_hours);
   const isRecurring = (task as any)?.task_type === "recurring";
   const isProject = task?.subtasks && task.subtasks.length > 0;
@@ -122,12 +130,11 @@ export function PlannerTaskCard({
         )}
       >
         {/* Header */}
-        <button
-          onClick={() => setExpanded(false)}
-          className="flex items-start gap-3 w-full text-left mb-3"
-        >
-          
-          <div className="flex-1 min-w-0">
+        <div className="flex items-start gap-3 mb-3">
+          <button
+            onClick={() => setExpanded(false)}
+            className="flex-1 min-w-0 text-left"
+          >
             <div className="flex items-center gap-2">
               <p className="text-sm font-bold text-foreground">{parentTitle}</p>
               <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -135,13 +142,33 @@ export function PlannerTaskCard({
             <p className="text-xs text-muted-foreground mt-0.5">
               {dueDate ? `Due ${format(parseISO(dueDate), "MMM d")}` : "No deadline"} · {doneSteps}/{totalSteps} done
             </p>
-          </div>
+          </button>
           {dueBadge && (
             <span className={cn("rounded-full px-1.5 py-0.5 text-[9px] font-bold shrink-0", dueBadge.className)}>
               {dueBadge.text}
             </span>
           )}
-        </button>
+          {task && !isLocked && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-[140px]">
+                <DropdownMenuItem onClick={() => onEdit?.({ ...task, subtasks: task.subtasks || [] })}>
+                  Edit Project
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onViewNotes?.(task)}>
+                  {task.description ? "View Notes" : "Add Notes"}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
 
         {/* Progress bar */}
         <div className="mb-3 h-1 rounded-full bg-muted overflow-hidden">
@@ -288,6 +315,41 @@ export function PlannerTaskCard({
           </p>
         )}
       </button>
+
+      {/* Notes indicator */}
+      {task?.description && !isLocked && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            if (task) onViewNotes?.(task);
+          }}
+          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-primary/60 hover:text-primary hover:bg-primary/10 transition-colors"
+        >
+          <MessageSquare className="h-3.5 w-3.5" />
+        </button>
+      )}
+
+      {/* 3-dot menu */}
+      {!isLocked && !isCompleted && task && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              onClick={(e) => e.stopPropagation()}
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            >
+              <MoreVertical className="h-4 w-4" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-[140px]">
+            <DropdownMenuItem onClick={() => onEdit?.({ ...task, subtasks: task.subtasks || [] })}>
+              Edit Project
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onViewNotes?.(task)}>
+              {task.description ? "View Notes" : "Add Notes"}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
 
       {/* Checkbox or Lock */}
       {isLocked ? (

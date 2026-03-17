@@ -54,7 +54,6 @@ const PRIORITIES = [
   { value: "high", label: "HIGH", color: "bg-destructive text-destructive-foreground" },
   { value: "medium", label: "MED", color: "bg-warning text-warning-foreground" },
   { value: "low", label: "LOW", color: "bg-success text-success-foreground" },
-  { value: "none", label: "NONE", color: "bg-muted text-muted-foreground" },
 ];
 
 function HourPills({ options, value, onChange }: { options: number[]; value: number | null; onChange: (v: number) => void }) {
@@ -261,7 +260,7 @@ function RoutineTabWithManagement({
 function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => void; defaultDate: Date }) {
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState<Date>(addDays(new Date(), 3));
-  const [priority, setPriority] = useState("none");
+  const [priority, setPriority] = useState("low");
   const [subtasks, setSubtasks] = useState<SubtaskInput[]>([{ title: "" }]);
   const [error, setError] = useState("");
 
@@ -378,7 +377,7 @@ function SimpleTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => vo
   const today = new Date();
   const [title, setTitle] = useState("");
   const [hours, setHours] = useState<number | null>(null);
-  const [priority, setPriority] = useState("none");
+  const [priority, setPriority] = useState("low");
   const [when, setWhen] = useState<"today" | "tomorrow" | "pick">("today");
   const [pickedDate, setPickedDate] = useState<Date>(defaultDate);
 

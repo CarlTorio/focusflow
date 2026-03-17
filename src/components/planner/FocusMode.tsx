@@ -49,7 +49,7 @@ export function FocusMode({ schedule, nextSchedule, onBack, onDone, onSkip }: Fo
     }, 800);
   };
 
-  const priority = task?.priority || "none";
+  const priority = task?.priority === "none" ? "low" : (task?.priority || "low");
   const emoji = task?.icon_emoji || "📋";
 
   return (

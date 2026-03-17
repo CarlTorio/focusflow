@@ -26,7 +26,6 @@ const PRIORITIES = [
   { value: "high", label: "HIGH", color: "bg-destructive text-destructive-foreground" },
   { value: "medium", label: "MED", color: "bg-warning text-warning-foreground" },
   { value: "low", label: "LOW", color: "bg-success text-success-foreground" },
-  { value: "none", label: "NONE", color: "bg-muted text-muted-foreground" },
 ];
 const DAYS_OF_WEEK = [
   { label: "S", value: 0 }, { label: "M", value: 1 }, { label: "T", value: 2 },
@@ -87,7 +86,7 @@ function PriorityPills({
 function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => void; defaultDate: Date }) {
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState<Date>(addDays(new Date(), 3));
-  const [priority, setPriority] = useState("none");
+  const [priority, setPriority] = useState("low");
   const [subtasks, setSubtasks] = useState<SubtaskInput[]>([{ title: "" }]);
   const [error, setError] = useState("");
   const dragIdx = useRef<number | null>(null);
@@ -240,7 +239,7 @@ function RecurringTab({ onSave }: { onSave: (i: CreateTaskInput) => void }) {
   const [pattern, setPattern] = useState<"daily" | "weekly">("daily");
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
   const [preferredTime, setPreferredTime] = useState("");
-  const [priority, setPriority] = useState("none");
+  const [priority, setPriority] = useState("low");
 
   const toggleDay = (d: number) =>
     setSelectedDays((prev) =>
@@ -342,7 +341,7 @@ function SimpleTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => vo
   const today = new Date();
   const [title, setTitle] = useState("");
   const [hours, setHours] = useState<number | null>(null);
-  const [priority, setPriority] = useState("none");
+  const [priority, setPriority] = useState("low");
   const [when, setWhen] = useState<"today" | "tomorrow" | "pick">("today");
   const [pickedDate, setPickedDate] = useState<Date>(defaultDate);
 
