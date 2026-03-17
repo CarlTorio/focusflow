@@ -85,7 +85,7 @@ function PriorityPills({
 // ─── Project Tab (Simplified) ─────────────────────────────────────────────────
 function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => void; defaultDate: Date }) {
   const [title, setTitle] = useState("");
-  const [dueDate, setDueDate] = useState<Date>(addDays(new Date(), 3));
+  const [dueDate, setDueDate] = useState<Date | null>(null);
   const [priority, setPriority] = useState("low");
   const [subtasks, setSubtasks] = useState<SubtaskInput[]>([{ title: "" }]);
   const [error, setError] = useState("");
