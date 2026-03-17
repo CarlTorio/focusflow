@@ -316,21 +316,19 @@ export function PlannerTaskCard({
         )}
       </button>
 
-      {/* Notes button — always visible, highlighted when notes exist */}
+      {/* Notes button — dot indicator when notes exist */}
       {!isLocked && task && (
         <button
           onClick={(e) => {
             e.stopPropagation();
             onViewNotes?.(task);
           }}
-          className={cn(
-            "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors",
-            task.description
-              ? "bg-primary/15 text-primary hover:bg-primary/25 ring-1 ring-primary/30"
-              : "text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted"
-          )}
+          className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted transition-colors"
         >
           <MessageSquare className="h-3.5 w-3.5" />
+          {task.description && (
+            <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-primary ring-2 ring-card" />
+          )}
         </button>
       )}
 

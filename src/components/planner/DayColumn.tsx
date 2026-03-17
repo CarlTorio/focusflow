@@ -278,19 +278,19 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
         />
       )}
 
-      {/* Notes Sheet */}
-      <Sheet open={!!notesTask} onOpenChange={(open) => !open && setNotesTask(null)}>
-        <SheetContent side="bottom" className="max-h-[60vh] rounded-t-2xl pb-8">
-          <SheetHeader className="mb-4">
-            <SheetTitle className="text-base font-bold">
+      {/* Notes Dialog — centered box on desktop */}
+      <Dialog open={!!notesTask} onOpenChange={(open) => !open && setNotesTask(null)}>
+        <DialogContent className="sm:max-w-md rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold">
               Notes — {notesTask?.title}
-            </SheetTitle>
-          </SheetHeader>
+            </DialogTitle>
+          </DialogHeader>
           <Textarea
             value={notesText}
             onChange={(e) => setNotesText(e.target.value)}
             placeholder="Add notes about this project..."
-            className="rounded-xl min-h-[120px] text-sm mb-4"
+            className="rounded-xl min-h-[120px] text-sm"
           />
           <Button
             onClick={() => {
@@ -303,8 +303,8 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
           >
             Save Notes
           </Button>
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
