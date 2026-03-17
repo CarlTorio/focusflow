@@ -41,6 +41,7 @@ export default function Planner() {
     missedSchedules,
     dueSoonTasks,
     completeSchedule,
+    completeSubtaskDirect,
     handleMissed,
   } = usePlanner(dateRange.startStr, dateRange.endStr);
 
