@@ -43,11 +43,13 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
     availableProjects,
     otherProjects,
     filteredSchedules,
+    completedTodaySchedules,
     hiddenProjects,
     showAll,
     selectFocus,
     toggleShowAll,
   } = useDailyFocus(date, schedules);
+  const [showOtherTasks, setShowOtherTasks] = useState(false);
 
   const activeSchedules = isCurrentDay ? filteredSchedules : schedules;
 
@@ -196,43 +198,53 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
           </div>
         )}
 
-        {/* Hidden Projects Toggle (when focused, not during prompt) */}
-        {isCurrentDay && focusedTaskId && !needsPrompt && hiddenProjects.length > 0 && (
+        {/* Other tasks toggle (when focused, not during prompt) */}
+        {isCurrentDay && focusedTaskId && !needsPrompt && completedTodaySchedules.length > 0 && (
           <div>
             <button
-              onClick={toggleShowAll}
+              onClick={() => setShowOtherTasks((p) => !p)}
               className="mb-2 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-xs transition-colors hover:bg-muted/50"
             >
-              {showAll ? (
+              {showOtherTasks ? (
                 <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />
               ) : (
                 <Eye className="h-3.5 w-3.5 text-muted-foreground" />
               )}
               <span className="font-medium text-muted-foreground">
-                {showAll ? "Hide other projects" : `Show ${hiddenProjects.length} other project${hiddenProjects.length > 1 ? "s" : ""}`}
+                {showOtherTasks ? "Hide other tasks" : `Show ${completedTodaySchedules.length} other task${completedTodaySchedules.length > 1 ? "s" : ""} today`}
               </span>
             </button>
 
-            {showAll && (
+            {showOtherTasks && (
               <div className="space-y-2 animate-in fade-in-0 duration-150">
-                {hiddenProjects.map((s) => (
-                  <div
-                    key={s.id}
-                    className="flex items-center gap-3 rounded-xl border-l-4 border-l-border px-3 py-3 bg-muted/20 opacity-50 cursor-not-allowed select-none"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-muted-foreground truncate">
-                        {s.task?.title || "Untitled"}
-                      </p>
-                      <p className="text-[11px] text-muted-foreground/70 mt-0.5">
-                        Locked — finish your current focus first
-                      </p>
+                {completedTodaySchedules.map((s) => {
+                  const isDone = s.status === "completed" || s.status === "skipped";
+                  return (
+                    <div
+                      key={s.id}
+                      className={cn(
+                        "flex items-center gap-3 rounded-xl border-l-4 px-3 py-3 select-none",
+                        isDone
+                          ? "border-l-primary/30 bg-primary/5 opacity-60"
+                          : "border-l-border bg-muted/20 opacity-50 cursor-not-allowed"
+                      )}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className={cn("text-sm font-semibold truncate", isDone ? "text-muted-foreground line-through" : "text-muted-foreground")}>
+                          {s.task?.title || "Untitled"}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground/70 mt-0.5">
+                          {isDone ? "Completed" : "Queued — finish your focus first"}
+                        </p>
+                      </div>
+                      {!isDone && (
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-border text-muted-foreground">
+                          <Lock className="h-3.5 w-3.5" />
+                        </div>
+                      )}
                     </div>
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-border text-muted-foreground">
-                      <Lock className="h-3.5 w-3.5" />
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
