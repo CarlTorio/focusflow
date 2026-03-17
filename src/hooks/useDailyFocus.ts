@@ -40,6 +40,20 @@ export function useDailyFocus(date: Date, schedules: ScheduleWithTask[]) {
   const [state, setState] = useState<DailyFocusState>(() => loadState(date));
   const [showAll, setShowAll] = useState(false);
 
+  // Validate focusedTaskId — if it doesn't exist in current schedules, auto-clear it
+  const validFocusedTaskId = useMemo(() => {
+    if (!state.focusedTaskId) return null;
+    const exists = schedules.some((s) => s.task_id === state.focusedTaskId);
+    return exists ? state.focusedTaskId : null;
+  }, [state.focusedTaskId, schedules]);
+
+  // Auto-clear invalid focus from state/storage
+  if (state.focusedTaskId && !validFocusedTaskId && schedules.length > 0) {
+    const next: DailyFocusState = { focusedTaskId: null, completedFocusIds: state.completedFocusIds };
+    setState(next);
+    saveState(date, next);
+  }
+
   // All project schedules not yet completed in focus flow
   const allProjects = useMemo(() => {
     return getUniqueProjects(schedules, state.completedFocusIds);
