@@ -26,7 +26,6 @@ const PRIORITIES = [
   { value: "high", label: "HIGH", color: "bg-destructive text-destructive-foreground" },
   { value: "medium", label: "MED", color: "bg-warning text-warning-foreground" },
   { value: "low", label: "LOW", color: "bg-success text-success-foreground" },
-  { value: "none", label: "NONE", color: "bg-muted text-muted-foreground" },
 ];
 const DAYS_OF_WEEK = [
   { label: "S", value: 0 }, { label: "M", value: 1 }, { label: "T", value: 2 },
