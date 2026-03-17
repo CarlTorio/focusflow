@@ -323,7 +323,12 @@ export function PlannerTaskCard({
             e.stopPropagation();
             onViewNotes?.(task);
           }}
-          className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted transition-colors"
+          className={cn(
+            "relative flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors",
+            task.description
+              ? "bg-primary/15 text-primary hover:bg-primary/25"
+              : "text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted"
+          )}
         >
           <MessageSquare className="h-3.5 w-3.5" />
           {task.description && (
