@@ -244,7 +244,7 @@ export function PlannerTaskCard({
               isCompleted ? "line-through text-muted-foreground" : "text-foreground"
             )}
           >
-            {displayTitle}
+            {isProject ? parentTitle : displayTitle}
             {isRecurring && (
               <span className="ml-1.5 inline-flex items-center">
                 <RefreshCw className="h-3 w-3 text-muted-foreground" />
