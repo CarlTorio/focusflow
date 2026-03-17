@@ -647,7 +647,7 @@ export function usePlanner(startDate: string, endDate: string) {
             scheduled_date: slot.scheduledDate,
             allocated_hours: 0,
             status: "scheduled",
-            is_locked: slot.scheduledDate !== startStr,
+            is_locked: slot.scheduledDate !== todayStr,
             display_title: slot.subtaskTitle,
             subtask_id: slot.subtaskId,
           }));
