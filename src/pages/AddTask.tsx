@@ -361,7 +361,7 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
 
         {subtasks.length < 30 && (
           <Button type="button" variant="outline" size="sm" onClick={addSubtask} className="rounded-xl w-full border-dashed">
-            <Plus className="mr-1 h-3.5 w-3.5" /> Add Step
+            <Plus className="mr-1 h-3.5 w-3.5" /> Add Subtask
           </Button>
         )}
       </div>

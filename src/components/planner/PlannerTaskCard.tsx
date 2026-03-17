@@ -314,7 +314,7 @@ export function PlannerTaskCard({
         {isProject && !isLocked && !isCompleted && (
           <div className="flex items-center gap-1 mt-1">
             <ChevronDown className="h-3 w-3 text-muted-foreground" />
-            <span className="text-[10px] text-muted-foreground">Tap to see all steps</span>
+            <span className="text-[10px] text-muted-foreground">Tap to see all subtasks</span>
           </div>
         )}
       </button>
