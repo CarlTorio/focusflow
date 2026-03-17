@@ -368,7 +368,7 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
         <button
           type="button"
           onClick={() => setShowAdvanced(!showAdvanced)}
-          className="flex items-center gap-2 w-full py-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          className="flex items-center gap-2 w-full py-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
         >
           <ChevronDown className={cn("h-4 w-4 transition-transform", showAdvanced && "rotate-180")} />
           Advanced Options
