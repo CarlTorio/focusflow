@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { format, isToday, isTomorrow } from "date-fns";
-import { ChevronDown, ChevronRight, Plus, Eye, EyeOff, Lock } from "lucide-react";
+import { ChevronDown, ChevronRight, Plus, Eye, EyeOff, Lock, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PlannerTaskCard } from "./PlannerTaskCard";
 import { FocusPrompt } from "./FocusPrompt";
@@ -40,6 +40,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
     focusedTaskId,
     needsPrompt,
     isWhatsNext,
+    focusedAllSubtasksDone,
     availableProjects,
     otherProjects,
     filteredSchedules,
@@ -47,6 +48,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
     hiddenProjects,
     showAll,
     selectFocus,
+    markFocusDone,
     toggleShowAll,
   } = useDailyFocus(date, schedules);
   const [showOtherTasks, setShowOtherTasks] = useState(false);
@@ -106,7 +108,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
       </div>
 
       {/* Focus Selection Prompt (only today) */}
-      {promptActive && availableProjects.length > 0 && (
+      {promptActive && (availableProjects.length > 0 || otherProjects.length > 0) && (
         <FocusPrompt
           userName={userName || "there"}
           projects={availableProjects}
@@ -160,6 +162,17 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
             </div>
           );
         })}
+
+        {/* "Done with this focus?" button — appears when all subtasks checked */}
+        {isCurrentDay && focusedTaskId && !needsPrompt && focusedAllSubtasksDone && (
+          <button
+            onClick={markFocusDone}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-primary bg-primary/10 px-4 py-3 text-sm font-semibold text-primary transition-all hover:bg-primary/20 active:scale-[0.98] animate-in fade-in-0 slide-in-from-bottom-2 duration-300"
+          >
+            <CheckCircle2 className="h-5 w-5" />
+            Done with this focus?
+          </button>
+        )}
 
         {/* Completed — hidden when focus prompt is active */}
         {!promptActive && totalCompleted > 0 && (
