@@ -41,6 +41,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
     needsPrompt,
     isWhatsNext,
     availableProjects,
+    otherProjects,
     filteredSchedules,
     hiddenProjects,
     showAll,
@@ -76,6 +77,8 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
   ).length;
   const totalCompleted = grouped.completed.length;
 
+  const promptActive = isCurrentDay && needsPrompt;
+
   return (
     <div className="flex-1 min-w-0">
       {/* Day Header */}
@@ -101,18 +104,19 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
       </div>
 
       {/* Focus Selection Prompt (only today) */}
-      {isCurrentDay && needsPrompt && availableProjects.length > 0 && (
+      {promptActive && availableProjects.length > 0 && (
         <FocusPrompt
           userName={userName || "there"}
           projects={availableProjects}
+          otherProjects={otherProjects}
           isWhatsNext={isWhatsNext}
           onSelect={selectFocus}
         />
       )}
 
-      {/* Priority Groups */}
+      {/* Priority Groups — hidden when focus prompt is active */}
       <div className="space-y-4">
-        {PRIORITY_ORDER.map((priority) => {
+        {!promptActive && PRIORITY_ORDER.map((priority) => {
           const items = grouped[priority] || [];
           if (items.length === 0) return null;
           const meta = PRIORITY_META[priority];
@@ -155,8 +159,8 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
           );
         })}
 
-        {/* Completed */}
-        {totalCompleted > 0 && (
+        {/* Completed — hidden when focus prompt is active */}
+        {!promptActive && totalCompleted > 0 && (
           <div>
             <button
               onClick={() => toggleGroup("completed")}
@@ -192,8 +196,8 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
           </div>
         )}
 
-        {/* Hidden Projects Toggle (when focused) */}
-        {isCurrentDay && focusedTaskId && hiddenProjects.length > 0 && (
+        {/* Hidden Projects Toggle (when focused, not during prompt) */}
+        {isCurrentDay && focusedTaskId && !needsPrompt && hiddenProjects.length > 0 && (
           <div>
             <button
               onClick={toggleShowAll}
