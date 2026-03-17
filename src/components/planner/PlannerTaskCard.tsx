@@ -297,6 +297,41 @@ export function PlannerTaskCard({
         )}
       </button>
 
+      {/* Notes indicator */}
+      {task?.description && !isLocked && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            if (task) onViewNotes?.(task);
+          }}
+          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-primary/60 hover:text-primary hover:bg-primary/10 transition-colors"
+        >
+          <MessageSquare className="h-3.5 w-3.5" />
+        </button>
+      )}
+
+      {/* 3-dot menu */}
+      {!isLocked && !isCompleted && task && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              onClick={(e) => e.stopPropagation()}
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            >
+              <MoreVertical className="h-4 w-4" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-[140px]">
+            <DropdownMenuItem onClick={() => onEdit?.({ ...task, subtasks: task.subtasks || [] })}>
+              Edit Project
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onViewNotes?.(task)}>
+              {task.description ? "View Notes" : "Add Notes"}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
+
       {/* Checkbox or Lock */}
       {isLocked ? (
         <Tooltip>
