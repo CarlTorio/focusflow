@@ -1,8 +1,14 @@
 import { useState, useRef } from "react";
-import { Check, Lock, RefreshCw, ChevronDown, ChevronUp, CircleDot } from "lucide-react";
+import { Check, Lock, RefreshCw, ChevronDown, ChevronUp, CircleDot, MoreVertical, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ScheduleWithTask } from "@/hooks/usePlanner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { differenceInCalendarDays, parseISO, format, isToday, isTomorrow, addDays } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -26,6 +32,8 @@ interface PlannerTaskCardProps {
   allTodaySchedules?: ScheduleWithTask[];
   isFocusedProject?: boolean;
   onCompleteSubtask?: (subtaskId: string, taskId: string) => void;
+  onEdit?: (task: Tables<"tasks"> & { subtasks?: Tables<"subtasks">[] }) => void;
+  onViewNotes?: (task: Tables<"tasks">) => void;
 }
 
 function formatTime12(time: string): string {
