@@ -1,12 +1,11 @@
 import { useState, useRef } from "react";
 import { format, addDays } from "date-fns";
 import {
-  CalendarIcon, Plus, X, ChevronDown, ChevronUp, GripVertical,
+  CalendarIcon, Plus, X, GripVertical,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
@@ -21,7 +20,6 @@ import type { CreateTaskInput, SubtaskInput } from "@/hooks/usePlanner";
 import type { Routine } from "@/hooks/useRoutines";
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
-const PROJECT_HOURS = [0.5, 1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20];
 const SIMPLE_HOURS = [0.25, 0.5, 1, 1.5, 2, 3];
 const RECURRING_DURATIONS = [0.5, 1, 1.5, 2, 3, 4];
 const PRIORITIES = [
@@ -85,27 +83,23 @@ function PriorityPills({
   );
 }
 
-// ─── Project Tab ───────────────────────────────────────────────────────────────
+// ─── Project Tab (Simplified) ─────────────────────────────────────────────────
 function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => void; defaultDate: Date }) {
   const [title, setTitle] = useState("");
-  const [hours, setHours] = useState<number | null>(null);
-  const [dueDate, setDueDate] = useState<Date>(addDays(defaultDate, 3));
+  const [dueDate, setDueDate] = useState<Date>(addDays(new Date(), 3));
   const [priority, setPriority] = useState("none");
-  const [subtasks, setSubtasks] = useState<SubtaskInput[]>([]);
-  const [showMore, setShowMore] = useState(false);
-  const [description, setDescription] = useState("");
-  const [preferredTime, setPreferredTime] = useState("");
-  const [tags, setTags] = useState("");
+  const [subtasks, setSubtasks] = useState<SubtaskInput[]>([{ title: "" }]);
+  const [error, setError] = useState("");
   const dragIdx = useRef<number | null>(null);
 
-  const addSubtask = () =>
-    setSubtasks((prev) => [...prev, { title: "", estimated_hours: null }]);
+  const addSubtask = () => {
+    if (subtasks.length >= 30) return;
+    setSubtasks((prev) => [...prev, { title: "" }]);
+  };
   const removeSubtask = (i: number) =>
     setSubtasks((prev) => prev.filter((_, j) => j !== i));
-  const updateSubtask = (i: number, field: keyof SubtaskInput, val: any) =>
-    setSubtasks((prev) =>
-      prev.map((s, j) => (j === i ? { ...s, [field]: val } : s))
-    );
+  const updateSubtask = (i: number, val: string) =>
+    setSubtasks((prev) => prev.map((s, j) => (j === i ? { ...s, title: val } : s)));
 
   const handleDragStart = (i: number) => { dragIdx.current = i; };
   const handleDrop = (i: number) => {
@@ -117,22 +111,23 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
     dragIdx.current = null;
   };
 
-  const canSave = title.trim() && hours !== null;
+  const validSubtasks = subtasks.filter((s) => s.title.trim());
+  const canSave = title.trim() && validSubtasks.length >= 1;
 
   const save = () => {
-    if (!canSave) return;
+    setError("");
+    if (!title.trim()) return;
+    if (validSubtasks.length === 0) {
+      setError("Add at least one step to your project.");
+      return;
+    }
     onSave({
       kind: "project",
       title: title.trim(),
-      estimated_hours: hours!,
+      estimated_hours: 0,
       due_date: format(dueDate, "yyyy-MM-dd"),
       priority,
-      description: description.trim() || undefined,
-      preferred_time: preferredTime || undefined,
-      tags: tags ? tags.split(",").map((t) => t.trim()).filter(Boolean) : undefined,
-      subtasks: subtasks.filter((s) => s.title.trim()).length > 0
-        ? subtasks.filter((s) => s.title.trim())
-        : undefined,
+      subtasks: validSubtasks,
     });
   };
 
@@ -147,11 +142,6 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
           className="rounded-xl text-base focus-visible:ring-primary"
           autoFocus
         />
-      </div>
-
-      <div>
-        <label className="mb-2 block text-sm font-semibold">Estimated Hours</label>
-        <HourPills options={PROJECT_HOURS} value={hours} onChange={setHours} />
       </div>
 
       <div>
@@ -185,7 +175,7 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
       <div className="rounded-xl border border-border p-4 space-y-3">
         <div>
           <p className="text-sm font-semibold">Break it down into steps</p>
-          <p className="text-xs text-muted-foreground">Each step gets scheduled on a different day so you know exactly what to do.</p>
+          <p className="text-xs text-muted-foreground">Each step gets scheduled on a different day</p>
           {subtasks.length > 1 && (
             <p className="text-[10px] text-primary mt-1 font-medium">↕ Drag to reorder. First step = first day.</p>
           )}
@@ -202,24 +192,10 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
             <GripVertical className="h-4 w-4 text-muted-foreground shrink-0 cursor-grab" />
             <Input
               value={st.title}
-              onChange={(e) => updateSubtask(i, "title", e.target.value)}
+              onChange={(e) => updateSubtask(i, e.target.value)}
               placeholder={`Step ${i + 1}`}
               className="rounded-xl flex-1 text-sm"
             />
-            <div className="w-16 shrink-0">
-              <Input
-                type="number"
-                min={0.5}
-                max={24}
-                step={0.5}
-                value={st.estimated_hours ?? ""}
-                onChange={(e) =>
-                  updateSubtask(i, "estimated_hours", e.target.value ? Number(e.target.value) : null)
-                }
-                placeholder="h"
-                className="rounded-xl text-xs text-center"
-              />
-            </div>
             <button
               type="button"
               onClick={() => removeSubtask(i)}
@@ -229,7 +205,7 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
             </button>
           </div>
         ))}
-        {subtasks.length < 20 && (
+        {subtasks.length < 30 && (
           <Button
             type="button"
             variant="outline"
@@ -242,32 +218,8 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
         )}
       </div>
 
-      {/* More Options */}
-      <button
-        type="button"
-        onClick={() => setShowMore(!showMore)}
-        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-      >
-        {showMore ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-        {showMore ? "Less options" : "More options"}
-      </button>
-      {showMore && (
-        <div className="space-y-4 animate-in fade-in-0 slide-in-from-top-2 duration-150">
-          <div>
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">Preferred Time</label>
-            <Input type="time" value={preferredTime} onChange={(e) => setPreferredTime(e.target.value)} className="rounded-xl" />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">Tags (comma separated)</label>
-            <Input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="design, client, urgent" className="rounded-xl" />
-          </div>
-          <Textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Add extra details..."
-            className="min-h-[80px] rounded-xl"
-          />
-        </div>
+      {error && (
+        <p className="text-sm text-destructive font-medium">{error}</p>
       )}
 
       <Button
@@ -505,7 +457,6 @@ export function AddTaskModal({
   const [tab, setTab] = useState<"project" | "recurring" | "routine" | "simple">(defaultTab || "project");
   const resolvedDate = defaultDate || new Date();
 
-  // Sync tab when defaultTab changes (e.g., editing a routine)
   const [prevDefaultTab, setPrevDefaultTab] = useState(defaultTab);
   if (defaultTab !== prevDefaultTab) {
     setPrevDefaultTab(defaultTab);
@@ -530,7 +481,6 @@ export function AddTaskModal({
 
   const content = (
     <div className="space-y-5 px-1">
-      {/* Tab selector */}
       <div className="flex rounded-xl border border-border p-1 bg-muted/30">
         {tabs.map((t) => (
           <button
