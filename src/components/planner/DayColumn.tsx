@@ -61,7 +61,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
   // Group schedules by priority (use filtered schedules for today)
   const grouped = useMemo(() => {
     const groups: Record<string, ScheduleWithTask[]> = {
-      high: [], medium: [], low: [], none: [], completed: [],
+      high: [], medium: [], low: [], completed: [],
     };
     activeSchedules.forEach((s) => {
       const isProjectSubtask = s.task?.subtasks && s.task.subtasks.length > 0 && s.subtask_id;
