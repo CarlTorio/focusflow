@@ -332,44 +332,7 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
         <PriorityPills value={priority} onChange={setPriority} />
       </div>
 
-      {/* Advanced Options */}
-      <div className="rounded-xl border border-border overflow-hidden">
-        <button
-          type="button"
-          onClick={() => setShowAdvanced(!showAdvanced)}
-          className="flex items-center gap-2 w-full px-4 py-3 text-sm font-semibold text-foreground hover:bg-muted/50 transition-colors"
-        >
-          <ChevronDown className={cn("h-4 w-4 transition-transform text-muted-foreground", showAdvanced && "rotate-180")} />
-          Advanced Options
-          {startDate && <span className="ml-auto text-xs text-primary font-medium">{format(startDate, "MMM d")}</span>}
-        </button>
-        {showAdvanced && (
-          <div className="px-4 pb-4 pt-1 space-y-3 border-t border-border animate-in fade-in-0 slide-in-from-top-2 duration-200">
-            <div>
-              <label className="mb-2 block text-sm font-semibold">Start Date</label>
-              <p className="text-xs text-muted-foreground mb-2">When should this project appear in your tasks?</p>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-full justify-start rounded-xl font-normal", !startDate && "text-muted-foreground")}>
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, "MMM d, yyyy") : "Today (default)"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 z-[200]" align="start">
-                  <Calendar mode="single" selected={startDate ?? undefined} onSelect={(d) => setStartDate(d ?? null)} initialFocus className="p-3 pointer-events-auto" />
-                </PopoverContent>
-              </Popover>
-              {startDate && (
-                <button type="button" onClick={() => setStartDate(null)} className="mt-1.5 text-xs text-muted-foreground hover:text-foreground underline">
-                  Reset to today
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Subtasks with drag-to-reorder */}
+      {/* Subtasks + Advanced Options in one card */}
       <div className="rounded-xl border border-border p-4 space-y-3">
         <div>
           <p className="text-sm font-semibold">Break it down into subtasks</p>
@@ -398,6 +361,42 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
           <Button type="button" variant="outline" size="sm" onClick={addSubtask} className="rounded-xl w-full border-dashed">
             <Plus className="mr-1 h-3.5 w-3.5" /> Add Subtask
           </Button>
+        )}
+
+        <Separator />
+
+        <button
+          type="button"
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          className="flex items-center gap-2 w-full py-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ChevronDown className={cn("h-4 w-4 transition-transform", showAdvanced && "rotate-180")} />
+          Advanced Options
+          {startDate && <span className="ml-auto text-xs text-primary font-medium">{format(startDate, "MMM d")}</span>}
+        </button>
+        {showAdvanced && (
+          <div className="space-y-3 animate-in fade-in-0 slide-in-from-top-2 duration-200">
+            <div>
+              <label className="mb-2 block text-sm font-semibold">Start Date</label>
+              <p className="text-xs text-muted-foreground mb-2">When should this project appear in your tasks?</p>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start rounded-xl font-normal", !startDate && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, "MMM d, yyyy") : "Today (default)"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 z-[200]" align="start">
+                  <Calendar mode="single" selected={startDate ?? undefined} onSelect={(d) => setStartDate(d ?? null)} initialFocus className="p-3 pointer-events-auto" />
+                </PopoverContent>
+              </Popover>
+              {startDate && (
+                <button type="button" onClick={() => setStartDate(null)} className="mt-1.5 text-xs text-muted-foreground hover:text-foreground underline">
+                  Reset to today
+                </button>
+              )}
+            </div>
+          </div>
         )}
       </div>
 
