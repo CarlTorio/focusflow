@@ -94,7 +94,7 @@ export function FocusMode({ schedule, nextSchedule, onBack, onDone, onSkip }: Fo
               {subtasks.length > 0 && (
                 <div className="mt-4">
                   <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                    <span>{completedSubtasks}/{subtasks.length} steps done</span>
+                    <span>{completedSubtasks}/{subtasks.length} subtasks done</span>
                     <span>{Math.round(subtaskProgress)}%</span>
                   </div>
                   <Progress value={subtaskProgress} className="h-2" />
