@@ -359,8 +359,8 @@ export function PlannerTaskCard({
         </DropdownMenu>
       )}
 
-      {/* Checkbox or Lock */}
-      {isLocked ? (
+      {/* Lock icon for future tasks */}
+      {isLocked && (
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-border text-muted-foreground">
@@ -375,22 +375,7 @@ export function PlannerTaskCard({
             </p>
           </TooltipContent>
         </Tooltip>
-      ) : !isProject ? (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            if (!isCompleted) handleComplete(schedule.id);
-          }}
-          className={cn(
-            "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-200",
-            isCompleted
-              ? "border-primary bg-primary text-primary-foreground"
-              : "border-border hover:border-primary hover:scale-110"
-          )}
-        >
-          {isCompleted && <Check className="h-4 w-4" />}
-        </button>
-      ) : null}
+      )}
     </div>
   );
 }
