@@ -666,10 +666,10 @@ export function usePlanner(startDate: string, endDate: string) {
       toast({
         title:
           input.kind === "project"
-            ? "Project scheduled! 🗓️"
+            ? "Project scheduled"
             : input.kind === "recurring"
-            ? "Routine added! 🔄"
-            : "Task added! ✅",
+            ? "Routine added"
+            : "Task added",
       });
     },
     onError: (err: Error) => {
