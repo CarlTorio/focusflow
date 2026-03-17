@@ -147,9 +147,9 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
         <label className="mb-2 block text-sm font-semibold">Due Date</label>
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" className="w-full justify-start rounded-xl font-normal">
+            <Button variant="outline" className={cn("w-full justify-start rounded-xl font-normal", !dueDate && "text-muted-foreground")}>
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {format(dueDate, "MMM d, yyyy")}
+              {dueDate ? format(dueDate, "MMM d, yyyy") : "No due date"}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0 z-[200]" align="start">
