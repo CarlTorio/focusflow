@@ -90,15 +90,6 @@ export default function Planner() {
 
   return (
     <>
-      {focusSchedule && (
-        <FocusMode
-          schedule={focusSchedule}
-          nextSchedule={nextFocusSchedule}
-          onBack={() => setFocusScheduleId(null)}
-          onDone={(id, hours) => { completeSchedule.mutate({ scheduleId: id, actualHours: hours }); setFocusScheduleId(null); }}
-          onSkip={(id) => { completeSchedule.mutate({ scheduleId: id }); setFocusScheduleId(null); }}
-        />
-      )}
 
       <div className="pb-20 md:pb-8">
         <MobileHeader title="Planner" />
