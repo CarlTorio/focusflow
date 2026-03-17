@@ -107,17 +107,23 @@ export function useDailyFocus(date: Date, schedules: ScheduleWithTask[]) {
 
   const toggleShowAll = useCallback(() => setShowAll((p) => !p), []);
 
-  // Filter schedules: if focused, only show focused project + non-project items
+  // Filter schedules: if focused, ONLY show focused project
   const filteredSchedules = useMemo(() => {
     if (!state.focusedTaskId || needsPrompt) return schedules;
     return schedules.filter((s) => {
-      if (!s.task?.subtasks || s.task.subtasks.length === 0) return true;
       if (s.task_id === state.focusedTaskId) return true;
-      if (state.completedFocusIds.includes(s.task_id)) return true;
-      if (showAll) return true;
       return false;
     });
-  }, [schedules, state, needsPrompt, showAll]);
+  }, [schedules, state, needsPrompt]);
+
+  // Completed/done items today (hidden behind toggle when focused)
+  const completedTodaySchedules = useMemo(() => {
+    if (!state.focusedTaskId || needsPrompt) return [];
+    return schedules.filter((s) => {
+      if (s.task_id === state.focusedTaskId) return false;
+      return true;
+    });
+  }, [schedules, state, needsPrompt]);
 
   // Hidden project schedules (for locked display)
   const hiddenProjects = useMemo(() => {
