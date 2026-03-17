@@ -260,6 +260,44 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
           <span className="text-xs text-muted-foreground">Tap to add a routine or appointment</span>
         </button>
       </div>
+
+      {/* Edit Project Sheet */}
+      {editTask && (
+        <EditProjectSheet
+          open={!!editTask}
+          onOpenChange={(open) => !open && setEditTask(null)}
+          task={editTask}
+          onSave={(input) => onUpdateTask?.(input)}
+        />
+      )}
+
+      {/* Notes Sheet */}
+      <Sheet open={!!notesTask} onOpenChange={(open) => !open && setNotesTask(null)}>
+        <SheetContent side="bottom" className="max-h-[60vh] rounded-t-2xl pb-8">
+          <SheetHeader className="mb-4">
+            <SheetTitle className="text-base font-bold">
+              Notes — {notesTask?.title}
+            </SheetTitle>
+          </SheetHeader>
+          <Textarea
+            value={notesText}
+            onChange={(e) => setNotesText(e.target.value)}
+            placeholder="Add notes about this project..."
+            className="rounded-xl min-h-[120px] text-sm mb-4"
+          />
+          <Button
+            onClick={() => {
+              if (notesTask) {
+                onUpdateTask?.({ taskId: notesTask.id, description: notesText });
+                setNotesTask(null);
+              }
+            }}
+            className="w-full rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            Save Notes
+          </Button>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
