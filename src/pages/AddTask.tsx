@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, GripVertical, MoreHorizontal, Clock } from "lucide-react";
+import { ArrowLeft, GripVertical, MoreHorizontal, Clock, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -263,6 +263,8 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
   const [priority, setPriority] = useState("low");
   const [subtasks, setSubtasks] = useState<SubtaskInput[]>([{ title: "" }]);
   const [error, setError] = useState("");
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [startDate, setStartDate] = useState<Date | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -301,6 +303,7 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
       due_date: dueDate ? format(dueDate, "yyyy-MM-dd") : format(addDays(new Date(), 365), "yyyy-MM-dd"),
       priority,
       subtasks: validSubtasks,
+      start_date: startDate ? format(startDate, "yyyy-MM-dd") : undefined,
     });
   };
 
@@ -328,6 +331,41 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
         <label className="mb-2 block text-sm font-semibold">Priority</label>
         <PriorityPills value={priority} onChange={setPriority} />
       </div>
+
+      {/* Advanced Options */}
+      <button
+        type="button"
+        onClick={() => setShowAdvanced(!showAdvanced)}
+        className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <ChevronDown className={cn("h-4 w-4 transition-transform", showAdvanced && "rotate-180")} />
+        Advanced Options
+        {startDate && <span className="h-1.5 w-1.5 rounded-full bg-primary" />}
+      </button>
+      {showAdvanced && (
+        <div className="rounded-xl border border-border p-4 space-y-3 animate-in fade-in-0 slide-in-from-top-2 duration-200">
+          <div>
+            <label className="mb-2 block text-sm font-semibold">Start Date</label>
+            <p className="text-xs text-muted-foreground mb-2">When should this project appear in your tasks?</p>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className={cn("w-full justify-start rounded-xl font-normal", !startDate && "text-muted-foreground")}>
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {startDate ? format(startDate, "MMM d, yyyy") : "Today (default)"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 z-[200]" align="start">
+                <Calendar mode="single" selected={startDate ?? undefined} onSelect={(d) => setStartDate(d ?? null)} initialFocus className="p-3 pointer-events-auto" />
+              </PopoverContent>
+            </Popover>
+            {startDate && (
+              <button type="button" onClick={() => setStartDate(null)} className="mt-1.5 text-xs text-muted-foreground hover:text-foreground underline">
+                Reset to today
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Subtasks with drag-to-reorder */}
       <div className="rounded-xl border border-border p-4 space-y-3">
