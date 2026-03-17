@@ -176,13 +176,12 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
                       onCompleteSubtask={onCompleteSubtask}
                       onEdit={(t) => setEditTask(t)}
                       onViewNotes={(t) => { setNotesTask(t); setNotesText(t.description || ""); }}
-                    />
-                  ))
-                )}
-              </div>
-            )}
-          </div>
-        )}
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
 
         {/* Other tasks toggle (when focused, not during prompt) */}
         {isCurrentDay && focusedTaskId && !needsPrompt && completedTodaySchedules.length > 0 && (
