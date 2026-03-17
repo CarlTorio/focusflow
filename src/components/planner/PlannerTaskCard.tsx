@@ -258,18 +258,6 @@ export function PlannerTaskCard({
           )}
         </div>
 
-        {/* Project subtitle with progress */}
-        {isProject && showParentSubtitle && (
-          <div className="flex items-center gap-1.5 mt-0.5">
-            <p className="text-xs text-muted-foreground truncate">
-              {parentTitle}
-            </p>
-            <span className="text-[10px] text-muted-foreground/70 whitespace-nowrap">
-              · {doneSteps}/{totalSteps}
-            </span>
-          </div>
-        )}
-
         {/* Non-project subtitle */}
         {!isProject && showParentSubtitle && (
           <p className="mt-0.5 text-xs text-muted-foreground truncate">
@@ -283,14 +271,6 @@ export function PlannerTaskCard({
             {hours}h
             {schedule.start_time && ` · ${formatTime12(schedule.start_time)}`}
           </p>
-        )}
-
-        {/* Expand hint for projects */}
-        {isProject && !isLocked && !isCompleted && (
-          <div className="flex items-center gap-1 mt-1">
-            <ChevronDown className="h-3 w-3 text-muted-foreground/60" />
-            <span className="text-[10px] text-muted-foreground/60">View subtasks</span>
-          </div>
         )}
       </button>
 
