@@ -33,6 +33,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
 
   const isCurrentDay = isToday(date);
   const isTomorrowDay = isTomorrow(date);
+  const isPastDay = !isCurrentDay && isPast(startOfDay(date));
   const lockState = isCurrentDay ? "unlocked" as const : isTomorrowDay ? "tomorrow" as const : "future" as const;
 
   // Daily focus system (only for today)
