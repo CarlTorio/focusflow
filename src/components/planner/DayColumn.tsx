@@ -25,7 +25,7 @@ interface DayColumnProps {
   userName?: string;
 }
 
-export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus }: DayColumnProps) {
+export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus, userName }: DayColumnProps) {
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({
     completed: true,
   });
@@ -33,6 +33,21 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus 
   const isCurrentDay = isToday(date);
   const isTomorrowDay = isTomorrow(date);
   const lockState = isCurrentDay ? "unlocked" as const : isTomorrowDay ? "tomorrow" as const : "future" as const;
+
+  // Daily focus system (only for today)
+  const {
+    focusedTaskId,
+    needsPrompt,
+    isWhatsNext,
+    availableProjects,
+    filteredSchedules,
+    hiddenProjects,
+    showAll,
+    selectFocus,
+    toggleShowAll,
+  } = useDailyFocus(date, schedules);
+
+  const activeSchedules = isCurrentDay ? filteredSchedules : schedules;
 
   const toggleGroup = (key: string) =>
     setCollapsedGroups((prev) => ({ ...prev, [key]: !prev[key] }));
