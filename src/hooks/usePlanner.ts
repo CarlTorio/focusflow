@@ -677,12 +677,69 @@ export function usePlanner(startDate: string, endDate: string) {
     },
   });
 
+  // ─── Complete subtask directly (for focus mode - no schedule needed) ──────
+  const completeSubtaskDirect = useMutation({
+    mutationFn: async ({ subtaskId, taskId }: { subtaskId: string; taskId: string }) => {
+      // Mark subtask as completed
+      await supabase
+        .from("subtasks")
+        .update({ is_completed: true })
+        .eq("id", subtaskId);
+
+      // Delete any future schedule for this subtask
+      await supabase
+        .from("task_schedules")
+        .delete()
+        .eq("subtask_id", subtaskId)
+        .in("status", ["scheduled"]);
+
+      // Check if all subtasks are now done
+      const { data: remaining } = await supabase
+        .from("subtasks")
+        .select("id")
+        .eq("task_id", taskId)
+        .eq("is_completed", false);
+
+      if (!remaining || remaining.length === 0) {
+        await supabase
+          .from("tasks")
+          .update({ status: "completed", completed_at: new Date().toISOString() })
+          .eq("id", taskId);
+
+        await supabase
+          .from("task_schedules")
+          .update({ status: "completed" })
+          .eq("task_id", taskId)
+          .neq("status", "completed");
+
+        return { projectComplete: true };
+      }
+
+      return { projectComplete: false };
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["planner_schedules"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["progress-today"] });
+      queryClient.invalidateQueries({ queryKey: ["due_soon_tasks"] });
+      if (result?.projectComplete) {
+        toast({ title: "Project complete!" });
+      } else {
+        toast({ title: "Subtask done!" });
+      }
+    },
+    onError: (err: Error) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
+  });
+
   return {
     schedules: schedulesQuery.data || [],
     isLoading: schedulesQuery.isLoading,
     missedSchedules: missedQuery.data || [],
     dueSoonTasks: dueSoonQuery.data || [],
     completeSchedule,
+    completeSubtaskDirect,
     handleMissed,
     createTask,
     createPlannerTask: createTask,
