@@ -12,6 +12,7 @@ import { DailyRoutineSection } from "@/components/planner/DailyRoutineSection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePlanner } from "@/hooks/usePlanner";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Planner() {
   const isMobile = useIsMobile();
