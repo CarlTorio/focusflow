@@ -146,6 +146,7 @@ export function useDailyFocus(date: Date, schedules: ScheduleWithTask[]) {
     availableProjects,
     otherProjects,
     filteredSchedules,
+    completedTodaySchedules,
     hiddenProjects,
     showAll,
     selectFocus,
