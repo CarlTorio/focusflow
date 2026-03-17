@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { format, addDays } from "date-fns";
 import {
-  CalendarIcon, Plus, X, GripVertical,
+  CalendarIcon, Plus, X, GripVertical, ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
