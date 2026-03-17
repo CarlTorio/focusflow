@@ -52,12 +52,12 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
   const toggleGroup = (key: string) =>
     setCollapsedGroups((prev) => ({ ...prev, [key]: !prev[key] }));
 
-  // Group schedules by priority
+  // Group schedules by priority (use filtered schedules for today)
   const grouped = useMemo(() => {
     const groups: Record<string, ScheduleWithTask[]> = {
       high: [], medium: [], low: [], none: [], completed: [],
     };
-    schedules.forEach((s) => {
+    activeSchedules.forEach((s) => {
       const isProjectSubtask = s.task?.subtasks && s.task.subtasks.length > 0 && s.subtask_id;
       if ((s.status === "completed" || s.status === "skipped") && !isProjectSubtask) {
         groups.completed.push(s);
@@ -68,9 +68,9 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
       }
     });
     return groups;
-  }, [schedules]);
+  }, [activeSchedules]);
 
-  const totalActive = schedules.filter(
+  const totalActive = activeSchedules.filter(
     (s) => s.status !== "completed" && s.status !== "skipped"
   ).length;
   const totalCompleted = grouped.completed.length;
@@ -98,6 +98,16 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
           )}
         </div>
       </div>
+
+      {/* Focus Selection Prompt (only today) */}
+      {isCurrentDay && needsPrompt && availableProjects.length > 0 && (
+        <FocusPrompt
+          userName={userName || "there"}
+          projects={availableProjects}
+          isWhatsNext={isWhatsNext}
+          onSelect={selectFocus}
+        />
+      )}
 
       {/* Priority Groups */}
       <div className="space-y-4">
@@ -133,7 +143,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
                       lockState={lockState}
                       onComplete={onComplete}
                       onOpenFocus={onOpenFocus}
-                      allTodaySchedules={schedules}
+                      allTodaySchedules={activeSchedules}
                     />
                   ))}
                 </div>
@@ -169,7 +179,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
                     lockState={lockState}
                     onComplete={onComplete}
                     onOpenFocus={onOpenFocus}
-                    allTodaySchedules={schedules}
+                    allTodaySchedules={activeSchedules}
                   />
                 ))}
               </div>
@@ -177,8 +187,50 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
           </div>
         )}
 
+        {/* Hidden Projects Toggle (when focused) */}
+        {isCurrentDay && focusedTaskId && hiddenProjects.length > 0 && (
+          <div>
+            <button
+              onClick={toggleShowAll}
+              className="mb-2 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-xs transition-colors hover:bg-muted/50"
+            >
+              {showAll ? (
+                <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />
+              ) : (
+                <Eye className="h-3.5 w-3.5 text-muted-foreground" />
+              )}
+              <span className="font-medium text-muted-foreground">
+                {showAll ? "Hide other projects" : `Show ${hiddenProjects.length} other project${hiddenProjects.length > 1 ? "s" : ""}`}
+              </span>
+            </button>
+
+            {showAll && (
+              <div className="space-y-2 animate-in fade-in-0 duration-150">
+                {hiddenProjects.map((s) => (
+                  <div
+                    key={s.id}
+                    className="flex items-center gap-3 rounded-xl border-l-4 border-l-border px-3 py-3 bg-muted/20 opacity-50 cursor-not-allowed select-none"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-muted-foreground truncate">
+                        {s.task?.title || "Untitled"}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground/70 mt-0.5">
+                        Locked — finish your current focus first
+                      </p>
+                    </div>
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-border text-muted-foreground">
+                      <Lock className="h-3.5 w-3.5" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Empty state */}
-        {totalActive === 0 && totalCompleted === 0 && (
+        {totalActive === 0 && totalCompleted === 0 && !needsPrompt && (
           <div className="rounded-xl border-2 border-dashed border-border p-6 text-center">
             <p className="text-sm font-medium text-foreground">Nothing planned</p>
             <p className="text-xs text-muted-foreground mt-0.5">Add a task to get started</p>
@@ -186,7 +238,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
         )}
 
         {/* All done */}
-        {totalActive === 0 && totalCompleted > 0 && (
+        {totalActive === 0 && totalCompleted > 0 && !needsPrompt && (
           <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-center">
             <p className="text-sm font-semibold text-primary">All done for today</p>
           </div>
