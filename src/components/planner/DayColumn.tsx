@@ -190,53 +190,43 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
           );
         })}
 
-        {/* Other tasks toggle (when focused, not during prompt) */}
-        {isCurrentDay && focusedTaskId && !needsPrompt && completedTodaySchedules.length > 0 && (
+        {/* Locked HIGH projects (when one is focused) */}
+        {isCurrentDay && focusedTaskId && !needsPrompt && lockedHighProjects.length > 0 && (
           <div>
             <button
-              onClick={() => setShowOtherTasks((p) => !p)}
+              onClick={() => setShowLockedHigh((p) => !p)}
               className="mb-2 flex w-full items-center gap-2 rounded-lg px-2 py-2 text-xs transition-colors hover:bg-muted/50"
             >
-              {showOtherTasks ? (
+              {showLockedHigh ? (
                 <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />
               ) : (
-                <Eye className="h-3.5 w-3.5 text-muted-foreground" />
+                <Lock className="h-3.5 w-3.5 text-muted-foreground" />
               )}
               <span className="font-medium text-muted-foreground">
-                {showOtherTasks ? "Hide other tasks" : `Show ${completedTodaySchedules.length} other task${completedTodaySchedules.length > 1 ? "s" : ""} today`}
+                {showLockedHigh ? "Hide other high-priority" : `${lockedHighProjects.length} other high-priority project${lockedHighProjects.length > 1 ? "s" : ""} (locked)`}
               </span>
             </button>
 
-            {showOtherTasks && (
+            {showLockedHigh && (
               <div className="space-y-2 animate-in fade-in-0 duration-150">
-                {completedTodaySchedules.map((s) => {
-                  const isDone = s.status === "completed" || s.status === "skipped";
-                  return (
-                    <div
-                      key={s.id}
-                      className={cn(
-                        "flex items-center gap-3 rounded-xl border-l-4 px-3 py-3 select-none",
-                        isDone
-                          ? "border-l-primary/30 bg-primary/5 opacity-60"
-                          : "border-l-border bg-muted/20 opacity-50 cursor-not-allowed"
-                      )}
-                    >
-                      <div className="flex-1 min-w-0">
-                        <p className={cn("text-sm font-semibold truncate", isDone ? "text-muted-foreground line-through" : "text-muted-foreground")}>
-                          {s.task?.title || "Untitled"}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground/70 mt-0.5">
-                          {isDone ? "Completed" : "Queued — finish your focus first"}
-                        </p>
-                      </div>
-                      {!isDone && (
-                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-border text-muted-foreground">
-                          <Lock className="h-3.5 w-3.5" />
-                        </div>
-                      )}
+                {lockedHighProjects.map((s) => (
+                  <div
+                    key={s.id}
+                    className="flex items-center gap-3 rounded-xl border-l-4 border-l-red-500/30 bg-muted/20 px-3 py-3 select-none opacity-50 cursor-not-allowed"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate text-muted-foreground">
+                        {s.task?.title || "Untitled"}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground/70 mt-0.5">
+                        Finish your current focus first
+                      </p>
                     </div>
-                  );
-                })}
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-border text-muted-foreground">
+                      <Lock className="h-3.5 w-3.5" />
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
