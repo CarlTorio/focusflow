@@ -4,7 +4,6 @@ import { ArrowLeft, GripVertical, MoreHorizontal, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
@@ -47,10 +46,9 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { CalendarIcon, Plus, X, ChevronDown, ChevronUp } from "lucide-react";
+import { CalendarIcon, Plus, X } from "lucide-react";
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
-const PROJECT_HOURS = [0.5, 1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20];
 const SIMPLE_HOURS = [0.25, 0.5, 1, 1.5, 2, 3];
 const PRIORITIES = [
   { value: "high", label: "HIGH", color: "bg-destructive text-destructive-foreground" },
@@ -90,6 +88,43 @@ function formatTime(timeStr: string): string {
   const ampm = h >= 12 ? "PM" : "AM";
   const hour = h % 12 || 12;
   return `${hour}:${String(m).padStart(2, "0")} ${ampm}`;
+}
+
+// ─── Sortable Subtask Item ────────────────────────────────────────────────────
+function SortableSubtaskItem({
+  id,
+  index,
+  title,
+  onUpdate,
+  onRemove,
+}: {
+  id: string;
+  index: number;
+  title: string;
+  onUpdate: (val: string) => void;
+  onRemove: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const style = { transform: CSS.Transform.toString(transform), transition };
+
+  return (
+    <div ref={setNodeRef} style={style}
+      className={cn("flex items-center gap-2", isDragging && "opacity-50 z-50")}>
+      <button {...attributes} {...listeners}
+        className="shrink-0 cursor-grab touch-none text-muted-foreground/40 hover:text-muted-foreground">
+        <GripVertical className="h-4 w-4" />
+      </button>
+      <Input
+        value={title}
+        onChange={(e) => onUpdate(e.target.value)}
+        placeholder={`Step ${index + 1}`}
+        className="rounded-xl flex-1 text-sm"
+      />
+      <button type="button" onClick={onRemove} className="text-muted-foreground hover:text-destructive shrink-0">
+        <X className="h-4 w-4" />
+      </button>
+    </div>
+  );
 }
 
 // ─── Sortable Routine Management Item ─────────────────────────────────────────
@@ -173,13 +208,11 @@ function RoutineTabWithManagement({
   return (
     <>
       <div className="space-y-6">
-        {/* Add / Edit form */}
         <div>
           <h3 className="text-sm font-bold mb-3">{editRoutine ? "Edit Routine" : "Add New Routine"}</h3>
           <RoutineForm onSave={onSaveRoutine} editRoutine={editRoutine} isSaving={isSaving} />
         </div>
 
-        {/* Existing routines management */}
         {routines.length > 0 && (
           <>
             <Separator />
@@ -205,7 +238,6 @@ function RoutineTabWithManagement({
         )}
       </div>
 
-      {/* Remove confirmation */}
       <AlertDialog open={!!removeTarget} onOpenChange={() => setRemoveTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -225,50 +257,63 @@ function RoutineTabWithManagement({
   );
 }
 
-// ─── Project Tab ──────────────────────────────────────────────────────────────
+// ─── Project Tab (Simplified) ─────────────────────────────────────────────────
 function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => void; defaultDate: Date }) {
   const [title, setTitle] = useState("");
-  const [hours, setHours] = useState<number | null>(null);
-  const [dueDate, setDueDate] = useState<Date>(addDays(defaultDate, 3));
+  const [dueDate, setDueDate] = useState<Date>(addDays(new Date(), 3));
   const [priority, setPriority] = useState("none");
-  const [subtasks, setSubtasks] = useState<SubtaskInput[]>([]);
-  const [showMore, setShowMore] = useState(false);
-  const [description, setDescription] = useState("");
-  const [preferredTime, setPreferredTime] = useState("");
-  const [tags, setTags] = useState("");
-  const dragIdx = { current: null as number | null };
+  const [subtasks, setSubtasks] = useState<SubtaskInput[]>([{ title: "" }]);
+  const [error, setError] = useState("");
 
-  const addSubtask = () => setSubtasks((prev) => [...prev, { title: "", estimated_hours: null }]);
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const subtaskIds = subtasks.map((_, i) => `subtask-${i}`);
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = subtaskIds.indexOf(active.id as string);
+    const newIndex = subtaskIds.indexOf(over.id as string);
+    setSubtasks((prev) => arrayMove(prev, oldIndex, newIndex));
+  }, [subtaskIds]);
+
+  const addSubtask = () => {
+    if (subtasks.length >= 30) return;
+    setSubtasks((prev) => [...prev, { title: "" }]);
+  };
   const removeSubtask = (i: number) => setSubtasks((prev) => prev.filter((_, j) => j !== i));
-  const updateSubtask = (i: number, field: keyof SubtaskInput, val: any) =>
-    setSubtasks((prev) => prev.map((s, j) => (j === i ? { ...s, [field]: val } : s)));
+  const updateSubtask = (i: number, val: string) =>
+    setSubtasks((prev) => prev.map((s, j) => (j === i ? { ...s, title: val } : s)));
 
-  const canSave = title.trim() && hours !== null;
+  const validSubtasks = subtasks.filter((s) => s.title.trim());
+  const canSave = title.trim() && validSubtasks.length >= 1;
 
   const save = () => {
-    if (!canSave) return;
+    setError("");
+    if (!title.trim()) return;
+    if (validSubtasks.length === 0) {
+      setError("Add at least one step to your project.");
+      return;
+    }
     onSave({
       kind: "project",
       title: title.trim(),
-      estimated_hours: hours!,
+      estimated_hours: 0,
       due_date: format(dueDate, "yyyy-MM-dd"),
       priority,
-      description: description.trim() || undefined,
-      preferred_time: preferredTime || undefined,
-      tags: tags ? tags.split(",").map((t) => t.trim()).filter(Boolean) : undefined,
-      subtasks: subtasks.filter((s) => s.title.trim()).length > 0 ? subtasks.filter((s) => s.title.trim()) : undefined,
+      subtasks: validSubtasks,
     });
   };
 
   return (
     <div className="space-y-5">
       <p className="text-xs text-muted-foreground">Task with a deadline — we'll schedule it for you</p>
+      
       <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="What's the project?" className="rounded-xl text-base focus-visible:ring-primary" autoFocus />
-
-      <div>
-        <label className="mb-2 block text-sm font-semibold">Estimated Hours</label>
-        <HourPills options={PROJECT_HOURS} value={hours} onChange={setHours} />
-      </div>
 
       <div>
         <label className="mb-2 block text-sm font-semibold">Due Date</label>
@@ -289,45 +334,40 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
         <PriorityPills value={priority} onChange={setPriority} />
       </div>
 
-      {/* Subtasks */}
+      {/* Subtasks with drag-to-reorder */}
       <div className="rounded-xl border border-border p-4 space-y-3">
         <div>
           <p className="text-sm font-semibold">Break it down into steps</p>
-          <p className="text-xs text-muted-foreground">Each step gets scheduled on a different day.</p>
+          <p className="text-xs text-muted-foreground">Each step gets scheduled on a different day</p>
+          {subtasks.length > 1 && (
+            <p className="text-[10px] text-primary mt-1 font-medium">↕ Drag to reorder. First step = first day.</p>
+          )}
         </div>
-        {subtasks.map((st, i) => (
-          <div key={i} className="flex items-center gap-2">
-            <GripVertical className="h-4 w-4 text-muted-foreground shrink-0 cursor-grab" />
-            <Input value={st.title} onChange={(e) => updateSubtask(i, "title", e.target.value)} placeholder={`Step ${i + 1}`} className="rounded-xl flex-1 text-sm" />
-            <div className="w-16 shrink-0">
-              <Input type="number" min={0.5} max={24} step={0.5} value={st.estimated_hours ?? ""} onChange={(e) => updateSubtask(i, "estimated_hours", e.target.value ? Number(e.target.value) : null)} placeholder="h" className="rounded-xl text-xs text-center" />
-            </div>
-            <button type="button" onClick={() => removeSubtask(i)} className="text-muted-foreground hover:text-destructive"><X className="h-4 w-4" /></button>
-          </div>
-        ))}
-        {subtasks.length < 20 && (
+
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={subtaskIds} strategy={verticalListSortingStrategy}>
+            {subtasks.map((st, i) => (
+              <SortableSubtaskItem
+                key={subtaskIds[i]}
+                id={subtaskIds[i]}
+                index={i}
+                title={st.title}
+                onUpdate={(val) => updateSubtask(i, val)}
+                onRemove={() => removeSubtask(i)}
+              />
+            ))}
+          </SortableContext>
+        </DndContext>
+
+        {subtasks.length < 30 && (
           <Button type="button" variant="outline" size="sm" onClick={addSubtask} className="rounded-xl w-full border-dashed">
             <Plus className="mr-1 h-3.5 w-3.5" /> Add Step
           </Button>
         )}
       </div>
 
-      <button type="button" onClick={() => setShowMore(!showMore)} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-        {showMore ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-        {showMore ? "Less options" : "More options"}
-      </button>
-      {showMore && (
-        <div className="space-y-4 animate-in fade-in-0 slide-in-from-top-2 duration-150">
-          <div>
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">Preferred Time</label>
-            <Input type="time" value={preferredTime} onChange={(e) => setPreferredTime(e.target.value)} className="rounded-xl" />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium text-muted-foreground">Tags (comma separated)</label>
-            <Input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="design, client, urgent" className="rounded-xl" />
-          </div>
-          <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Add extra details..." className="min-h-[80px] rounded-xl" />
-        </div>
+      {error && (
+        <p className="text-sm text-destructive font-medium">{error}</p>
       )}
 
       <Button onClick={save} disabled={!canSave} className="w-full rounded-xl bg-primary text-primary-foreground hover:bg-primary/90">
@@ -456,7 +496,6 @@ export default function AddTask() {
 
   return (
     <div className="fixed inset-0 z-50 bg-background overflow-y-auto">
-      {/* Header */}
       <header className="sticky top-0 z-10 bg-background border-b border-border">
         <div className="flex items-center justify-between px-4 py-3 max-w-lg mx-auto">
           <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
@@ -468,9 +507,7 @@ export default function AddTask() {
         </div>
       </header>
 
-      {/* Content */}
       <div className="max-w-lg mx-auto px-4 py-6">
-        {/* Tab selector */}
         <div className="flex rounded-xl border border-border p-1 bg-muted/30 mb-6">
           {tabs.map((t) => (
             <button key={t.id} type="button" onClick={() => { setTab(t.id); setEditRoutine(null); }}
