@@ -312,16 +312,23 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
 
       <div>
         <label className="mb-2 block text-sm font-semibold">Due Date</label>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" className="w-full justify-start rounded-xl font-normal">
-              <CalendarIcon className="mr-2 h-4 w-4" />{format(dueDate, "MMM d, yyyy")}
+        <div className="flex gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn("flex-1 justify-start rounded-xl font-normal", !dueDate && "text-muted-foreground")}>
+                <CalendarIcon className="mr-2 h-4 w-4" />{dueDate ? format(dueDate, "MMM d, yyyy") : "No due date"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 z-[200]" align="start">
+              <Calendar mode="single" selected={dueDate ?? undefined} onSelect={(d) => d && setDueDate(d)} disabled={(d) => d <= new Date()} initialFocus className="p-3 pointer-events-auto" />
+            </PopoverContent>
+          </Popover>
+          {dueDate && (
+            <Button variant="ghost" size="icon" className="shrink-0 rounded-xl text-muted-foreground hover:text-destructive" onClick={() => setDueDate(null)}>
+              <X className="h-4 w-4" />
             </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0 z-[200]" align="start">
-            <Calendar mode="single" selected={dueDate} onSelect={(d) => d && setDueDate(d)} disabled={(d) => d <= new Date()} initialFocus className="p-3 pointer-events-auto" />
-          </PopoverContent>
-        </Popover>
+          )}
+        </div>
       </div>
 
       <div>
