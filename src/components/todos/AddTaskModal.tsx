@@ -40,7 +40,7 @@ interface AddTaskModalProps {
   isSaving?: boolean;
 }
 
-export function AddTaskModal({ open, onOpenChange, onSave, defaultPriority = "none", isSaving }: AddTaskModalProps) {
+export function AddTaskModal({ open, onOpenChange, onSave, defaultPriority = "low", isSaving }: AddTaskModalProps) {
   const isMobile = useIsMobile();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
