@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
-import { format, isToday, isTomorrow } from "date-fns";
-import { ChevronDown, ChevronRight, Plus, Eye, EyeOff, Lock, CheckCircle2 } from "lucide-react";
+import { format, isToday, isTomorrow, isPast, startOfDay } from "date-fns";
+import { ChevronDown, ChevronRight, Plus, Eye, EyeOff, Lock, CheckCircle2, Archive } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PlannerTaskCard } from "./PlannerTaskCard";
 import { FocusPrompt } from "./FocusPrompt";
@@ -33,6 +33,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
 
   const isCurrentDay = isToday(date);
   const isTomorrowDay = isTomorrow(date);
+  const isPastDay = !isCurrentDay && isPast(startOfDay(date));
   const lockState = isCurrentDay ? "unlocked" as const : isTomorrowDay ? "tomorrow" as const : "future" as const;
 
   // Daily focus system (only for today)
@@ -174,16 +175,20 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
           </button>
         )}
 
-        {/* Completed — hidden when focus prompt is active */}
+        {/* Archives (past days) or Done (today) — hidden when focus prompt is active */}
         {!promptActive && totalCompleted > 0 && (
           <div>
             <button
               onClick={() => toggleGroup("completed")}
               className="mb-2 flex w-full items-center gap-2 text-xs"
             >
-              <div className="h-2 w-2 rounded-full bg-primary shrink-0" />
+              {isPastDay ? (
+                <Archive className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              ) : (
+                <div className="h-2 w-2 rounded-full bg-primary shrink-0" />
+              )}
               <span className="font-bold uppercase tracking-wider text-muted-foreground">
-                DONE ({totalCompleted})
+                {isPastDay ? "ARCHIVES" : "DONE"} ({totalCompleted})
               </span>
               <div className="flex-1" />
               {collapsedGroups.completed ? (
@@ -194,18 +199,66 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
             </button>
             {!collapsedGroups.completed && (
               <div className="space-y-2 animate-in fade-in-0 duration-150">
-                {grouped.completed.map((s) => (
-                  <PlannerTaskCard
-                    key={s.id}
-                    schedule={s}
-                    lockState={lockState}
-                    onComplete={onComplete}
-                    onOpenFocus={onOpenFocus}
-                    allTodaySchedules={activeSchedules}
-                    isFocusedProject={isCurrentDay && s.task_id === focusedTaskId}
-                    onCompleteSubtask={onCompleteSubtask}
-                  />
-                ))}
+                {isPastDay ? (
+                  /* Archive compact view — group by project */
+                  (() => {
+                    const projectMap = new Map<string, { title: string; subtasksDone: number; subtasksTotal: number; completedAt: string | null; priority: string }>();
+                    grouped.completed.forEach((s) => {
+                      const taskId = s.task_id;
+                      if (!projectMap.has(taskId)) {
+                        const totalSubs = s.task?.subtasks?.length || 0;
+                        const doneSubs = s.task?.subtasks?.filter((st) => st.is_completed).length || 0;
+                        projectMap.set(taskId, {
+                          title: s.task?.title || "Untitled",
+                          subtasksDone: doneSubs,
+                          subtasksTotal: totalSubs,
+                          completedAt: s.task?.completed_at || null,
+                          priority: s.task?.priority || "none",
+                        });
+                      }
+                    });
+                    return Array.from(projectMap.entries()).map(([taskId, info]) => (
+                      <div
+                        key={taskId}
+                        className="flex items-center gap-3 rounded-lg border border-border/50 bg-muted/30 px-3 py-2.5"
+                      >
+                        <CheckCircle2 className="h-4 w-4 shrink-0 text-primary/60" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-muted-foreground line-through truncate">
+                            {info.title}
+                          </p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            {info.subtasksTotal > 0 && (
+                              <span className="text-[10px] text-muted-foreground/60">
+                                {info.subtasksDone}/{info.subtasksTotal} subtasks
+                              </span>
+                            )}
+                            {info.completedAt && (
+                              <span className="text-[10px] text-muted-foreground/60">
+                                • {format(new Date(info.completedAt), "MMM d, h:mm a")}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className={cn("h-2 w-2 rounded-full shrink-0", PRIORITY_META[info.priority]?.dot || "bg-gray-400")} />
+                      </div>
+                    ));
+                  })()
+                ) : (
+                  /* Today: full cards */
+                  grouped.completed.map((s) => (
+                    <PlannerTaskCard
+                      key={s.id}
+                      schedule={s}
+                      lockState={lockState}
+                      onComplete={onComplete}
+                      onOpenFocus={onOpenFocus}
+                      allTodaySchedules={activeSchedules}
+                      isFocusedProject={isCurrentDay && s.task_id === focusedTaskId}
+                      onCompleteSubtask={onCompleteSubtask}
+                    />
+                  ))
+                )}
               </div>
             )}
           </div>
