@@ -634,9 +634,10 @@ export function usePlanner(startDate: string, endDate: string) {
 
         // Distribute subtasks across days
         if (insertedSubtasks.length > 0) {
+          const startStr = input.start_date || todayStr;
           const slots = distributeSubtasks(
             insertedSubtasks.map((st) => ({ id: st.id, title: st.title })),
-            todayStr,
+            startStr,
             input.due_date
           );
 
