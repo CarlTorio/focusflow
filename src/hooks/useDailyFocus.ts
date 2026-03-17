@@ -47,12 +47,14 @@ export function useDailyFocus(date: Date, schedules: ScheduleWithTask[]) {
     return exists ? state.focusedTaskId : null;
   }, [state.focusedTaskId, schedules]);
 
-  // Auto-clear invalid focus from state/storage
-  if (state.focusedTaskId && !validFocusedTaskId && schedules.length > 0) {
-    const next: DailyFocusState = { focusedTaskId: null, completedFocusIds: state.completedFocusIds };
-    setState(next);
-    saveState(date, next);
-  }
+  // Auto-clear invalid focus from state/storage (in useEffect, not during render)
+  useEffect(() => {
+    if (state.focusedTaskId && !validFocusedTaskId && schedules.length > 0) {
+      const next: DailyFocusState = { focusedTaskId: null, completedFocusIds: state.completedFocusIds };
+      setState(next);
+      saveState(date, next);
+    }
+  }, [state.focusedTaskId, validFocusedTaskId, schedules.length, state.completedFocusIds, date]);
 
   // All project schedules not yet completed in focus flow
   const allProjects = useMemo(() => {
