@@ -507,7 +507,7 @@ export default function AddTask() {
         </div>
       </header>
 
-      <div className="max-w-lg mx-auto px-4 py-6">
+      <div className="max-w-lg mx-auto px-4 py-6 pb-28">
         <div className="flex rounded-xl border border-border p-1 bg-muted/30 mb-6">
           {tabs.map((t) => (
             <button key={t.id} type="button" onClick={() => { setTab(t.id); setEditRoutine(null); }}
