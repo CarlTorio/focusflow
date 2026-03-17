@@ -77,16 +77,23 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
   const toggleGroup = (key: string) =>
     setCollapsedGroups((prev) => ({ ...prev, [key]: !prev[key] }));
 
-  // Group schedules by priority (use filtered schedules for today)
+  // Group schedules by priority, deduplicating project tasks by task_id
   const grouped = useMemo(() => {
     const groups: Record<string, ScheduleWithTask[]> = {
       high: [], medium: [], low: [], completed: [],
     };
+    const seenProjectIds = new Set<string>();
     activeSchedules.forEach((s) => {
       const isProjectSubtask = s.task?.subtasks && s.task.subtasks.length > 0 && s.subtask_id;
       if ((s.status === "completed" || s.status === "skipped") && !isProjectSubtask) {
         groups.completed.push(s);
       } else {
+        // Deduplicate: only show one card per project task
+        const isProject = s.task?.subtasks && s.task.subtasks.length > 0;
+        if (isProject) {
+          if (seenProjectIds.has(s.task_id)) return;
+          seenProjectIds.add(s.task_id);
+        }
         const p = s.task?.priority === "none" ? "low" : (s.task?.priority || "low");
         groups[p] = groups[p] || [];
         groups[p].push(s);
