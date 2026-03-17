@@ -117,7 +117,7 @@ function SortableSubtaskItem({
       <Input
         value={title}
         onChange={(e) => onUpdate(e.target.value)}
-        placeholder={`Step ${index + 1}`}
+        placeholder={`Subtask ${index + 1}`}
         className="rounded-xl flex-1 text-sm"
       />
       <button type="button" onClick={onRemove} className="text-muted-foreground hover:text-destructive shrink-0">
@@ -296,7 +296,7 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
     setError("");
     if (!title.trim()) return;
     if (validSubtasks.length === 0) {
-      setError("Add at least one step to your project.");
+      setError("Add at least one subtask to your project.");
       return;
     }
     onSave({
@@ -337,10 +337,10 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
       {/* Subtasks with drag-to-reorder */}
       <div className="rounded-xl border border-border p-4 space-y-3">
         <div>
-          <p className="text-sm font-semibold">Break it down into steps</p>
-          <p className="text-xs text-muted-foreground">Each step gets scheduled on a different day</p>
+          <p className="text-sm font-semibold">Break it down into subtasks</p>
+          <p className="text-xs text-muted-foreground">Each subtask gets scheduled on a different day</p>
           {subtasks.length > 1 && (
-            <p className="text-[10px] text-primary mt-1 font-medium">↕ Drag to reorder. First step = first day.</p>
+            <p className="text-[10px] text-primary mt-1 font-medium">↕ Drag to reorder. First subtask = first day.</p>
           )}
         </div>
 
@@ -361,7 +361,7 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
 
         {subtasks.length < 30 && (
           <Button type="button" variant="outline" size="sm" onClick={addSubtask} className="rounded-xl w-full border-dashed">
-            <Plus className="mr-1 h-3.5 w-3.5" /> Add Step
+            <Plus className="mr-1 h-3.5 w-3.5" /> Add Subtask
           </Button>
         )}
       </div>

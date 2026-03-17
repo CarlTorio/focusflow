@@ -130,7 +130,7 @@ export function PlannerTaskCard({
               <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" />
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Due: {dueDate ? format(parseISO(dueDate), "MMM d") : "—"} · {doneSteps}/{totalSteps} steps done
+              Due: {dueDate ? format(parseISO(dueDate), "MMM d") : "—"} · {doneSteps}/{totalSteps} subtasks done
             </p>
           </div>
           {dueBadge && (
@@ -290,7 +290,7 @@ export function PlannerTaskCard({
               ↳ {parentTitle}
             </p>
             <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-              {doneSteps}/{totalSteps} steps
+              {doneSteps}/{totalSteps} subtasks
             </span>
           </div>
         )}
@@ -314,7 +314,7 @@ export function PlannerTaskCard({
         {isProject && !isLocked && !isCompleted && (
           <div className="flex items-center gap-1 mt-1">
             <ChevronDown className="h-3 w-3 text-muted-foreground" />
-            <span className="text-[10px] text-muted-foreground">Tap to see all steps</span>
+            <span className="text-[10px] text-muted-foreground">Tap to see all subtasks</span>
           </div>
         )}
       </button>

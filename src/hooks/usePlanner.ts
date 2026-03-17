@@ -388,7 +388,7 @@ export function usePlanner(startDate: string, endDate: string) {
       if (result?.projectComplete) {
         toast({ title: `🎉 Project Complete! "${result.displayTitle}" is done!` });
       } else if (result?.nextSubtaskTitle) {
-        toast({ title: `✓ Step done! Next: ${result.nextSubtaskTitle}` });
+        toast({ title: `✓ Subtask done! Next: ${result.nextSubtaskTitle}` });
       } else {
         toast({ title: `✓ ${result?.displayTitle || "Task"} done!` });
       }
