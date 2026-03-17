@@ -85,9 +85,6 @@ export default function Planner() {
   }, [navigate]);
 
   // Focus mode
-  const focusSchedule = focusScheduleId ? schedules.find((s) => s.id === focusScheduleId) ?? null : null;
-  const focusIdx = focusScheduleId ? schedules.findIndex((s) => s.id === focusScheduleId) : -1;
-  const nextFocusSchedule = focusIdx >= 0 && focusIdx < schedules.length - 1 ? schedules[focusIdx + 1] : null;
 
   const selectedDate = isMobile ? selectedMobileDay : new Date();
 
