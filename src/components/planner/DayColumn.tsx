@@ -429,7 +429,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
                     ))}
                   </div>
                 </div>
-              )
+              )}
 
               {/* Main Tasks completed */}
               {summaryData.completedMain.length > 0 && (
