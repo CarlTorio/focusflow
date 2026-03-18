@@ -161,11 +161,54 @@ export function PlannerTaskCard({
               {dueDate ? `Due ${format(parseISO(dueDate), "MMM d")}` : "No deadline"} · {doneSteps}/{totalSteps} done
             </p>
           </button>
-          {dueBadge && (
-            <span className={cn("rounded-full px-1.5 py-0.5 text-[9px] font-bold shrink-0", dueBadge.className)}>
-              {dueBadge.text}
+          {/* Status badge */}
+          {!isLocked && !isPast && onUpdateStatus && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onUpdateStatus(schedule.id, statusConfig.next);
+              }}
+              className={cn(
+                "flex shrink-0 items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-semibold transition-all hover:scale-105 active:scale-95",
+                statusConfig.className
+              )}
+            >
+              <statusConfig.icon className="h-3 w-3" />
+              {statusConfig.label}
+            </button>
+          )}
+          {isPast && (
+            <span className={cn(
+              "flex shrink-0 items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-semibold",
+              statusConfig.className
+            )}>
+              <statusConfig.icon className="h-3 w-3" />
+              {statusConfig.label}
             </span>
           )}
+
+          {/* Notes button */}
+          {(!isLocked || isPast) && task && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!isPast) onViewNotes?.(task);
+              }}
+              className={cn(
+                "relative flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors",
+                isPast ? "cursor-default" : "",
+                task.description
+                  ? "bg-primary/15 text-primary hover:bg-primary/25"
+                  : isPast ? "hidden" : "text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted"
+              )}
+            >
+              <MessageSquare className="h-3.5 w-3.5" />
+              {task.description && (
+                <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-primary ring-2 ring-card" />
+              )}
+            </button>
+          )}
+
           {task && !isLocked && !isPast && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
