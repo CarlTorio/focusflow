@@ -262,8 +262,6 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
           </div>
         )}
       </div>
-        </div>
-      )}
 
       {editTask && (
         <EditProjectSheet
