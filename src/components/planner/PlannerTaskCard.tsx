@@ -58,7 +58,8 @@ export function PlannerTaskCard({
 }: PlannerTaskCardProps) {
   const task = schedule.task;
   const isCompleted = schedule.status === "completed";
-  const isLocked = lockState !== "unlocked";
+  const isPast = lockState === "past";
+  const isLocked = lockState !== "unlocked" && lockState !== "past";
   const priority = task?.priority === "none" || task?.priority === "low" ? "medium" : (task?.priority || "medium");
   const hours = Number(schedule.allocated_hours);
   const isRecurring = (task as any)?.task_type === "recurring";
