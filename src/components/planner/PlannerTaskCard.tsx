@@ -77,6 +77,7 @@ export function PlannerTaskCard({
   onEdit,
   onViewNotes,
   onSwitchFocus,
+  onUpdateStatus,
 }: PlannerTaskCardProps) {
   const task = schedule.task;
   const isCompleted = schedule.status === "completed";
@@ -86,6 +87,9 @@ export function PlannerTaskCard({
   const hours = Number(schedule.allocated_hours);
   const isRecurring = (task as any)?.task_type === "recurring";
   const isProject = task?.subtasks && task.subtasks.length > 0;
+
+  const currentStatus = schedule.status || "scheduled";
+  const statusConfig = STATUS_CONFIG[currentStatus] || STATUS_CONFIG.scheduled;
 
   const subtaskId = schedule.subtask_id;
   const displayTitle = schedule.display_title || task?.title || "Untitled";
