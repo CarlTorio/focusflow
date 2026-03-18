@@ -121,40 +121,6 @@ export function QuickTasksSection({ date, readOnly = false }: QuickTasksSectionP
           </div>
         ))}
 
-        {/* Add quick task */}
-        {!readOnly && (
-          showInput ? (
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleSubmit();
-                  if (e.key === "Escape") { setShowInput(false); setNewTitle(""); }
-                }}
-                placeholder="Quick task title..."
-                autoFocus
-                className="flex-1 rounded-xl border border-emerald-300 dark:border-emerald-700 bg-card px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/30"
-              />
-              <button
-                onClick={handleSubmit}
-                disabled={!newTitle.trim() || addTask.isPending}
-                className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500 text-white hover:bg-emerald-600 transition-colors disabled:opacity-50"
-              >
-                <Plus className="h-4 w-4" />
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => setShowInput(true)}
-              className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-emerald-300 dark:border-emerald-700/50 py-2 text-xs font-medium text-emerald-600 dark:text-emerald-400 transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              Add quick task
-            </button>
-          )
-        )}
       </div>
     </div>
   );
