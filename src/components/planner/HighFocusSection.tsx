@@ -62,8 +62,8 @@ export function HighFocusSection({
     }
   }, [isTodayColumn]);
 
-  // Not today or only 1 item → show all normally
-  if (!isTodayColumn || items.length <= 1) {
+  // Not today → show all normally (no focus filtering)
+  if (!isTodayColumn) {
     return (
       <div className="space-y-2 animate-in fade-in-0 duration-150">
         {items.map((s) => (
