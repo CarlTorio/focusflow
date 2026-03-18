@@ -139,10 +139,10 @@ export default function Planner() {
   const [pastRevealed, setPastRevealed] = useState(false);
   const [summaryOpen, setSummaryOpen] = useState(false);
 
-  // Expand date range to include spillover days (fetch a wider window)
+  // Expand date range to include spillover context (previous day) + future buffer
   const dateRange = useMemo(() => {
-    const start = isMobile ? selectedMobileDay : baseDate;
-    // Fetch extra days ahead to accommodate spillover
+    const visibleStart = isMobile ? selectedMobileDay : baseDate;
+    const start = addDays(visibleStart, -1); // needed so done/overflow from previous day affects current view correctly
     const end = isMobile ? addDays(selectedMobileDay, 6) : addDays(baseDate, 7);
     return {
       start,
@@ -177,15 +177,17 @@ export default function Planner() {
 
   // Compute spillover-adjusted schedules
   const schedulesByDate = useMemo(() => {
-    // Build sorted list of dates in the range
     const dates: string[] = [];
-    const start = isMobile ? selectedMobileDay : baseDate;
+    const visibleStart = isMobile ? selectedMobileDay : baseDate;
+    const start = addDays(visibleStart, -1);
     const endDate = isMobile ? addDays(selectedMobileDay, 6) : addDays(baseDate, 7);
+
     let cur = start;
     while (cur <= endDate) {
       dates.push(format(cur, "yyyy-MM-dd"));
       cur = addDays(cur, 1);
     }
+
     return computeSpillover(rawSchedulesByDate, dates);
   }, [rawSchedulesByDate, baseDate, selectedMobileDay, isMobile]);
 
