@@ -89,7 +89,11 @@ export function HighFocusSection({
   items.forEach((s) => {
     if (!uniqueTasks.has(s.task_id)) uniqueTasks.set(s.task_id, s);
   });
-  const uniqueItems = Array.from(uniqueTasks.values());
+  const uniqueItems = Array.from(uniqueTasks.values()).sort((a, b) => {
+    const dueDateA = a.task?.due_date ? parseISO(a.task.due_date).getTime() : Infinity;
+    const dueDateB = b.task?.due_date ? parseISO(b.task.due_date).getTime() : Infinity;
+    return dueDateA - dueDateB;
+  });
 
   // Validate that focusedTaskId still exists in current items
   const focusValid = focusedTaskId && uniqueItems.some((s) => s.task_id === focusedTaskId);
