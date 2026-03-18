@@ -424,7 +424,7 @@ function SimpleTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => vo
 
   const save = () => {
     if (!canSave) return;
-    onSave({ kind: "simple", title: title.trim(), estimated_hours: hours!, priority, scheduled_date: dateStr });
+    onSave({ kind: "simple", title: title.trim(), estimated_hours: 0, priority, scheduled_date: dateStr });
   };
 
   return (
