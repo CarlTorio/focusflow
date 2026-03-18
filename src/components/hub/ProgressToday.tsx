@@ -12,40 +12,25 @@ export function ProgressToday() {
     queryKey: ["progress-today", today],
     queryFn: async () => {
       const [completedRes, outstandingRes, completedDetailsRes] = await Promise.all([
-        supabase
-          .from("task_schedules")
-          .select("id", { count: "exact", head: true })
-          .eq("scheduled_date", today)
-          .eq("status", "completed"),
-        supabase
-          .from("task_schedules")
-          .select("id", { count: "exact", head: true })
-          .eq("scheduled_date", today)
-          .neq("status", "completed"),
-        supabase
-          .from("task_schedules")
-          .select("allocated_hours, actual_hours_spent, status, end_time")
-          .eq("scheduled_date", today)
-          .eq("status", "completed"),
+        (supabase.from("task_schedules" as any).select("id", { count: "exact", head: true }).eq("scheduled_date", today).eq("status", "completed") as any),
+        (supabase.from("task_schedules" as any).select("id", { count: "exact", head: true }).eq("scheduled_date", today).neq("status", "completed") as any),
+        (supabase.from("task_schedules" as any).select("allocated_hours, actual_hours_spent, status, end_time").eq("scheduled_date", today).eq("status", "completed") as any),
       ]);
 
-      // Count routine completions for today
-      const { count: routinesDone } = await supabase
-        .from("routine_completions")
+      const { count: routinesDone } = await (supabase
+        .from("routine_completions" as any)
         .select("id", { count: "exact", head: true })
-        .eq("completed_date", today);
+        .eq("completed_date", today) as any);
 
       const completedCount = (completedRes.count || 0) + (routinesDone || 0);
       const outstandingCount = outstandingRes.count || 0;
 
-      // Calculate hours worked
       const completedDetails = completedDetailsRes.data || [];
       const hoursWorked = completedDetails.reduce(
-        (sum, s) => sum + Number((s as any).actual_hours_spent || s.allocated_hours || 0),
+        (sum: number, s: any) => sum + Number(s.actual_hours_spent || s.allocated_hours || 0),
         0
       );
 
-      // On-time rate: completed / (completed + outstanding)
       const totalToday = (completedRes.count || 0) + outstandingCount;
       const onTimeRate = totalToday > 0
         ? Math.round(((completedRes.count || 0) / totalToday) * 100)

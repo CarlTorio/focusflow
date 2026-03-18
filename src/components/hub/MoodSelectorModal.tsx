@@ -53,13 +53,13 @@ export function MoodSelectorModal({ open, onClose }: { open: boolean; onClose: (
   const handleSubmit = async () => {
     if (!user || !selectedMood) return;
     setSubmitting(true);
-    const { error } = await supabase.from("mood_entries").insert({
+    const { error } = await (supabase.from("mood_entries" as any).insert({
       user_id: user.id,
       mood: selectedMood.mood,
       mood_zone: selectedMood.zone,
       note: note.trim() || null,
       logged_at: new Date().toISOString(),
-    });
+    }) as any);
     setSubmitting(false);
     if (error) {
       toast.error("Failed to log mood");

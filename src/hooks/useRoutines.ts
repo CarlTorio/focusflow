@@ -3,25 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import type { DbRoutine, DbRoutineCompletion } from "@/types/database";
 
-export interface Routine {
-  id: string;
-  user_id: string;
-  title: string;
-  description: string | null;
-  deadline_time: string | null;
-  order_index: number;
-  is_active: boolean;
-  created_at: string;
-}
-
-export interface RoutineCompletion {
-  id: string;
-  routine_id: string;
-  user_id: string;
-  completed_date: string;
-  completed_at: string;
-}
+export type Routine = DbRoutine;
+export type RoutineCompletion = DbRoutineCompletion;
 
 export function useRoutines() {
   const { user } = useAuth();
@@ -32,11 +17,11 @@ export function useRoutines() {
   const routinesQuery = useQuery({
     queryKey: ["routines"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("routines")
+      const { data, error } = await (supabase
+        .from("routines" as any)
         .select("*")
         .eq("is_active", true)
-        .order("order_index", { ascending: true });
+        .order("order_index", { ascending: true }) as any);
       if (error) throw error;
       return data as Routine[];
     },
@@ -46,10 +31,10 @@ export function useRoutines() {
   const completionsQuery = useQuery({
     queryKey: ["routine_completions", today],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("routine_completions")
+      const { data, error } = await (supabase
+        .from("routine_completions" as any)
         .select("*")
-        .eq("completed_date", today);
+        .eq("completed_date", today) as any);
       if (error) throw error;
       return data as RoutineCompletion[];
     },
@@ -59,10 +44,9 @@ export function useRoutines() {
   const addRoutine = useMutation({
     mutationFn: async (input: { title: string; description?: string; deadline_time?: string }) => {
       if (!user) throw new Error("Not authenticated");
-      // Get max order_index
       const maxOrder = (routinesQuery.data || []).reduce((max, r) => Math.max(max, r.order_index), -1);
-      const { data, error } = await supabase
-        .from("routines")
+      const { data, error } = await (supabase
+        .from("routines" as any)
         .insert({
           user_id: user.id,
           title: input.title,
@@ -71,7 +55,7 @@ export function useRoutines() {
           order_index: maxOrder + 1,
         })
         .select()
-        .single();
+        .single() as any);
       if (error) throw error;
       return data;
     },
@@ -86,14 +70,14 @@ export function useRoutines() {
 
   const updateRoutine = useMutation({
     mutationFn: async (input: { id: string; title: string; description?: string; deadline_time?: string }) => {
-      const { error } = await supabase
-        .from("routines")
+      const { error } = await (supabase
+        .from("routines" as any)
         .update({
           title: input.title,
           description: input.description || null,
           deadline_time: input.deadline_time || null,
         })
-        .eq("id", input.id);
+        .eq("id", input.id) as any);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -107,10 +91,10 @@ export function useRoutines() {
 
   const removeRoutine = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("routines")
+      const { error } = await (supabase
+        .from("routines" as any)
         .update({ is_active: false })
-        .eq("id", id);
+        .eq("id", id) as any);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -126,22 +110,20 @@ export function useRoutines() {
     mutationFn: async ({ routineId, isCompleted }: { routineId: string; isCompleted: boolean }) => {
       if (!user) throw new Error("Not authenticated");
       if (isCompleted) {
-        // Uncheck - delete completion
-        const { error } = await supabase
-          .from("routine_completions")
+        const { error } = await (supabase
+          .from("routine_completions" as any)
           .delete()
           .eq("routine_id", routineId)
-          .eq("completed_date", today);
+          .eq("completed_date", today) as any);
         if (error) throw error;
       } else {
-        // Check - insert completion
-        const { error } = await supabase
-          .from("routine_completions")
+        const { error } = await (supabase
+          .from("routine_completions" as any)
           .insert({
             routine_id: routineId,
             user_id: user.id,
             completed_date: today,
-          });
+          }) as any);
         if (error) throw error;
       }
     },
@@ -156,7 +138,7 @@ export function useRoutines() {
   const reorderRoutines = useMutation({
     mutationFn: async (orderedIds: string[]) => {
       const updates = orderedIds.map((id, index) =>
-        supabase.from("routines").update({ order_index: index }).eq("id", id)
+        (supabase.from("routines" as any).update({ order_index: index }).eq("id", id) as any)
       );
       await Promise.all(updates);
     },
@@ -170,7 +152,6 @@ export function useRoutines() {
 
   const getCompletionsForDate = (dateStr: string) => {
     if (dateStr === today) return completionsQuery.data || [];
-    // For other dates, we return undefined — caller should use a separate query
     return undefined;
   };
 

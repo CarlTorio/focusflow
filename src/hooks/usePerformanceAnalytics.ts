@@ -2,15 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import {
-  startOfWeek,
-  endOfWeek,
-  startOfMonth,
-  endOfMonth,
-  subWeeks,
-  subMonths,
-  format,
-  eachDayOfInterval,
-  isToday,
+  startOfWeek, endOfWeek, startOfMonth, endOfMonth,
+  subWeeks, subMonths, format, eachDayOfInterval,
 } from "date-fns";
 
 export type PeriodFilter = "week" | "month" | "all";
@@ -62,7 +55,6 @@ export function usePerformanceAnalytics(period: PeriodFilter = "week") {
   return useQuery<AnalyticsData>({
     queryKey: ["performance-analytics", period, user?.id],
     queryFn: async () => {
-      // Determine date range
       let start: Date, end: Date, prevStart: Date, prevEnd: Date;
       if (period === "week") {
         start = startOfWeek(today, { weekStartsOn: 1 });
@@ -75,7 +67,6 @@ export function usePerformanceAnalytics(period: PeriodFilter = "week") {
         prevStart = startOfMonth(subMonths(today, 1));
         prevEnd = endOfMonth(subMonths(today, 1));
       } else {
-        // all time — last 90 days grouped into weeks
         start = subMonths(today, 3);
         end = today;
         prevStart = subMonths(today, 6);
@@ -87,43 +78,22 @@ export function usePerformanceAnalytics(period: PeriodFilter = "week") {
       const prevStartStr = format(prevStart, "yyyy-MM-dd");
       const prevEndStr = format(prevEnd, "yyyy-MM-dd");
 
-      // Fetch current period task_schedules
       const [currentRes, prevRes, onTimeRes, prevOnTimeRes] = await Promise.all([
-        supabase
-          .from("task_schedules")
-          .select("id, scheduled_date, status, end_time")
-          .gte("scheduled_date", startStr)
-          .lte("scheduled_date", endStr),
-        supabase
-          .from("task_schedules")
-          .select("id, scheduled_date, status")
-          .gte("scheduled_date", prevStartStr)
-          .lte("scheduled_date", prevEndStr),
-        supabase
-          .from("task_schedules")
-          .select("id, scheduled_date, status, end_time")
-          .gte("scheduled_date", startStr)
-          .lte("scheduled_date", endStr)
-          .eq("status", "completed"),
-        supabase
-          .from("task_schedules")
-          .select("id, status")
-          .gte("scheduled_date", prevStartStr)
-          .lte("scheduled_date", prevEndStr)
-          .eq("status", "completed"),
+        (supabase.from("task_schedules" as any).select("id, scheduled_date, status, end_time").gte("scheduled_date", startStr).lte("scheduled_date", endStr) as any),
+        (supabase.from("task_schedules" as any).select("id, scheduled_date, status").gte("scheduled_date", prevStartStr).lte("scheduled_date", prevEndStr) as any),
+        (supabase.from("task_schedules" as any).select("id, scheduled_date, status, end_time").gte("scheduled_date", startStr).lte("scheduled_date", endStr).eq("status", "completed") as any),
+        (supabase.from("task_schedules" as any).select("id, status").gte("scheduled_date", prevStartStr).lte("scheduled_date", prevEndStr).eq("status", "completed") as any),
       ]);
 
       const current = currentRes.data ?? [];
       const prev = prevRes.data ?? [];
 
-      // --- Build per-day chart data ---
-      const days =
-        period === "all"
-          ? eachDayOfInterval({ start, end }).filter((_, i) => i % 7 === 0) // weekly dots
-          : eachDayOfInterval({ start, end });
+      const days = period === "all"
+        ? eachDayOfInterval({ start, end }).filter((_, i) => i % 7 === 0)
+        : eachDayOfInterval({ start, end });
 
       const byDay: Record<string, { completed: number; total: number }> = {};
-      current.forEach((ts) => {
+      current.forEach((ts: any) => {
         const d = ts.scheduled_date;
         if (!byDay[d]) byDay[d] = { completed: 0, total: 0 };
         byDay[d].total++;
@@ -146,55 +116,45 @@ export function usePerformanceAnalytics(period: PeriodFilter = "week") {
         };
       });
 
-      // --- Avg completion rate (current) ---
       const activeDays = chartData.filter((d) => !d.isFuture && d.total > 0);
-      const avgCompletionRate =
-        activeDays.length > 0
-          ? activeDays.reduce((sum, d) => sum + d.completionRate, 0) / activeDays.length
-          : 0;
+      const avgCompletionRate = activeDays.length > 0
+        ? activeDays.reduce((sum, d) => sum + d.completionRate, 0) / activeDays.length
+        : 0;
 
-      // --- Avg completion rate (prev period) ---
       const prevByDay: Record<string, { completed: number; total: number }> = {};
-      prev.forEach((ts) => {
+      prev.forEach((ts: any) => {
         const d = ts.scheduled_date;
         if (!prevByDay[d]) prevByDay[d] = { completed: 0, total: 0 };
         prevByDay[d].total++;
         if (ts.status === "completed") prevByDay[d].completed++;
       });
       const prevActiveDays = Object.values(prevByDay).filter((d) => d.total > 0);
-      const prevAvgCompletionRate =
-        prevActiveDays.length > 0
-          ? prevActiveDays.reduce((sum, d) => sum + (d.total > 0 ? (d.completed / d.total) * 100 : 0), 0) /
-            prevActiveDays.length
-          : 0;
+      const prevAvgCompletionRate = prevActiveDays.length > 0
+        ? prevActiveDays.reduce((sum, d) => sum + (d.total > 0 ? (d.completed / d.total) * 100 : 0), 0) / prevActiveDays.length
+        : 0;
 
-      // --- On-time rate ---
       const completedItems = onTimeRes.data ?? [];
       const totalCompleted = completedItems.length;
       const prevTotalCompleted = prevOnTimeRes.data?.length ?? 0;
-      // We can't easily track on-time without actual completed_at vs end_time, so approximate
       const onTimeRate = totalCompleted > 0 ? Math.round((totalCompleted / Math.max(current.length, 1)) * 100) : 0;
       const prevOnTimeRate = prevTotalCompleted > 0 ? Math.round((prevTotalCompleted / Math.max(prev.length, 1)) * 100) : 0;
 
-      // --- Streak: consecutive days with >= 70% completion rate (from today backward) ---
       let streak = 0;
-      // Build all-time days for streak calculation
-      const allTimeRes = await supabase
-        .from("task_schedules")
+      const allTimeRes = await (supabase
+        .from("task_schedules" as any)
         .select("scheduled_date, status")
         .lte("scheduled_date", todayStr)
-        .order("scheduled_date", { ascending: false });
+        .order("scheduled_date", { ascending: false }) as any);
 
       if (allTimeRes.data) {
         const allByDay: Record<string, { completed: number; total: number }> = {};
-        allTimeRes.data.forEach((ts) => {
+        allTimeRes.data.forEach((ts: any) => {
           const d = ts.scheduled_date;
           if (!allByDay[d]) allByDay[d] = { completed: 0, total: 0 };
           allByDay[d].total++;
           if (ts.status === "completed") allByDay[d].completed++;
         });
 
-        // Walk backwards from today
         let checkDate = new Date(today);
         for (let i = 0; i < 365; i++) {
           const key = format(checkDate, "yyyy-MM-dd");
@@ -213,10 +173,9 @@ export function usePerformanceAnalytics(period: PeriodFilter = "week") {
         }
       }
 
-      // --- Most productive day of week ---
       const dayOfWeekStats: Record<string, { total: number; completed: number; count: number }> = {};
       if (allTimeRes.data) {
-        allTimeRes.data.forEach((ts) => {
+        allTimeRes.data.forEach((ts: any) => {
           const dayName = format(new Date(ts.scheduled_date), "EEEE");
           if (!dayOfWeekStats[dayName]) dayOfWeekStats[dayName] = { total: 0, completed: 0, count: 0 };
           dayOfWeekStats[dayName].total++;

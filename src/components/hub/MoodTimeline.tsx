@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { format, addDays, subDays } from "date-fns";
+import { format, addDays } from "date-fns";
 
 const zoneToY: Record<string, number> = {
   green: 15,
@@ -39,12 +39,12 @@ export function MoodTimeline() {
   const { data: entries = [] } = useQuery({
     queryKey: ["mood-timeline", dateStr],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("mood_entries")
+      const { data } = await (supabase
+        .from("mood_entries" as any)
         .select("id, mood, mood_zone, logged_at, note")
         .gte("logged_at", `${dateStr}T00:00:00`)
         .lt("logged_at", `${dateStr}T23:59:59`)
-        .order("logged_at", { ascending: true });
+        .order("logged_at", { ascending: true }) as any);
       return (data || []) as MoodEntry[];
     },
     enabled: !!user,
@@ -57,7 +57,6 @@ export function MoodTimeline() {
     return Math.max(5, Math.min(95, (minuteOfDay / 1440) * 100));
   };
 
-  // Build SVG path for connecting dots
   const points = entries.map((e) => ({
     x: getXPercent(e.logged_at),
     y: zoneToY[e.mood_zone] || 55,
@@ -97,14 +96,12 @@ export function MoodTimeline() {
       </div>
 
       <div className="relative h-36">
-        {/* Y-axis labels */}
         <div className="absolute left-0 top-0 flex h-full flex-col justify-between text-lg">
           <span>😂</span>
           <span>😐</span>
           <span>😣</span>
         </div>
 
-        {/* Chart area */}
         <div className="ml-10 h-full border-b border-l border-border">
           {entries.length === 0 ? (
             <div className="flex h-full items-center justify-center">
@@ -114,7 +111,6 @@ export function MoodTimeline() {
             </div>
           ) : (
             <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="h-full w-full">
-              {/* Curved line */}
               {pathD && (
                 <path
                   d={pathD}
@@ -126,7 +122,6 @@ export function MoodTimeline() {
                   opacity="0.5"
                 />
               )}
-              {/* Dots */}
               {entries.map((entry, i) => (
                 <circle
                   key={entry.id}
@@ -151,11 +146,7 @@ export function MoodTimeline() {
                     setTooltip(prev =>
                       prev?.entry.id === entry.id
                         ? null
-                        : {
-                            entry,
-                            x: points[i].x,
-                            y: points[i].y,
-                          }
+                        : { entry, x: points[i].x, y: points[i].y }
                     )
                   }
                 />
@@ -164,7 +155,6 @@ export function MoodTimeline() {
           )}
         </div>
 
-        {/* X-axis labels */}
         <div className="ml-10 flex justify-between pt-1">
           {["12am", "6am", "12pm", "6pm", "12am"].map((t) => (
             <span key={t} className="text-[10px] text-muted-foreground">{t}</span>
@@ -172,7 +162,6 @@ export function MoodTimeline() {
         </div>
       </div>
 
-      {/* Tooltip */}
       {tooltip && (
         <div className="mt-2 rounded-lg bg-secondary p-2 text-xs">
           <p className="font-medium capitalize text-foreground">{tooltip.entry.mood}</p>
