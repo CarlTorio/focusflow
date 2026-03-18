@@ -27,6 +27,8 @@ import {
 import { useRoutines, Routine } from "@/hooks/useRoutines";
 import { usePlanner, CreateTaskInput, SubtaskInput } from "@/hooks/usePlanner";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { format, addDays } from "date-fns";
 import { RoutineForm } from "@/components/planner/RoutineForm";
 import {
