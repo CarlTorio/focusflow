@@ -1,6 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { format, isToday, isTomorrow, isPast, startOfDay } from "date-fns";
-import { ChevronDown, ChevronRight, ClipboardList, Check, X } from "lucide-react";
+import { ChevronDown, ChevronRight, ClipboardList, Check, X, RotateCcw } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { PlannerTaskCard } from "./PlannerTaskCard";
 import { HighFocusSection } from "./HighFocusSection";
