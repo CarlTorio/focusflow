@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Check, Trash2, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { QuickTask } from "@/hooks/useQuickTasks";
@@ -18,8 +17,8 @@ export function QuickTasksSection({ tasks, onToggle, onDelete }: QuickTasksSecti
   return (
     <div className="mb-4">
       <div className="mb-2 flex items-center gap-2 text-xs">
-        <Zap className="h-3.5 w-3.5 text-emerald-500" />
-        <span className="font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+        <Zap className="h-3.5 w-3.5 text-success" />
+        <span className="font-bold uppercase tracking-wider text-success">
           Quick Tasks ({tasks.length})
         </span>
       </div>
@@ -27,11 +26,11 @@ export function QuickTasksSection({ tasks, onToggle, onDelete }: QuickTasksSecti
         {pending.map((t) => (
           <div
             key={t.id}
-            className="flex items-center gap-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-3 py-2.5 group"
+            className="flex items-center gap-2.5 rounded-xl border border-success/20 bg-success/5 px-3 py-2.5 group"
           >
             <button
               onClick={() => onToggle(t.id, true)}
-              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-emerald-500/40 transition-colors hover:border-emerald-500 hover:bg-emerald-500/10"
+              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-success/40 transition-colors hover:border-success hover:bg-success/10"
             >
               <Check className="h-3 w-3 text-transparent" />
             </button>
@@ -53,9 +52,9 @@ export function QuickTasksSection({ tasks, onToggle, onDelete }: QuickTasksSecti
           >
             <button
               onClick={() => onToggle(t.id, false)}
-              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500 border-2 border-emerald-500"
+              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-success border-2 border-success"
             >
-              <Check className="h-3 w-3 text-white" />
+              <Check className="h-3 w-3 text-success-foreground" />
             </button>
             <span className="text-sm font-medium text-muted-foreground flex-1 truncate line-through">
               {t.title}
