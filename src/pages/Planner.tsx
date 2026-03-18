@@ -138,7 +138,7 @@ export default function Planner() {
               )}
 
 
-              <DailySummaryBanner totalToday={totalToday} carriedCount={carriedCount} />
+
 
               <DailyRoutineSection onEditRoutine={handleEditRoutine} selectedDate={selectedDate} />
 
