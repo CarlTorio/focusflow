@@ -188,6 +188,7 @@ export function HighFocusSection({
           onCompleteSubtask={onCompleteSubtask}
           onEdit={onEdit}
           onViewNotes={onViewNotes}
+          onUpdateStatus={onUpdateStatus}
         />
       ))}
 
