@@ -69,8 +69,8 @@ export function QuickTasksSection({ date, readOnly = false }: QuickTasksSectionP
     addTask.mutate(trimmed);
   };
 
-  // Don't render anything if no quick tasks and readOnly (past days)
-  if (readOnly && quickTasks.length === 0) return null;
+  // Don't render anything if no quick tasks
+  if (quickTasks.length === 0) return null;
 
   const pending = quickTasks.filter((t) => !t.is_completed);
   const completed = quickTasks.filter((t) => t.is_completed);
