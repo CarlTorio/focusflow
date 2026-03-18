@@ -93,6 +93,13 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
       groups[priority].push(s);
     });
 
+    // Sort "Other Tasks" by due date ascending (earliest due date first)
+    groups.medium.sort((a, b) => {
+      const dateA = a.task?.due_date || "9999-12-31";
+      const dateB = b.task?.due_date || "9999-12-31";
+      return dateA.localeCompare(dateB);
+    });
+
     return groups;
   }, [activeSchedules]);
 
