@@ -18,7 +18,7 @@ export function useQuickTasks(date: string) {
   const query = useQuery({
     queryKey: ["quick_tasks", date],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from("quick_tasks")
         .select("*")
         .eq("user_id", user!.id)
@@ -33,7 +33,7 @@ export function useQuickTasks(date: string) {
   const addQuickTask = useMutation({
     mutationFn: async (title: string) => {
       if (!user) throw new Error("Not authenticated");
-      const { error } = await supabase
+      const { error } = await db
         .from("quick_tasks")
         .insert({ user_id: user.id, title, created_date: date } as any);
       if (error) throw error;
@@ -45,7 +45,7 @@ export function useQuickTasks(date: string) {
 
   const toggleQuickTask = useMutation({
     mutationFn: async ({ id, is_completed }: { id: string; is_completed: boolean }) => {
-      const { error } = await supabase
+      const { error } = await db
         .from("quick_tasks")
         .update({ is_completed } as any)
         .eq("id", id);
@@ -58,7 +58,7 @@ export function useQuickTasks(date: string) {
 
   const deleteQuickTask = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await db
         .from("quick_tasks")
         .delete()
         .eq("id", id);
