@@ -137,8 +137,9 @@ export default function Planner() {
                 </div>
               )}
 
-              
-              
+
+              <DailySummaryBanner totalToday={totalToday} carriedCount={carriedCount} />
+
               <DailyRoutineSection onEditRoutine={handleEditRoutine} selectedDate={selectedDate} />
 
               <div className={cn("flex gap-6", isMobile && "flex-col")}>
