@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { format, addDays, startOfWeek, isToday } from "date-fns";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { format, addDays, startOfWeek, isToday, isPast, startOfDay } from "date-fns";
+import { ChevronLeft, ChevronRight, Plus, ClipboardList } from "lucide-react";
 import { MobileHeader } from "@/components/navigation/MobileHeader";
 import { cn } from "@/lib/utils";
 import { DayColumn } from "@/components/planner/DayColumn";
@@ -20,7 +20,8 @@ export default function Planner() {
   const userName = profile?.first_name ? `${profile.first_name} ${profile.last_name || ""}`.trim() : "";
   const [baseDate, setBaseDate] = useState(new Date());
   const [selectedMobileDay, setSelectedMobileDay] = useState(new Date());
-  
+  const [pastRevealed, setPastRevealed] = useState(false);
+  const [summaryOpen, setSummaryOpen] = useState(false);
 
   // Date range calculations
   const dateRange = useMemo(() => {
@@ -60,7 +61,11 @@ export default function Planner() {
   // Navigation
   const navDate = (dir: number) => {
     setBaseDate((prev) => addDays(prev, dir * (isMobile ? 1 : 2)));
-    if (isMobile) setSelectedMobileDay((prev) => addDays(prev, dir));
+    if (isMobile) {
+      setSelectedMobileDay((prev) => addDays(prev, dir));
+      setPastRevealed(false);
+      setSummaryOpen(false);
+    }
   };
 
   const headerText = useMemo(() => {
@@ -88,6 +93,7 @@ export default function Planner() {
   // Focus mode
 
   const selectedDate = isMobile ? selectedMobileDay : new Date();
+  const isPastSelected = isMobile && !isToday(selectedMobileDay) && isPast(startOfDay(selectedMobileDay));
 
   return (
     <>
@@ -125,7 +131,7 @@ export default function Planner() {
                     const selected = format(day, "yyyy-MM-dd") === format(selectedMobileDay, "yyyy-MM-dd");
                     const current = isToday(day);
                     return (
-                      <button key={day.toISOString()} onClick={() => setSelectedMobileDay(day)} className="flex flex-col items-center gap-0.5 px-1">
+                      <button key={day.toISOString()} onClick={() => { setSelectedMobileDay(day); setPastRevealed(false); setSummaryOpen(false); }} className="flex flex-col items-center gap-0.5 px-1">
                         <span className="text-[10px] uppercase text-muted-foreground">{format(day, "EEE")}</span>
                         <span className={cn("flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold transition-colors",
                           selected ? "bg-primary text-primary-foreground" : current ? "bg-primary/10 text-primary" : "text-foreground"
@@ -140,29 +146,67 @@ export default function Planner() {
 
 
 
-              <DailyRoutineSection onEditRoutine={handleEditRoutine} selectedDate={selectedDate} />
+              {/* Blur overlay for past days (mobile) */}
+              {isPastSelected && !pastRevealed ? (
+                <div className="relative">
+                  <div className="blur-[3px] pointer-events-none select-none opacity-50">
+                    <DailyRoutineSection onEditRoutine={handleEditRoutine} selectedDate={selectedDate} />
+                    <div className="flex flex-col gap-6 mt-4">
+                      <DayColumn
+                        date={selectedMobileDay}
+                        schedules={schedulesByDate[format(selectedMobileDay, "yyyy-MM-dd")] || []}
+                        onComplete={() => {}}
+                        onAddTask={() => {}}
+                        onOpenFocus={() => {}}
+                        userName={userName}
+                      />
+                    </div>
+                  </div>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+                    <button
+                      onClick={() => setSummaryOpen(true)}
+                      className="flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors"
+                    >
+                      <ClipboardList className="h-4 w-4" />
+                      View Summary
+                    </button>
+                    <button
+                      onClick={() => setPastRevealed(true)}
+                      className="text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
+                    >
+                      Show tasks instead
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <DailyRoutineSection onEditRoutine={handleEditRoutine} selectedDate={selectedDate} />
 
-              <div className={cn("flex gap-6", isMobile && "flex-col")}>
-                {isMobile ? (
-                  <DayColumn
-                    date={selectedMobileDay}
-                    schedules={schedulesByDate[format(selectedMobileDay, "yyyy-MM-dd")] || []}
-                    onComplete={(id) => completeSchedule.mutate({ scheduleId: id })}
-                    onAddTask={() => openAddTask(selectedMobileDay)}
-                    onOpenFocus={() => {}}
-                    userName={userName}
-                    onCompleteSubtask={(sid, tid) => completeSubtaskDirect.mutate({ subtaskId: sid, taskId: tid })}
-                    onUpdateTask={(input) => updateTask.mutate(input)}
-                    onDeleteTask={(id) => deleteTask.mutate(id)}
-                  />
-                ) : (
-                  <>
-                    <DayColumn date={baseDate} schedules={schedulesByDate[format(baseDate, "yyyy-MM-dd")] || []} onComplete={(id) => completeSchedule.mutate({ scheduleId: id })} onAddTask={() => openAddTask(baseDate)} onOpenFocus={() => {}} userName={userName} onCompleteSubtask={(sid, tid) => completeSubtaskDirect.mutate({ subtaskId: sid, taskId: tid })} onUpdateTask={(input) => updateTask.mutate(input)} onDeleteTask={(id) => deleteTask.mutate(id)} />
-                    <div className="w-px bg-border hidden md:block" />
-                    <DayColumn date={addDays(baseDate, 1)} schedules={schedulesByDate[format(addDays(baseDate, 1), "yyyy-MM-dd")] || []} onComplete={(id) => completeSchedule.mutate({ scheduleId: id })} onAddTask={() => openAddTask(addDays(baseDate, 1))} onOpenFocus={() => {}} userName={userName} onCompleteSubtask={(sid, tid) => completeSubtaskDirect.mutate({ subtaskId: sid, taskId: tid })} onUpdateTask={(input) => updateTask.mutate(input)} onDeleteTask={(id) => deleteTask.mutate(id)} />
-                  </>
-                )}
-              </div>
+                  <div className={cn("flex gap-6", isMobile && "flex-col")}>
+                    {isMobile ? (
+                      <DayColumn
+                        date={selectedMobileDay}
+                        schedules={schedulesByDate[format(selectedMobileDay, "yyyy-MM-dd")] || []}
+                        onComplete={(id) => completeSchedule.mutate({ scheduleId: id })}
+                        onAddTask={() => openAddTask(selectedMobileDay)}
+                        onOpenFocus={() => {}}
+                        userName={userName}
+                        onCompleteSubtask={(sid, tid) => completeSubtaskDirect.mutate({ subtaskId: sid, taskId: tid })}
+                        onUpdateTask={(input) => updateTask.mutate(input)}
+                        onDeleteTask={(id) => deleteTask.mutate(id)}
+                        externalOpenSummary={summaryOpen}
+                        onSummaryOpenChange={setSummaryOpen}
+                      />
+                    ) : (
+                      <>
+                        <DayColumn date={baseDate} schedules={schedulesByDate[format(baseDate, "yyyy-MM-dd")] || []} onComplete={(id) => completeSchedule.mutate({ scheduleId: id })} onAddTask={() => openAddTask(baseDate)} onOpenFocus={() => {}} userName={userName} onCompleteSubtask={(sid, tid) => completeSubtaskDirect.mutate({ subtaskId: sid, taskId: tid })} onUpdateTask={(input) => updateTask.mutate(input)} onDeleteTask={(id) => deleteTask.mutate(id)} />
+                        <div className="w-px bg-border hidden md:block" />
+                        <DayColumn date={addDays(baseDate, 1)} schedules={schedulesByDate[format(addDays(baseDate, 1), "yyyy-MM-dd")] || []} onComplete={(id) => completeSchedule.mutate({ scheduleId: id })} onAddTask={() => openAddTask(addDays(baseDate, 1))} onOpenFocus={() => {}} userName={userName} onCompleteSubtask={(sid, tid) => completeSubtaskDirect.mutate({ subtaskId: sid, taskId: tid })} onUpdateTask={(input) => updateTask.mutate(input)} onDeleteTask={(id) => deleteTask.mutate(id)} />
+                      </>
+                    )}
+                  </div>
+                </>
+              )}
             </>
           )}
         </div>
