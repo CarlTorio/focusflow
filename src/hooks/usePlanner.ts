@@ -611,6 +611,7 @@ export function usePlanner(startDate: string, endDate: string) {
             due_date: input.due_date,
             priority: input.priority,
             status: "pending",
+            tags: input.tags || null,
           })
           .select()
           .single();
