@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { differenceInCalendarDays, parseISO, format, isToday, isTomorrow, addDays } from "date-fns";
-import type { Tables } from "@/integrations/supabase/types";
+import type { DbTask, DbSubtask } from "@/types/database";
 
 const PRIORITY_BORDER: Record<string, string> = {
   high: "border-l-red-500",
@@ -31,8 +31,8 @@ interface PlannerTaskCardProps {
   isFocusedProject?: boolean;
   defaultExpanded?: boolean;
   onCompleteSubtask?: (subtaskId: string, taskId: string) => void;
-  onEdit?: (task: Tables<"tasks"> & { subtasks?: Tables<"subtasks">[] }) => void;
-  onViewNotes?: (task: Tables<"tasks">) => void;
+  onEdit?: (task: DbTask & { subtasks?: DbSubtask[] }) => void;
+  onViewNotes?: (task: DbTask) => void;
   onSwitchFocus?: (taskId: string) => void;
 }
 

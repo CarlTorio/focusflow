@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { X } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
+const db = supabase as any;
+
 interface MoodOption {
   mood: string;
   emoji: string;
@@ -53,7 +55,7 @@ export function MoodSelectorModal({ open, onClose }: { open: boolean; onClose: (
   const handleSubmit = async () => {
     if (!user || !selectedMood) return;
     setSubmitting(true);
-    const { error } = await supabase.from("mood_entries").insert({
+    const { error } = await db.from("mood_entries").insert({
       user_id: user.id,
       mood: selectedMood.mood,
       mood_zone: selectedMood.zone,

@@ -22,7 +22,7 @@ export function DailySettingsSection() {
   const handleSave = async () => {
     if (!profile) return;
     setSaving(true);
-    const { error } = await supabase.from("profiles").update({
+    const { error } = await (supabase as any).from("profiles").update({
       daily_hour_limit: dailyLimit,
       working_hours_start: workStart,
       working_hours_end: workEnd,

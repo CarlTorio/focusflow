@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { subDays, format } from "date-fns";
 
+const db = supabase as any;
+
 const zoneLabels: Record<string, string> = {
   green: "positive 😊",
   yellow: "neutral 😐",
@@ -17,7 +19,7 @@ export function MoodInsights() {
   const { data } = useQuery({
     queryKey: ["mood-insights", weekAgo],
     queryFn: async () => {
-      const { data: entries } = await supabase
+      const { data: entries } = await db
         .from("mood_entries")
         .select("mood_zone, logged_at")
         .gte("logged_at", `${weekAgo}T00:00:00`)
@@ -25,7 +27,6 @@ export function MoodInsights() {
 
       if (!entries || entries.length < 3) return null;
 
-      // Count zones
       const zoneCounts: Record<string, number> = {};
       entries.forEach((e: any) => {
         zoneCounts[e.mood_zone] = (zoneCounts[e.mood_zone] || 0) + 1;
@@ -33,7 +34,6 @@ export function MoodInsights() {
 
       const dominant = Object.entries(zoneCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "yellow";
 
-      // Best/worst time of day
       let morningScore = 0, morningCount = 0;
       let afternoonScore = 0, afternoonCount = 0;
       const zoneScore: Record<string, number> = { green: 3, yellow: 2, orange: 1, red: 0 };
