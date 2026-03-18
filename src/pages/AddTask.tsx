@@ -432,8 +432,8 @@ function QuickTaskTab({ defaultDate, onDone }: { defaultDate: Date; onDone: () =
 
   return (
     <div className="space-y-5">
-      <div className="rounded-xl border-2 border-dashed border-emerald-500/30 bg-emerald-500/5 p-4">
-        <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+      <div className="rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 p-4">
+        <p className="text-xs text-primary font-medium">
           ⚡ Quick tasks are for today only — they won't carry over to tomorrow.
         </p>
       </div>
@@ -441,14 +441,14 @@ function QuickTaskTab({ defaultDate, onDone }: { defaultDate: Date; onDone: () =
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="What's the quick task?"
-        className="rounded-xl text-base focus-visible:ring-emerald-500"
+        className="rounded-xl text-base focus-visible:ring-primary"
         autoFocus
         onKeyDown={(e) => e.key === "Enter" && save()}
       />
       <Button
         onClick={save}
         disabled={!canSave || addQuickTask.isPending}
-        className="w-full rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
+        className="w-full rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
       >
         Add Quick Task
       </Button>
