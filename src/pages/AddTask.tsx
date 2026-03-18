@@ -568,7 +568,7 @@ export default function AddTask() {
             isSaving={addRoutine.isPending || updateRoutine.isPending}
           />
         )}
-        {tab === "simple" && <SimpleTab onSave={handleSaveTask} defaultDate={defaultDate} />}
+        {tab === "simple" && <SimpleTab defaultDate={defaultDate} />}
       </div>
     </div>
   );
