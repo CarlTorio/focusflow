@@ -712,6 +712,7 @@ export function usePlanner(startDate: string, endDate: string) {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["priority_tasks_overview"] });
       queryClient.invalidateQueries({ queryKey: ["due_soon_tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["all_high_priority_tasks"] });
       toast({
         title:
           input.kind === "project"

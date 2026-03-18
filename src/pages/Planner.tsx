@@ -1,14 +1,15 @@
 import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { format, addDays, startOfWeek, isToday } from "date-fns";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Zap, Leaf } from "lucide-react";
 import { MobileHeader } from "@/components/navigation/MobileHeader";
 import { cn } from "@/lib/utils";
 import { DayColumn } from "@/components/planner/DayColumn";
 import { MissedTaskBanner } from "@/components/planner/MissedTaskBanner";
-
-
 import { DailyRoutineSection } from "@/components/planner/DailyRoutineSection";
+import { SmartFocusCard } from "@/components/planner/SmartFocusCard";
+import { EnergyLevelPrompt, getStoredEnergy, setStoredEnergy } from "@/components/planner/EnergyLevelPrompt";
+import type { EnergyLevel } from "@/components/planner/EnergyLevelPrompt";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePlanner } from "@/hooks/usePlanner";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -21,7 +22,7 @@ export default function Planner() {
   const userName = profile?.first_name ? `${profile.first_name} ${profile.last_name || ""}`.trim() : "";
   const [baseDate, setBaseDate] = useState(new Date());
   const [selectedMobileDay, setSelectedMobileDay] = useState(new Date());
-  
+  const [energyLevel, setEnergyLevel] = useState<EnergyLevel | null>(() => getStoredEnergy());
 
   // Date range calculations
   const dateRange = useMemo(() => {
@@ -40,6 +41,7 @@ export default function Planner() {
     isLoading,
     missedSchedules,
     dueSoonTasks,
+    allHighPriorityTasks,
     completeSchedule,
     completeSubtaskDirect,
     handleMissed,
@@ -85,13 +87,21 @@ export default function Planner() {
     navigate(`/add-task?${params.toString()}`);
   }, [navigate]);
 
-  // Focus mode
-
   const selectedDate = isMobile ? selectedMobileDay : new Date();
+  const showingToday = isMobile ? isToday(selectedMobileDay) : isToday(baseDate);
+
+  // Energy level handlers
+  const handleEnergySelect = useCallback((level: EnergyLevel) => {
+    setEnergyLevel(level);
+  }, []);
+
+  const handleChangeEnergy = useCallback(() => {
+    setEnergyLevel(null);
+    localStorage.removeItem("energy_level_today");
+  }, []);
 
   return (
     <>
-
       <div className="pb-20 md:pb-8">
         <MobileHeader title="Planner" />
 
@@ -109,6 +119,22 @@ export default function Planner() {
             <button onClick={() => navDate(1)} className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-muted transition-colors">
               <ChevronRight className="h-5 w-5 text-foreground" />
             </button>
+            {/* Energy level indicator */}
+            {energyLevel && (
+              <button
+                onClick={handleChangeEnergy}
+                className={cn(
+                  "flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors",
+                  energyLevel === "high"
+                    ? "bg-amber-500/10 text-amber-600 hover:bg-amber-500/20"
+                    : "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20"
+                )}
+                title="Change energy level"
+              >
+                {energyLevel === "high" ? <Zap className="h-3 w-3" /> : <Leaf className="h-3 w-3" />}
+                {energyLevel === "high" ? "High" : "Low"}
+              </button>
+            )}
           </div>
 
           {isLoading ? (
@@ -137,9 +163,24 @@ export default function Planner() {
                 </div>
               )}
 
+              {/* Energy Level Prompt — only on "today" view, once per day */}
+              {showingToday && !energyLevel && allHighPriorityTasks.length > 0 && (
+                <EnergyLevelPrompt onSelect={handleEnergySelect} />
+              )}
+
               <MissedTaskBanner missed={missedSchedules} onAction={(id, action) => handleMissed.mutate({ scheduleId: id, action })} />
               
               <DailyRoutineSection onEditRoutine={handleEditRoutine} selectedDate={selectedDate} />
+
+              {/* Smart Focus Card — system-selected top 3 HIGH tasks */}
+              {showingToday && energyLevel && allHighPriorityTasks.length > 0 && (
+                <SmartFocusCard
+                  tasks={allHighPriorityTasks}
+                  energyLevel={energyLevel}
+                  onCompleteSubtask={(subtaskId, taskId) => completeSubtaskDirect.mutate({ subtaskId, taskId })}
+                  onChangeEnergy={handleChangeEnergy}
+                />
+              )}
 
               <div className={cn("flex gap-6", isMobile && "flex-col")}>
                 {isMobile ? (
@@ -153,12 +194,35 @@ export default function Planner() {
                     onCompleteSubtask={(sid, tid) => completeSubtaskDirect.mutate({ subtaskId: sid, taskId: tid })}
                     onUpdateTask={(input) => updateTask.mutate(input)}
                     onDeleteTask={(id) => deleteTask.mutate(id)}
+                    hideHighPriority={showingToday && !!energyLevel && allHighPriorityTasks.length > 0}
                   />
                 ) : (
                   <>
-                    <DayColumn date={baseDate} schedules={schedulesByDate[format(baseDate, "yyyy-MM-dd")] || []} onComplete={(id) => completeSchedule.mutate({ scheduleId: id })} onAddTask={() => openAddTask(baseDate)} onOpenFocus={() => {}} userName={userName} onCompleteSubtask={(sid, tid) => completeSubtaskDirect.mutate({ subtaskId: sid, taskId: tid })} onUpdateTask={(input) => updateTask.mutate(input)} onDeleteTask={(id) => deleteTask.mutate(id)} />
+                    <DayColumn
+                      date={baseDate}
+                      schedules={schedulesByDate[format(baseDate, "yyyy-MM-dd")] || []}
+                      onComplete={(id) => completeSchedule.mutate({ scheduleId: id })}
+                      onAddTask={() => openAddTask(baseDate)}
+                      onOpenFocus={() => {}}
+                      userName={userName}
+                      onCompleteSubtask={(sid, tid) => completeSubtaskDirect.mutate({ subtaskId: sid, taskId: tid })}
+                      onUpdateTask={(input) => updateTask.mutate(input)}
+                      onDeleteTask={(id) => deleteTask.mutate(id)}
+                      hideHighPriority={isToday(baseDate) && !!energyLevel && allHighPriorityTasks.length > 0}
+                    />
                     <div className="w-px bg-border hidden md:block" />
-                    <DayColumn date={addDays(baseDate, 1)} schedules={schedulesByDate[format(addDays(baseDate, 1), "yyyy-MM-dd")] || []} onComplete={(id) => completeSchedule.mutate({ scheduleId: id })} onAddTask={() => openAddTask(addDays(baseDate, 1))} onOpenFocus={() => {}} userName={userName} onCompleteSubtask={(sid, tid) => completeSubtaskDirect.mutate({ subtaskId: sid, taskId: tid })} onUpdateTask={(input) => updateTask.mutate(input)} onDeleteTask={(id) => deleteTask.mutate(id)} />
+                    <DayColumn
+                      date={addDays(baseDate, 1)}
+                      schedules={schedulesByDate[format(addDays(baseDate, 1), "yyyy-MM-dd")] || []}
+                      onComplete={(id) => completeSchedule.mutate({ scheduleId: id })}
+                      onAddTask={() => openAddTask(addDays(baseDate, 1))}
+                      onOpenFocus={() => {}}
+                      userName={userName}
+                      onCompleteSubtask={(sid, tid) => completeSubtaskDirect.mutate({ subtaskId: sid, taskId: tid })}
+                      onUpdateTask={(input) => updateTask.mutate(input)}
+                      onDeleteTask={(id) => deleteTask.mutate(id)}
+                      hideHighPriority={false}
+                    />
                   </>
                 )}
               </div>

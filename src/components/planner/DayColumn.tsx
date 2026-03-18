@@ -125,6 +125,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
 
       <div className="space-y-4">
         {PRIORITY_ORDER.map((priority) => {
+          if (priority === "high" && hideHighPriority) return null;
           const items = grouped[priority] || [];
           if (items.length === 0) return null;
           const meta = PRIORITY_META[priority];
