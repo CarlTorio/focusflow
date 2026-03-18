@@ -76,7 +76,7 @@ export function NudgeProvider({ children }: { children: ReactNode }) {
   const { data: overdueCount } = useQuery({
     queryKey: ["overdue-count", today],
     queryFn: async () => {
-      const { count } = await supabase
+      const { count } = await db
         .from("task_schedules")
         .select("id", { count: "exact", head: true })
         .lt("scheduled_date", today)

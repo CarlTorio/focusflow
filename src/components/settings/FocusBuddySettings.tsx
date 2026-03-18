@@ -24,7 +24,7 @@ export function FocusBuddySettings() {
   const handleSave = async () => {
     if (!profile) return;
     setSaving(true);
-    const { error } = await supabase
+    const { error } = await db
       .from("profiles")
       .update({
         nudge_enabled: enabled,

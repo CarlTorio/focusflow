@@ -183,11 +183,11 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
     if (!summaryOpen || !isPastDay) return;
     const dateStr = format(date, "yyyy-MM-dd");
     (async () => {
-      const { data: routines } = await supabase
+      const { data: routines } = await db
         .from("routines")
         .select("id, title")
         .eq("is_active", true);
-      const { data: completions } = await supabase
+      const { data: completions } = await db
         .from("routine_completions")
         .select("routine_id")
         .eq("completed_date", dateStr);

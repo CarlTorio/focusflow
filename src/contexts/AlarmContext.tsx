@@ -153,7 +153,7 @@ export function AlarmProvider({ children }: { children: ReactNode }) {
       return;
     }
     const newTime = new Date(Date.now() + alarm.snooze_duration_minutes * 60 * 1000).toISOString();
-    supabase
+    db
       .from("alarms")
       .update({
         alarm_time: newTime,
