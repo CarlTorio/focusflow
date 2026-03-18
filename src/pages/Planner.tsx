@@ -137,7 +137,7 @@ export default function Planner() {
                 </div>
               )}
 
-              <MissedTaskBanner missed={missedSchedules} onAction={(id, action) => handleMissed.mutate({ scheduleId: id, action })} />
+              
               
               <DailyRoutineSection onEditRoutine={handleEditRoutine} selectedDate={selectedDate} />
 
