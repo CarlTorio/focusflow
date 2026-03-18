@@ -36,11 +36,11 @@ interface AddTaskModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSave: (input: CreateTaskInput) => void;
-  defaultPriority?: "high" | "medium" | "low";
+  defaultPriority?: "high" | "medium";
   isSaving?: boolean;
 }
 
-export function AddTaskModal({ open, onOpenChange, onSave, defaultPriority = "low", isSaving }: AddTaskModalProps) {
+export function AddTaskModal({ open, onOpenChange, onSave, defaultPriority = "medium", isSaving }: AddTaskModalProps) {
   const isMobile = useIsMobile();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
