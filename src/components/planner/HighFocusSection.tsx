@@ -193,19 +193,16 @@ export function HighFocusSection({
         <div>
           <button
             onClick={() => setShowOthers((prev) => !prev)}
-            className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-border py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
             {showOthers ? (
-              <>
-                <ChevronDown className="h-3.5 w-3.5 rotate-180" />
-                Hide main tasks
-              </>
+              <ChevronDown className="h-3.5 w-3.5" />
             ) : (
-              <>
-                <ChevronDown className="h-3.5 w-3.5" />
-                Show {otherUniqueItems.length} more main {otherUniqueItems.length === 1 ? "task" : "tasks"}
-              </>
+              <ChevronRight className="h-3.5 w-3.5" />
             )}
+            <span className="font-medium">
+              {otherUniqueItems.length} other high-priority {otherUniqueItems.length === 1 ? "task" : "tasks"}
+            </span>
           </button>
 
           {showOthers && (
