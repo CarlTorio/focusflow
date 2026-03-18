@@ -3,6 +3,7 @@ import { format, isToday, isTomorrow, isPast, startOfDay } from "date-fns";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PlannerTaskCard } from "./PlannerTaskCard";
+import { HighFocusSection } from "./HighFocusSection";
 import { EditProjectSheet } from "./EditProjectSheet";
 import type { ScheduleWithTask } from "@/hooks/usePlanner";
 import type { Tables } from "@/integrations/supabase/types";
@@ -145,22 +146,36 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
                 )}
               </button>
               {!isCollapsed && (
-                <div className="space-y-2 animate-in fade-in-0 duration-150">
-                  {items.map((s) => (
-                    <PlannerTaskCard
-                      key={s.id}
-                      schedule={s}
-                      lockState={lockState}
-                      onComplete={onComplete}
-                      onOpenFocus={onOpenFocus}
-                      allTodaySchedules={activeSchedules}
-                      isFocusedProject={false}
-                      onCompleteSubtask={onCompleteSubtask}
-                      onEdit={(t) => setEditTask(t)}
-                      onViewNotes={(t) => { setNotesTask(t); setNotesText(t.description || ""); }}
-                    />
-                  ))}
-                </div>
+                priority === "high" ? (
+                  <HighFocusSection
+                    items={items}
+                    lockState={lockState}
+                    isToday={isCurrentDay}
+                    onComplete={onComplete}
+                    onOpenFocus={onOpenFocus}
+                    allTodaySchedules={activeSchedules}
+                    onCompleteSubtask={onCompleteSubtask}
+                    onEdit={(t) => setEditTask(t)}
+                    onViewNotes={(t) => { setNotesTask(t); setNotesText(t.description || ""); }}
+                  />
+                ) : (
+                  <div className="space-y-2 animate-in fade-in-0 duration-150">
+                    {items.map((s) => (
+                      <PlannerTaskCard
+                        key={s.id}
+                        schedule={s}
+                        lockState={lockState}
+                        onComplete={onComplete}
+                        onOpenFocus={onOpenFocus}
+                        allTodaySchedules={activeSchedules}
+                        isFocusedProject={false}
+                        onCompleteSubtask={onCompleteSubtask}
+                        onEdit={(t) => setEditTask(t)}
+                        onViewNotes={(t) => { setNotesTask(t); setNotesText(t.description || ""); }}
+                      />
+                    ))}
+                  </div>
+                )
               )}
             </div>
           );
