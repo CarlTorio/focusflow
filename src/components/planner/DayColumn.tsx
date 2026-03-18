@@ -39,6 +39,7 @@ interface DayColumnProps {
     removeSubtaskIds?: string[];
   }) => void;
   onDeleteTask?: (taskId: string) => void;
+  hideHighPriority?: boolean;
 }
 
 export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus, userName, onCompleteSubtask, onUpdateTask, onDeleteTask }: DayColumnProps) {
