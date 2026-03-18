@@ -302,7 +302,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
       </Dialog>
 
       {/* Past Day Summary Dialog */}
-      <Dialog open={showSummary} onOpenChange={setShowSummary}>
+      <Dialog open={summaryOpen} onOpenChange={setSummaryOpen}>
         <DialogContent className="sm:max-w-md rounded-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-base font-bold">
