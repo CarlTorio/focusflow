@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { format } from "date-fns";
-import { ChevronDown, ChevronRight, Target, Sparkles } from "lucide-react";
+import { format, parseISO, differenceInCalendarDays } from "date-fns";
+import { ChevronDown, ChevronRight, Target, Sparkles, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PlannerTaskCard } from "./PlannerTaskCard";
 import type { ScheduleWithTask } from "@/hooks/usePlanner";
