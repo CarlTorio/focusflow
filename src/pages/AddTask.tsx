@@ -336,6 +336,10 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
         <PriorityPills value={priority} onChange={setPriority} />
       </div>
 
+      {priority === "high" && (
+        <DifficultySelector value={difficultyLevel} onChange={setDifficultyLevel} />
+      )}
+
       {/* Subtasks + Advanced Options in one card */}
       <div className="rounded-xl border border-border p-4 space-y-3">
         <div>
