@@ -93,6 +93,46 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
   ).length;
   const totalCompleted = grouped.completed.length;
 
+  // Summary data for past dates
+  const summaryData = useMemo(() => {
+    if (!isPastDay) return null;
+    
+    const completedTasks = activeSchedules.filter(s => s.status === "completed");
+    const skippedTasks = activeSchedules.filter(s => s.status === "skipped");
+    const pendingTasks = activeSchedules.filter(s => s.status !== "completed" && s.status !== "skipped");
+    
+    // Group completed by priority
+    const completedMain = completedTasks.filter(s => {
+      const p = s.task?.priority === "none" || s.task?.priority === "low" ? "medium" : (s.task?.priority || "medium");
+      return p === "high";
+    });
+    const completedOther = completedTasks.filter(s => {
+      const p = s.task?.priority === "none" || s.task?.priority === "low" ? "medium" : (s.task?.priority || "medium");
+      return p !== "high";
+    });
+    
+    // Completed subtasks across all projects
+    const allSubtasksDone: { taskTitle: string; subtaskTitle: string }[] = [];
+    const seenTasks = new Set<string>();
+    activeSchedules.forEach(s => {
+      if (seenTasks.has(s.task_id) || !s.task?.subtasks) return;
+      seenTasks.add(s.task_id);
+      s.task.subtasks.filter(st => st.is_completed).forEach(st => {
+        allSubtasksDone.push({ taskTitle: s.task!.title, subtaskTitle: st.title });
+      });
+    });
+
+    return {
+      completedMain,
+      completedOther,
+      skippedTasks,
+      pendingTasks,
+      allSubtasksDone,
+      totalCompleted: completedTasks.length,
+      totalScheduled: activeSchedules.length,
+    };
+  }, [isPastDay, activeSchedules]);
+
   return (
     <div className="flex-1 min-w-0">
       {/* Day Header */}
