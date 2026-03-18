@@ -146,29 +146,67 @@ export default function Planner() {
 
 
 
-              <DailyRoutineSection onEditRoutine={handleEditRoutine} selectedDate={selectedDate} />
+              {/* Blur overlay for past days (mobile) */}
+              {isPastSelected && !pastRevealed ? (
+                <div className="relative">
+                  <div className="blur-[3px] pointer-events-none select-none opacity-50">
+                    <DailyRoutineSection onEditRoutine={handleEditRoutine} selectedDate={selectedDate} />
+                    <div className="flex flex-col gap-6 mt-4">
+                      <DayColumn
+                        date={selectedMobileDay}
+                        schedules={schedulesByDate[format(selectedMobileDay, "yyyy-MM-dd")] || []}
+                        onComplete={() => {}}
+                        onAddTask={() => {}}
+                        onOpenFocus={() => {}}
+                        userName={userName}
+                      />
+                    </div>
+                  </div>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+                    <button
+                      onClick={() => setSummaryOpen(true)}
+                      className="flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors"
+                    >
+                      <ClipboardList className="h-4 w-4" />
+                      View Summary
+                    </button>
+                    <button
+                      onClick={() => setPastRevealed(true)}
+                      className="text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
+                    >
+                      Show tasks instead
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <DailyRoutineSection onEditRoutine={handleEditRoutine} selectedDate={selectedDate} />
 
-              <div className={cn("flex gap-6", isMobile && "flex-col")}>
-                {isMobile ? (
-                  <DayColumn
-                    date={selectedMobileDay}
-                    schedules={schedulesByDate[format(selectedMobileDay, "yyyy-MM-dd")] || []}
-                    onComplete={(id) => completeSchedule.mutate({ scheduleId: id })}
-                    onAddTask={() => openAddTask(selectedMobileDay)}
-                    onOpenFocus={() => {}}
-                    userName={userName}
-                    onCompleteSubtask={(sid, tid) => completeSubtaskDirect.mutate({ subtaskId: sid, taskId: tid })}
-                    onUpdateTask={(input) => updateTask.mutate(input)}
-                    onDeleteTask={(id) => deleteTask.mutate(id)}
-                  />
-                ) : (
-                  <>
-                    <DayColumn date={baseDate} schedules={schedulesByDate[format(baseDate, "yyyy-MM-dd")] || []} onComplete={(id) => completeSchedule.mutate({ scheduleId: id })} onAddTask={() => openAddTask(baseDate)} onOpenFocus={() => {}} userName={userName} onCompleteSubtask={(sid, tid) => completeSubtaskDirect.mutate({ subtaskId: sid, taskId: tid })} onUpdateTask={(input) => updateTask.mutate(input)} onDeleteTask={(id) => deleteTask.mutate(id)} />
-                    <div className="w-px bg-border hidden md:block" />
-                    <DayColumn date={addDays(baseDate, 1)} schedules={schedulesByDate[format(addDays(baseDate, 1), "yyyy-MM-dd")] || []} onComplete={(id) => completeSchedule.mutate({ scheduleId: id })} onAddTask={() => openAddTask(addDays(baseDate, 1))} onOpenFocus={() => {}} userName={userName} onCompleteSubtask={(sid, tid) => completeSubtaskDirect.mutate({ subtaskId: sid, taskId: tid })} onUpdateTask={(input) => updateTask.mutate(input)} onDeleteTask={(id) => deleteTask.mutate(id)} />
-                  </>
-                )}
-              </div>
+                  <div className={cn("flex gap-6", isMobile && "flex-col")}>
+                    {isMobile ? (
+                      <DayColumn
+                        date={selectedMobileDay}
+                        schedules={schedulesByDate[format(selectedMobileDay, "yyyy-MM-dd")] || []}
+                        onComplete={(id) => completeSchedule.mutate({ scheduleId: id })}
+                        onAddTask={() => openAddTask(selectedMobileDay)}
+                        onOpenFocus={() => {}}
+                        userName={userName}
+                        onCompleteSubtask={(sid, tid) => completeSubtaskDirect.mutate({ subtaskId: sid, taskId: tid })}
+                        onUpdateTask={(input) => updateTask.mutate(input)}
+                        onDeleteTask={(id) => deleteTask.mutate(id)}
+                        externalOpenSummary={summaryOpen}
+                        onSummaryOpenChange={setSummaryOpen}
+                      />
+                    ) : (
+                      <>
+                        <DayColumn date={baseDate} schedules={schedulesByDate[format(baseDate, "yyyy-MM-dd")] || []} onComplete={(id) => completeSchedule.mutate({ scheduleId: id })} onAddTask={() => openAddTask(baseDate)} onOpenFocus={() => {}} userName={userName} onCompleteSubtask={(sid, tid) => completeSubtaskDirect.mutate({ subtaskId: sid, taskId: tid })} onUpdateTask={(input) => updateTask.mutate(input)} onDeleteTask={(id) => deleteTask.mutate(id)} />
+                        <div className="w-px bg-border hidden md:block" />
+                        <DayColumn date={addDays(baseDate, 1)} schedules={schedulesByDate[format(addDays(baseDate, 1), "yyyy-MM-dd")] || []} onComplete={(id) => completeSchedule.mutate({ scheduleId: id })} onAddTask={() => openAddTask(addDays(baseDate, 1))} onOpenFocus={() => {}} userName={userName} onCompleteSubtask={(sid, tid) => completeSubtaskDirect.mutate({ subtaskId: sid, taskId: tid })} onUpdateTask={(input) => updateTask.mutate(input)} onDeleteTask={(id) => deleteTask.mutate(id)} />
+                      </>
+                    )}
+                  </div>
+                </>
+              )}
             </>
           )}
         </div>
