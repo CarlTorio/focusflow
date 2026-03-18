@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Check, Lock, RefreshCw, ChevronDown, ChevronUp, CircleDot, MoreVertical, MessageSquare, ArrowRightLeft } from "lucide-react";
+import { Check, Lock, RefreshCw, ChevronDown, ChevronUp, CircleDot, MoreVertical, MessageSquare, ArrowRightLeft, Play, Circle, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ScheduleWithTask } from "@/hooks/usePlanner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -34,7 +34,29 @@ interface PlannerTaskCardProps {
   onEdit?: (task: Tables<"tasks"> & { subtasks?: Tables<"subtasks">[] }) => void;
   onViewNotes?: (task: Tables<"tasks">) => void;
   onSwitchFocus?: (taskId: string) => void;
+  onUpdateStatus?: (scheduleId: string, status: string) => void;
 }
+
+const STATUS_CONFIG: Record<string, { label: string; icon: typeof Circle; className: string; next: string }> = {
+  scheduled: {
+    label: "Not Started",
+    icon: Circle,
+    className: "text-muted-foreground bg-muted/50 border-border",
+    next: "in_progress",
+  },
+  in_progress: {
+    label: "In Progress",
+    icon: Play,
+    className: "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800",
+    next: "completed",
+  },
+  completed: {
+    label: "Done",
+    icon: CheckCircle2,
+    className: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800",
+    next: "scheduled",
+  },
+};
 
 function formatTime12(time: string): string {
   const [h, m] = time.split(":").map(Number);
@@ -55,6 +77,7 @@ export function PlannerTaskCard({
   onEdit,
   onViewNotes,
   onSwitchFocus,
+  onUpdateStatus,
 }: PlannerTaskCardProps) {
   const task = schedule.task;
   const isCompleted = schedule.status === "completed";
@@ -64,6 +87,9 @@ export function PlannerTaskCard({
   const hours = Number(schedule.allocated_hours);
   const isRecurring = (task as any)?.task_type === "recurring";
   const isProject = task?.subtasks && task.subtasks.length > 0;
+
+  const currentStatus = schedule.status || "scheduled";
+  const statusConfig = STATUS_CONFIG[currentStatus] || STATUS_CONFIG.scheduled;
 
   const subtaskId = schedule.subtask_id;
   const displayTitle = schedule.display_title || task?.title || "Untitled";
@@ -348,6 +374,34 @@ export function PlannerTaskCard({
           </div>
         )}
       </button>
+
+      {/* Status badge */}
+      {!isLocked && !isPast && onUpdateStatus && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onUpdateStatus(schedule.id, statusConfig.next);
+          }}
+          className={cn(
+            "flex shrink-0 items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-semibold transition-all hover:scale-105 active:scale-95",
+            statusConfig.className
+          )}
+        >
+          <statusConfig.icon className="h-3 w-3" />
+          {statusConfig.label}
+        </button>
+      )}
+
+      {/* Past status (read-only) */}
+      {isPast && (
+        <span className={cn(
+          "flex shrink-0 items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-semibold",
+          statusConfig.className
+        )}>
+          <statusConfig.icon className="h-3 w-3" />
+          {statusConfig.label}
+        </span>
+      )}
 
       {/* Notes button — dot indicator when notes exist */}
       {(!isLocked || isPast) && task && (

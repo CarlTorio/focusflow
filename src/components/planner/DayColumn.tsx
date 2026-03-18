@@ -1,7 +1,8 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { format, isToday, isTomorrow, isPast, startOfDay } from "date-fns";
 import { ChevronDown, ChevronRight, ClipboardList, Check, X, RotateCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { PlannerTaskCard } from "./PlannerTaskCard";
 import { HighFocusSection } from "./HighFocusSection";
@@ -33,6 +34,7 @@ function OtherTasksList({
   onCompleteSubtask,
   onEdit,
   onViewNotes,
+  onUpdateStatus,
 }: {
   items: ScheduleWithTask[];
   lockState: "unlocked" | "tomorrow" | "future" | "past";
@@ -42,6 +44,7 @@ function OtherTasksList({
   onCompleteSubtask?: (subtaskId: string, taskId: string) => void;
   onEdit: (t: any) => void;
   onViewNotes: (t: any) => void;
+  onUpdateStatus?: (scheduleId: string, status: string) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const visible = expanded ? items : items.slice(0, OTHER_TASKS_LIMIT);
@@ -61,6 +64,7 @@ function OtherTasksList({
           onCompleteSubtask={onCompleteSubtask}
           onEdit={onEdit}
           onViewNotes={onViewNotes}
+          onUpdateStatus={onUpdateStatus}
         />
       ))}
       {hiddenCount > 0 && (
@@ -108,6 +112,7 @@ interface DayColumnProps {
 }
 
 export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus, userName, onCompleteSubtask, onUpdateTask, onDeleteTask, externalOpenSummary, onSummaryOpenChange }: DayColumnProps) {
+  const queryClient = useQueryClient();
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({
     completed: true,
   });
@@ -120,6 +125,11 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
     if (onSummaryOpenChange) onSummaryOpenChange(open);
     setShowSummary(open);
   };
+
+  const handleUpdateStatus = useCallback(async (scheduleId: string, status: string) => {
+    await supabase.from("task_schedules").update({ status }).eq("id", scheduleId);
+    queryClient.invalidateQueries({ queryKey: ["planner"] });
+  }, [queryClient]);
 
   const isCurrentDay = isToday(date);
   const isTomorrowDay = isTomorrow(date);
@@ -298,6 +308,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
                     onCompleteSubtask={onCompleteSubtask}
                     onEdit={(t) => setEditTask(t)}
                     onViewNotes={(t) => { setNotesTask(t); setNotesText(t.description || ""); }}
+                    onUpdateStatus={handleUpdateStatus}
                   />
                 ) : (
                   <OtherTasksList
@@ -309,6 +320,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
                     onCompleteSubtask={onCompleteSubtask}
                     onEdit={(t) => setEditTask(t)}
                     onViewNotes={(t) => { setNotesTask(t); setNotesText(t.description || ""); }}
+                    onUpdateStatus={handleUpdateStatus}
                   />
                 )
               )}

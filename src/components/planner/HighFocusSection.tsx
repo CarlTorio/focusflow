@@ -40,6 +40,7 @@ interface HighFocusSectionProps {
   onCompleteSubtask?: (subtaskId: string, taskId: string) => void;
   onEdit?: (task: Tables<"tasks"> & { subtasks?: Tables<"subtasks">[] }) => void;
   onViewNotes?: (task: Tables<"tasks">) => void;
+  onUpdateStatus?: (scheduleId: string, status: string) => void;
 }
 
 export function HighFocusSection({
@@ -52,6 +53,7 @@ export function HighFocusSection({
   onCompleteSubtask,
   onEdit,
   onViewNotes,
+  onUpdateStatus,
 }: HighFocusSectionProps) {
   const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null);
   const [showOthers, setShowOthers] = useState(false);
@@ -78,6 +80,7 @@ export function HighFocusSection({
             onCompleteSubtask={onCompleteSubtask}
             onEdit={onEdit}
             onViewNotes={onViewNotes}
+            onUpdateStatus={onUpdateStatus}
           />
         ))}
       </div>
@@ -185,6 +188,7 @@ export function HighFocusSection({
           onCompleteSubtask={onCompleteSubtask}
           onEdit={onEdit}
           onViewNotes={onViewNotes}
+          onUpdateStatus={onUpdateStatus}
         />
       ))}
 
@@ -206,6 +210,7 @@ export function HighFocusSection({
                     onEdit={onEdit}
                     onViewNotes={onViewNotes}
                     onSwitchFocus={handleSwitchFocus}
+                    onUpdateStatus={onUpdateStatus}
                   />
                 </div>
               ))}
