@@ -57,8 +57,8 @@ function sortByEnergyLevel(
   return [...tasks].sort((a, b) => {
     const scoreDiff = Math.abs(a.score - b.score);
     if (scoreDiff <= 10) {
-      const diffA = (a.task as any).difficulty_level ?? 5;
-      const diffB = (b.task as any).difficulty_level ?? 5;
+      const diffA = getDifficultyFromTags(a.task.tags);
+      const diffB = getDifficultyFromTags(b.task.tags);
       if (energyLevel === "high") return diffB - diffA; // hardest first
       // Low energy: boost almost-done tasks
       const remA = a.task.subtasks.filter((s) => !s.is_completed).length;

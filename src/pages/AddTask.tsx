@@ -28,6 +28,7 @@ import { usePlanner, CreateTaskInput, SubtaskInput } from "@/hooks/usePlanner";
 import { useToast } from "@/hooks/use-toast";
 import { format, addDays } from "date-fns";
 import { RoutineForm } from "@/components/planner/RoutineForm";
+import { DifficultySelector } from "@/components/planner/DifficultySelector";
 import {
   DndContext,
   closestCenter,
