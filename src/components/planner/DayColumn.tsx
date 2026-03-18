@@ -3,6 +3,7 @@ import { format, isToday, isTomorrow, isPast, startOfDay } from "date-fns";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PlannerTaskCard } from "./PlannerTaskCard";
+import { HighFocusSection } from "./HighFocusSection";
 import { EditProjectSheet } from "./EditProjectSheet";
 import type { ScheduleWithTask } from "@/hooks/usePlanner";
 import type { Tables } from "@/integrations/supabase/types";
