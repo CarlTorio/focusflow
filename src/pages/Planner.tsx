@@ -159,6 +159,8 @@ export default function Planner() {
                         onAddTask={() => {}}
                         onOpenFocus={() => {}}
                         userName={userName}
+                        externalOpenSummary={summaryOpen}
+                        onSummaryOpenChange={setSummaryOpen}
                       />
                     </div>
                   </div>
