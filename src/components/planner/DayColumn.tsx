@@ -397,11 +397,39 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
                   <p className="text-2xl font-bold text-primary">{summaryData.totalCompleted}</p>
                   <p className="text-[10px] text-muted-foreground font-medium">Tasks Done</p>
                 </div>
+                {quickTasks.length > 0 && (
+                  <div className="flex-1 rounded-xl bg-emerald-500/10 p-3 text-center">
+                    <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{quickTasks.filter(t => t.is_completed).length}/{quickTasks.length}</p>
+                    <p className="text-[10px] text-muted-foreground font-medium">Quick Tasks</p>
+                  </div>
+                )}
                 <div className="flex-1 rounded-xl bg-primary/10 p-3 text-center">
                   <p className="text-2xl font-bold text-primary">{summaryData.allSubtasksDone.length}</p>
                   <p className="text-[10px] text-muted-foreground font-medium">Subtasks Done</p>
                 </div>
               </div>
+
+              {/* Quick Tasks completed */}
+              {quickTasks.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Zap className="h-3.5 w-3.5 text-emerald-500" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Quick Tasks</span>
+                  </div>
+                  <div className="space-y-1">
+                    {quickTasks.map(qt => (
+                      <div key={qt.id} className="flex items-center gap-2 rounded-lg bg-card px-3 py-2">
+                        {qt.is_completed ? (
+                          <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                        ) : (
+                          <X className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                        )}
+                        <span className={cn("text-sm", qt.is_completed ? "text-foreground" : "text-muted-foreground")}>{qt.title}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
 
               {/* Main Tasks completed */}
               {summaryData.completedMain.length > 0 && (
