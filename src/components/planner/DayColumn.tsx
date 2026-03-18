@@ -122,7 +122,9 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
     setShowSummary(open);
   };
 
-  const isCurrentDay = isToday(date);
+  const dateStr = format(date, "yyyy-MM-dd");
+  const { quickTasks, toggleQuickTask, deleteQuickTask } = useQuickTasks(dateStr);
+
   const isTomorrowDay = isTomorrow(date);
   const isPastDay = !isCurrentDay && isPast(startOfDay(date));
   const lockState = isPastDay ? "past" as const : isCurrentDay ? "unlocked" as const : isTomorrowDay ? "tomorrow" as const : "future" as const;
