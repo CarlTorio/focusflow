@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { PlannerTaskCard } from "./PlannerTaskCard";
 import { HighFocusSection } from "./HighFocusSection";
+import { QuickTasksSection } from "./QuickTasksSection";
 import { EditProjectSheet } from "./EditProjectSheet";
 import type { ScheduleWithTask } from "@/hooks/usePlanner";
 import type { Tables } from "@/integrations/supabase/types";
