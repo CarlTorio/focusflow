@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase, db } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 
 interface ThemeContextType {
   mode: "system" | "light" | "dark";
@@ -149,7 +149,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const persist = useCallback(async (updates: Record<string, any>) => {
     if (!profile) return;
-    await db.from("profiles").update(updates).eq("id", profile.id);
+    await supabase.from("profiles").update(updates).eq("id", profile.id);
   }, [profile]);
 
   const setMode = (m: "system" | "light" | "dark") => {

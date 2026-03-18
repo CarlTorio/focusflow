@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useRef, useState, useCallback, ReactNode } from "react";
-import { supabase, db } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { playAlarmSound, stopCustomSound } from "@/lib/alarmSounds";
 import { Alarm } from "@/hooks/useAlarms";
@@ -66,7 +66,7 @@ export function AlarmProvider({ children }: { children: ReactNode }) {
     const now = new Date();
     const fiveMinAgo = new Date(now.getTime() - 5 * 60 * 1000);
 
-    const { data: alarms } = await db
+    const { data: alarms } = await supabase
       .from("alarms")
       .select("*")
       .eq("user_id", user.id)
@@ -134,7 +134,7 @@ export function AlarmProvider({ children }: { children: ReactNode }) {
     if (firingAlarm) {
       // Deactivate non-recurring alarms
       if (!firingAlarm.alarm.is_recurring) {
-        db
+        supabase
           .from("alarms")
           .update({ is_active: false } as any)
           .eq("id", firingAlarm.alarm.id)
@@ -153,7 +153,7 @@ export function AlarmProvider({ children }: { children: ReactNode }) {
       return;
     }
     const newTime = new Date(Date.now() + alarm.snooze_duration_minutes * 60 * 1000).toISOString();
-    db
+    supabase
       .from("alarms")
       .update({
         alarm_time: newTime,

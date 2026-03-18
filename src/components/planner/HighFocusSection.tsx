@@ -4,7 +4,7 @@ import { ChevronDown, ChevronRight, Target, Sparkles, Clock } from "lucide-react
 import { cn } from "@/lib/utils";
 import { PlannerTaskCard } from "./PlannerTaskCard";
 import type { ScheduleWithTask } from "@/hooks/usePlanner";
-import type { DbTask, DbSubtask } from "@/types/database";
+import type { Tables } from "@/integrations/supabase/types";
 
 const FOCUS_STORAGE_KEY = "planner_high_focus";
 
@@ -38,8 +38,8 @@ interface HighFocusSectionProps {
   onOpenFocus: (scheduleId: string) => void;
   allTodaySchedules: ScheduleWithTask[];
   onCompleteSubtask?: (subtaskId: string, taskId: string) => void;
-  onEdit?: (task: DbTask & { subtasks?: DbSubtask[] }) => void;
-  onViewNotes?: (task: DbTask) => void;
+  onEdit?: (task: Tables<"tasks"> & { subtasks?: Tables<"subtasks">[] }) => void;
+  onViewNotes?: (task: Tables<"tasks">) => void;
 }
 
 export function HighFocusSection({

@@ -1,15 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase, db } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { format, addDays, parseISO, differenceInCalendarDays } from "date-fns";
-import type { DbTask, DbTaskSchedule, DbSubtask } from "@/types/database";
+import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type ScheduleWithTask = DbTaskSchedule & {
-  task: (DbTask & { subtasks?: DbSubtask[] }) | null;
-  subtask?: DbSubtask | null;
+export type ScheduleWithTask = Tables<"task_schedules"> & {
+  task: (Tables<"tasks"> & { subtasks?: Tables<"subtasks">[] }) | null;
+  subtask?: Tables<"subtasks"> | null;
 };
 
 export interface SubtaskInput {
@@ -108,7 +108,7 @@ export function usePlanner(startDate: string, endDate: string) {
   const schedulesQuery = useQuery({
     queryKey: ["planner_schedules", startDate, endDate],
     queryFn: async () => {
-      const { data: schedules, error } = await db
+      const { data: schedules, error } = await supabase
         .from("task_schedules")
         .select("*")
         .gte("scheduled_date", startDate)
@@ -116,41 +116,41 @@ export function usePlanner(startDate: string, endDate: string) {
         .order("start_time", { ascending: true, nullsFirst: true });
       if (error) throw error;
 
-      const taskIds = [...new Set(schedules.map((s: any) => s.task_id))];
+      const taskIds = [...new Set(schedules.map((s) => s.task_id))];
       if (taskIds.length === 0) return [] as ScheduleWithTask[];
 
-      const { data: tasks, error: tasksError } = await db
+      const { data: tasks, error: tasksError } = await supabase
         .from("tasks")
         .select("*")
         .in("id", taskIds);
       if (tasksError) throw tasksError;
 
-      const { data: subtaskRows } = await db
+      const { data: subtaskRows } = await supabase
         .from("subtasks")
         .select("*")
         .in("task_id", taskIds)
         .order("order_index", { ascending: true });
 
-      const taskMap = new Map((tasks || []).map((t: any) => [t.id, t]));
-      const subtasksByTask = new Map<string, DbSubtask[]>();
-      (subtaskRows || []).forEach((st: any) => {
+      const taskMap = new Map((tasks || []).map((t) => [t.id, t]));
+      const subtasksByTask = new Map<string, Tables<"subtasks">[]>();
+      (subtaskRows || []).forEach((st) => {
         const arr = subtasksByTask.get(st.task_id) || [];
         arr.push(st);
         subtasksByTask.set(st.task_id, arr);
       });
 
-      const subtaskMap = new Map<string, DbSubtask>();
-      (subtaskRows || []).forEach((st: any) => subtaskMap.set(st.id, st));
+      const subtaskMap = new Map<string, Tables<"subtasks">>();
+      (subtaskRows || []).forEach((st) => subtaskMap.set(st.id, st));
 
-      return schedules.map((s: any) => {
+      return schedules.map((s) => {
         const task = taskMap.get(s.task_id) || null;
         const subtask = s.subtask_id ? subtaskMap.get(s.subtask_id) || null : null;
         return {
           ...s,
           task: task
             ? {
-                ...(task as any),
-                subtasks: subtasksByTask.get((task as any).id) || [],
+                ...task,
+                subtasks: subtasksByTask.get(task.id) || [],
               }
             : null,
           subtask,
@@ -174,7 +174,7 @@ export function usePlanner(startDate: string, endDate: string) {
       }
 
       // Find yesterday's unfinished schedules
-      const { data: missed } = await db
+      const { data: missed } = await supabase
         .from("task_schedules")
         .select("*")
         .eq("scheduled_date", yesterday)
@@ -187,7 +187,7 @@ export function usePlanner(startDate: string, endDate: string) {
 
       // Check which ones are NOT already scheduled for today (avoid duplicates)
       const missedKeys = missed.map((s) => `${s.task_id}_${s.subtask_id || "null"}`);
-      const { data: existingToday } = await db
+      const { data: existingToday } = await supabase
         .from("task_schedules")
         .select("task_id, subtask_id")
         .eq("scheduled_date", today)
@@ -203,7 +203,7 @@ export function usePlanner(startDate: string, endDate: string) {
 
       if (toCarry.length > 0) {
         // Mark old ones as "carried"
-        await db
+        await supabase
           .from("task_schedules")
           .update({ status: "skipped" } as any)
           .in("id", toCarry.map((s) => s.id));
@@ -222,7 +222,7 @@ export function usePlanner(startDate: string, endDate: string) {
           display_title: s.display_title || "",
         }));
 
-        await db.from("task_schedules").insert(inserts);
+        await supabase.from("task_schedules").insert(inserts);
 
         // Invalidate schedules so the planner refreshes
         queryClient.invalidateQueries({ queryKey: ["planner_schedules"] });
@@ -240,7 +240,7 @@ export function usePlanner(startDate: string, endDate: string) {
   const todaySummaryQuery = useQuery({
     queryKey: ["today_summary", today],
     queryFn: async () => {
-      const { count } = await db
+      const { count } = await supabase
         .from("task_schedules")
         .select("id", { count: "exact", head: true })
         .eq("scheduled_date", today)
@@ -259,7 +259,7 @@ export function usePlanner(startDate: string, endDate: string) {
     queryKey: ["due_soon_tasks"],
     queryFn: async () => {
       const twoDaysOut = format(addDays(new Date(), 2), "yyyy-MM-dd");
-      const { data: tasks } = await db
+      const { data: tasks } = await supabase
         .from("tasks")
         .select("*")
         .neq("status", "completed")
@@ -268,13 +268,13 @@ export function usePlanner(startDate: string, endDate: string) {
       if (!tasks || tasks.length === 0) return [];
 
       const taskIds = tasks.map((t) => t.id);
-      const { data: schedules } = await db
+      const { data: schedules } = await supabase
         .from("task_schedules")
         .select("*")
         .in("task_id", taskIds);
 
       // Get subtasks for projects
-      const { data: subtaskRows } = await db
+      const { data: subtaskRows } = await supabase
         .from("subtasks")
         .select("*")
         .in("task_id", taskIds);
@@ -316,7 +316,7 @@ export function usePlanner(startDate: string, endDate: string) {
       if (!schedule) throw new Error("Schedule not found");
 
       // Mark schedule as completed
-      await db
+      await supabase
         .from("task_schedules")
         .update({
           status: "completed",
@@ -327,7 +327,7 @@ export function usePlanner(startDate: string, endDate: string) {
       // Mark subtask as completed if it has one
       const subtaskId = schedule.subtask_id;
       if (subtaskId) {
-        await db
+        await supabase
           .from("subtasks")
           .update({ is_completed: true })
           .eq("id", subtaskId);
@@ -339,7 +339,7 @@ export function usePlanner(startDate: string, endDate: string) {
           const currentIdx = allSubtasks.findIndex((st) => st.id === subtaskId);
           
           // Find the next uncompleted subtask
-          let nextSubtask: DbSubtask | null = null;
+          let nextSubtask: Tables<"subtasks"> | null = null;
           for (let i = currentIdx + 1; i < allSubtasks.length; i++) {
             if (!allSubtasks[i].is_completed) {
               nextSubtask = allSubtasks[i];
@@ -352,13 +352,13 @@ export function usePlanner(startDate: string, endDate: string) {
           
           if (completedCount >= allSubtasks.length) {
             // Project complete!
-            await db
+            await supabase
               .from("tasks")
               .update({ status: "completed", completed_at: new Date().toISOString() })
               .eq("id", task.id);
 
             // Complete all remaining schedules
-            await db
+            await supabase
               .from("task_schedules")
               .update({ status: "completed" })
               .eq("task_id", task.id)
@@ -378,7 +378,7 @@ export function usePlanner(startDate: string, endDate: string) {
             );
 
             // Delete future scheduled schedules for this task
-            await db
+            await supabase
               .from("task_schedules")
               .delete()
               .eq("task_id", task.id)
@@ -405,7 +405,7 @@ export function usePlanner(startDate: string, endDate: string) {
               }));
 
               if (newSchedules.length > 0) {
-                await db.from("task_schedules").insert(newSchedules as any);
+                await supabase.from("task_schedules").insert(newSchedules as any);
               }
             }
 
@@ -419,7 +419,7 @@ export function usePlanner(startDate: string, endDate: string) {
       }
 
       // Check if ALL task schedules are completed (non-project tasks)
-      const { data: remaining } = await db
+      const { data: remaining } = await supabase
         .from("task_schedules")
         .select("id")
         .eq("task_id", schedule.task_id)
@@ -427,7 +427,7 @@ export function usePlanner(startDate: string, endDate: string) {
         .neq("id", scheduleId);
 
       if (!remaining || remaining.length === 0) {
-        await db
+        await supabase
           .from("tasks")
           .update({ status: "completed", completed_at: new Date().toISOString() })
           .eq("id", schedule.task_id);
@@ -486,7 +486,7 @@ export function usePlanner(startDate: string, endDate: string) {
       const tomorrowStr = format(addDays(new Date(), 1), "yyyy-MM-dd");
 
       if (input.kind === "simple") {
-        const { data: task, error: tErr } = await db
+        const { data: task, error: tErr } = await supabase
           .from("tasks")
           .insert({
             user_id: user.id,
@@ -501,7 +501,7 @@ export function usePlanner(startDate: string, endDate: string) {
           .single();
         if (tErr) throw tErr;
 
-        await db.from("task_schedules").insert({
+        await supabase.from("task_schedules").insert({
           task_id: task.id,
           user_id: user.id,
           scheduled_date: input.scheduled_date,
@@ -515,7 +515,7 @@ export function usePlanner(startDate: string, endDate: string) {
       }
 
       if (input.kind === "recurring") {
-        const { data: task, error: tErr } = await db
+        const { data: task, error: tErr } = await supabase
           .from("tasks")
           .insert({
             user_id: user.id,
@@ -557,14 +557,14 @@ export function usePlanner(startDate: string, endDate: string) {
         }
 
         if (schedules.length > 0) {
-          await db.from("task_schedules").insert(schedules);
+          await supabase.from("task_schedules").insert(schedules);
         }
         return task;
       }
 
       if (input.kind === "project") {
         // Create the task (estimated_hours=0 for subtask-based projects)
-        const { data: task, error: tErr } = await db
+        const { data: task, error: tErr } = await supabase
           .from("tasks")
           .insert({
             user_id: user.id,
@@ -580,9 +580,9 @@ export function usePlanner(startDate: string, endDate: string) {
         if (tErr) throw tErr;
 
         // Insert subtasks
-        let insertedSubtasks: DbSubtask[] = [];
+        let insertedSubtasks: Tables<"subtasks">[] = [];
         if (input.subtasks && input.subtasks.length > 0) {
-          const { data: sts } = await db
+          const { data: sts } = await supabase
             .from("subtasks")
             .insert(
               input.subtasks.map((st, i) => ({
@@ -616,11 +616,11 @@ export function usePlanner(startDate: string, endDate: string) {
           }));
 
           if (scheduleRows.length > 0) {
-            await db.from("task_schedules").insert(scheduleRows as any);
+            await supabase.from("task_schedules").insert(scheduleRows as any);
           }
         } else {
           // No subtasks — create a single schedule entry so it appears in planner
-          await db.from("task_schedules").insert({
+          await supabase.from("task_schedules").insert({
             task_id: task.id,
             user_id: user.id,
             scheduled_date: startStr,
@@ -657,32 +657,32 @@ export function usePlanner(startDate: string, endDate: string) {
   const completeSubtaskDirect = useMutation({
     mutationFn: async ({ subtaskId, taskId }: { subtaskId: string; taskId: string }) => {
       // Mark subtask as completed
-      await db
+      await supabase
         .from("subtasks")
         .update({ is_completed: true })
         .eq("id", subtaskId);
 
       // Delete any future schedule for this subtask
-      await db
+      await supabase
         .from("task_schedules")
         .delete()
         .eq("subtask_id", subtaskId)
         .in("status", ["scheduled"]);
 
       // Check if all subtasks are now done
-      const { data: remaining } = await db
+      const { data: remaining } = await supabase
         .from("subtasks")
         .select("id")
         .eq("task_id", taskId)
         .eq("is_completed", false);
 
       if (!remaining || remaining.length === 0) {
-        await db
+        await supabase
           .from("tasks")
           .update({ status: "completed", completed_at: new Date().toISOString() })
           .eq("id", taskId);
 
-        await db
+        await supabase
           .from("task_schedules")
           .update({ status: "completed" })
           .eq("task_id", taskId)
@@ -727,19 +727,19 @@ export function usePlanner(startDate: string, endDate: string) {
       if (input.description !== undefined) updates.description = input.description;
 
       if (Object.keys(updates).length > 0) {
-        await db.from("tasks").update(updates).eq("id", input.taskId);
+        await supabase.from("tasks").update(updates).eq("id", input.taskId);
       }
 
       // Remove subtasks
       if (input.removeSubtaskIds && input.removeSubtaskIds.length > 0) {
-        await db.from("task_schedules").delete().in("subtask_id", input.removeSubtaskIds);
-        await db.from("subtasks").delete().in("id", input.removeSubtaskIds);
+        await supabase.from("task_schedules").delete().in("subtask_id", input.removeSubtaskIds);
+        await supabase.from("subtasks").delete().in("id", input.removeSubtaskIds);
       }
 
       // Add new subtasks
       if (input.addSubtasks && input.addSubtasks.length > 0) {
         // Get current max order_index
-        const { data: existing } = await db
+        const { data: existing } = await supabase
           .from("subtasks")
           .select("order_index")
           .eq("task_id", input.taskId)
@@ -747,7 +747,7 @@ export function usePlanner(startDate: string, endDate: string) {
           .limit(1);
         const maxIdx = existing?.[0]?.order_index ?? -1;
 
-        const { data: newSubs } = await db
+        const { data: newSubs } = await supabase
           .from("subtasks")
           .insert(
             input.addSubtasks.map((st, i) => ({
@@ -760,7 +760,7 @@ export function usePlanner(startDate: string, endDate: string) {
 
         // Schedule new subtasks
         if (newSubs && newSubs.length > 0 && user) {
-          const task = (await db.from("tasks").select("due_date").eq("id", input.taskId).single()).data;
+          const task = (await supabase.from("tasks").select("due_date").eq("id", input.taskId).single()).data;
           if (task) {
             const todayStr = format(new Date(), "yyyy-MM-dd");
             const slots = distributeSubtasks(
@@ -779,7 +779,7 @@ export function usePlanner(startDate: string, endDate: string) {
               subtask_id: slot.subtaskId,
             }));
             if (scheduleRows.length > 0) {
-              await db.from("task_schedules").insert(scheduleRows as any);
+              await supabase.from("task_schedules").insert(scheduleRows as any);
             }
           }
         }
@@ -798,7 +798,7 @@ export function usePlanner(startDate: string, endDate: string) {
 
   const deleteTask = useMutation({
     mutationFn: async (taskId: string) => {
-      const { error } = await db.from("tasks").delete().eq("id", taskId);
+      const { error } = await supabase.from("tasks").delete().eq("id", taskId);
       if (error) throw error;
     },
     onSuccess: () => {

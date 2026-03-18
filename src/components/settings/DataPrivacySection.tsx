@@ -1,5 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase, db } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Shield, Download, Trash2, ExternalLink } from "lucide-react";
@@ -12,11 +12,11 @@ export function DataPrivacySection() {
     if (!user) return;
     toast.info("Exporting your data...");
     const [tasks, notes, moods, schedules, alarms] = await Promise.all([
-      db.from("tasks").select("*").eq("user_id", user.id),
-      db.from("notes").select("*").eq("user_id", user.id),
-      db.from("mood_entries").select("*").eq("user_id", user.id),
-      db.from("task_schedules").select("*").eq("user_id", user.id),
-      db.from("alarms").select("*").eq("user_id", user.id),
+      supabase.from("tasks").select("*").eq("user_id", user.id),
+      supabase.from("notes").select("*").eq("user_id", user.id),
+      supabase.from("mood_entries").select("*").eq("user_id", user.id),
+      supabase.from("task_schedules").select("*").eq("user_id", user.id),
+      supabase.from("alarms").select("*").eq("user_id", user.id),
     ]);
     const exportData = {
       exported_at: new Date().toISOString(),

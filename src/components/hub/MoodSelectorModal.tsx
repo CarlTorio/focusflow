@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { db } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { X } from "lucide-react";
@@ -53,7 +53,7 @@ export function MoodSelectorModal({ open, onClose }: { open: boolean; onClose: (
   const handleSubmit = async () => {
     if (!user || !selectedMood) return;
     setSubmitting(true);
-    const { error } = await db.from("mood_entries").insert({
+    const { error } = await supabase.from("mood_entries").insert({
       user_id: user.id,
       mood: selectedMood.mood,
       mood_zone: selectedMood.zone,

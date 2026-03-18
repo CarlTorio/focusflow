@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { db } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { getNudgeMessage, NudgeType } from "@/lib/nudgeTemplates";
 import { useQuery } from "@tanstack/react-query";
 
@@ -44,7 +44,7 @@ export function NudgeProvider({ children }: { children: ReactNode }) {
 
   const dismissNudge = useCallback(async (response: string) => {
     if (currentNudge && user) {
-      await db.from("nudge_logs").insert({
+      await supabase.from("nudge_logs" as any).insert({
         user_id: user.id,
         nudge_type: currentNudge.type,
         message: currentNudge.message,
@@ -76,7 +76,7 @@ export function NudgeProvider({ children }: { children: ReactNode }) {
   const { data: overdueCount } = useQuery({
     queryKey: ["overdue-count", today],
     queryFn: async () => {
-      const { count } = await db
+      const { count } = await supabase
         .from("task_schedules")
         .select("id", { count: "exact", head: true })
         .lt("scheduled_date", today)

@@ -15,7 +15,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import type { DbTask, DbSubtask } from "@/types/database";
+import type { Tables } from "@/integrations/supabase/types";
 
 const PRIORITIES = [
   { value: "high", label: "Main Task", color: "bg-destructive text-destructive-foreground" },
@@ -25,7 +25,7 @@ const PRIORITIES = [
 interface EditProjectSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  task: DbTask & { subtasks?: DbSubtask[] };
+  task: Tables<"tasks"> & { subtasks?: Tables<"subtasks">[] };
   onSave: (input: {
     taskId: string;
     title?: string;

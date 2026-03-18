@@ -3,11 +3,11 @@ import { format, differenceInCalendarDays, parseISO } from "date-fns";
 import { ChevronDown, ChevronUp, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
-import type { DbTask, DbTaskSchedule, DbSubtask } from "@/types/database";
+import type { Tables } from "@/integrations/supabase/types";
 
-type TaskWithAnalytics = DbTask & {
-  schedules: DbTaskSchedule[];
-  subtasks: DbSubtask[];
+type TaskWithAnalytics = Tables<"tasks"> & {
+  schedules: Tables<"task_schedules">[];
+  subtasks: Tables<"subtasks">[];
 };
 
 interface PriorityOverviewProps {

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase, db } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,7 +29,7 @@ export function ProfileSection() {
   const handleSaveProfile = async () => {
     if (!profile) return;
     setSaving(true);
-    const { error } = await db
+    const { error } = await supabase
       .from("profiles")
       .update({ first_name: firstName, last_name: lastName })
       .eq("id", profile.id);
@@ -58,7 +58,7 @@ export function ProfileSection() {
     const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
     if (error) { toast.error("Upload failed"); return; }
     const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
-    await db.from("profiles").update({ avatar_url: urlData.publicUrl }).eq("id", user.id);
+    await supabase.from("profiles").update({ avatar_url: urlData.publicUrl }).eq("id", user.id);
     toast.success("Avatar updated");
     refreshProfile();
     setAvatarModalOpen(false);
@@ -72,11 +72,11 @@ export function ProfileSection() {
     if (!confirmed) return;
     // Delete user data from all tables
     await Promise.all([
-      db.from("task_schedules").delete().eq("user_id", user.id),
-      db.from("tasks").delete().eq("user_id", user.id),
-      db.from("notes").delete().eq("user_id", user.id),
-      db.from("mood_entries").delete().eq("user_id", user.id),
-      db.from("alarms").delete().eq("user_id", user.id),
+      supabase.from("task_schedules").delete().eq("user_id", user.id),
+      supabase.from("tasks").delete().eq("user_id", user.id),
+      supabase.from("notes").delete().eq("user_id", user.id),
+      supabase.from("mood_entries").delete().eq("user_id", user.id),
+      supabase.from("alarms").delete().eq("user_id", user.id),
     ]);
     toast.success("All data deleted");
   };

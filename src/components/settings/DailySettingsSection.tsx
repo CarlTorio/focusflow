@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase, db } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,7 +22,7 @@ export function DailySettingsSection() {
   const handleSave = async () => {
     if (!profile) return;
     setSaving(true);
-    const { error } = await db.from("profiles").update({
+    const { error } = await supabase.from("profiles").update({
       daily_hour_limit: dailyLimit,
       working_hours_start: workStart,
       working_hours_end: workEnd,

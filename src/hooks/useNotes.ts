@@ -1,9 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { db } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
-import type { DbNote } from "@/types/database";
+import type { Tables } from "@/integrations/supabase/types";
 
-export type Note = DbNote;
+export type Note = Tables<"notes">;
 
 export function useNotes() {
   const { user } = useAuth();
@@ -12,7 +12,7 @@ export function useNotes() {
   const notesQuery = useQuery({
     queryKey: ["notes", user?.id],
     queryFn: async () => {
-      const { data, error } = await db
+      const { data, error } = await supabase
         .from("notes")
         .select("*")
         .eq("user_id", user!.id)
@@ -27,7 +27,7 @@ export function useNotes() {
   const allNotesQuery = useQuery({
     queryKey: ["notes-all", user?.id],
     queryFn: async () => {
-      const { data, error } = await db
+      const { data, error } = await supabase
         .from("notes")
         .select("*")
         .eq("user_id", user!.id)
@@ -40,7 +40,7 @@ export function useNotes() {
 
   const createNote = useMutation({
     mutationFn: async (params: { title?: string; folder?: string }) => {
-      const { data, error } = await db
+      const { data, error } = await supabase
         .from("notes")
         .insert({
           user_id: user!.id,
@@ -61,7 +61,7 @@ export function useNotes() {
   const updateNote = useMutation({
     mutationFn: async (params: { id: string; title?: string; content?: string; folder?: string; is_starred?: boolean; is_archived?: boolean }) => {
       const { id, ...updates } = params;
-      const { data, error } = await db
+      const { data, error } = await supabase
         .from("notes")
         .update(updates)
         .eq("id", id)
@@ -72,12 +72,15 @@ export function useNotes() {
     },
     onMutate: async (params) => {
       const { id, ...updates } = params;
+      // Cancel any in-flight refetches so they don't overwrite our optimistic update
       await queryClient.cancelQueries({ queryKey: ["notes", user?.id] });
       await queryClient.cancelQueries({ queryKey: ["notes-all", user?.id] });
 
+      // Snapshot previous values for rollback
       const prevNotes = queryClient.getQueryData<Note[]>(["notes", user?.id]);
       const prevAllNotes = queryClient.getQueryData<Note[]>(["notes-all", user?.id]);
 
+      // Optimistically patch the cache instantly
       const patchNote = (note: Note) =>
         note.id === id ? { ...note, ...updates } : note;
 
@@ -91,6 +94,7 @@ export function useNotes() {
       return { prevNotes, prevAllNotes };
     },
     onError: (_err, _params, context) => {
+      // Roll back on error
       if (context?.prevNotes) queryClient.setQueryData(["notes", user?.id], context.prevNotes);
       if (context?.prevAllNotes) queryClient.setQueryData(["notes-all", user?.id], context.prevAllNotes);
     },
@@ -102,7 +106,7 @@ export function useNotes() {
 
   const deleteNote = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await db
+      const { error } = await supabase
         .from("notes")
         .delete()
         .eq("id", id);

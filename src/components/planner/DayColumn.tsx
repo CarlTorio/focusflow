@@ -1,15 +1,13 @@
 import { useState, useMemo, useEffect } from "react";
 import { format, isToday, isTomorrow, isPast, startOfDay } from "date-fns";
-import { ChevronDown, ChevronRight, ClipboardList, Check, X, RotateCcw, Zap } from "lucide-react";
-import { supabase, db } from "@/lib/supabase";
-import type { DbTask, DbSubtask } from "@/types/database";
+import { ChevronDown, ChevronRight, ClipboardList, Check, X, RotateCcw } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { PlannerTaskCard } from "./PlannerTaskCard";
 import { HighFocusSection } from "./HighFocusSection";
 import { EditProjectSheet } from "./EditProjectSheet";
-import { QuickTaskSection } from "./QuickTaskSection";
-import { useQuickTasks } from "@/hooks/useQuickTasks";
 import type { ScheduleWithTask } from "@/hooks/usePlanner";
+import type { Tables } from "@/integrations/supabase/types";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -112,8 +110,8 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({
     completed: true,
   });
-  const [editTask, setEditTask] = useState<(DbTask & { subtasks?: DbSubtask[] }) | null>(null);
-  const [notesTask, setNotesTask] = useState<DbTask | null>(null);
+  const [editTask, setEditTask] = useState<(Tables<"tasks"> & { subtasks?: Tables<"subtasks">[] }) | null>(null);
+  const [notesTask, setNotesTask] = useState<Tables<"tasks"> | null>(null);
   const [notesText, setNotesText] = useState("");
   const [showSummary, setShowSummary] = useState(false);
   const summaryOpen = externalOpenSummary !== undefined ? externalOpenSummary : showSummary;
@@ -126,9 +124,6 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
   const isTomorrowDay = isTomorrow(date);
   const isPastDay = !isCurrentDay && isPast(startOfDay(date));
   const lockState = isPastDay ? "past" as const : isCurrentDay ? "unlocked" as const : isTomorrowDay ? "tomorrow" as const : "future" as const;
-
-  const dateStr = format(date, "yyyy-MM-dd");
-  const { quickTasks, addQuickTask, toggleQuickTask, deleteQuickTask } = useQuickTasks(dateStr);
 
   const toggleGroup = (key: string) =>
     setCollapsedGroups((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -183,11 +178,11 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
     if (!summaryOpen || !isPastDay) return;
     const dateStr = format(date, "yyyy-MM-dd");
     (async () => {
-      const { data: routines } = await db
+      const { data: routines } = await supabase
         .from("routines")
         .select("id, title")
         .eq("is_active", true);
-      const { data: completions } = await db
+      const { data: completions } = await supabase
         .from("routine_completions")
         .select("routine_id")
         .eq("completed_date", dateStr);
@@ -265,17 +260,6 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
       </div>
 
       <div className="space-y-4">
-        {/* Quick Tasks — only show if there are quick tasks or it's today */}
-        {(quickTasks.length > 0 || isCurrentDay) && (
-          <QuickTaskSection
-            quickTasks={quickTasks}
-            onAdd={(title) => addQuickTask.mutate(title)}
-            onToggle={(id, is_completed) => toggleQuickTask.mutate({ id, is_completed })}
-            onDelete={(id) => deleteQuickTask.mutate(id)}
-            isPast={isPastDay}
-          />
-        )}
-
         {PRIORITY_ORDER.map((priority) => {
           const items = grouped[priority] || [];
           if (items.length === 0) return null;
@@ -397,39 +381,11 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
                   <p className="text-2xl font-bold text-primary">{summaryData.totalCompleted}</p>
                   <p className="text-[10px] text-muted-foreground font-medium">Tasks Done</p>
                 </div>
-                {quickTasks.length > 0 && (
-                  <div className="flex-1 rounded-xl bg-emerald-500/10 p-3 text-center">
-                    <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{quickTasks.filter(t => t.is_completed).length}/{quickTasks.length}</p>
-                    <p className="text-[10px] text-muted-foreground font-medium">Quick Tasks</p>
-                  </div>
-                )}
                 <div className="flex-1 rounded-xl bg-primary/10 p-3 text-center">
                   <p className="text-2xl font-bold text-primary">{summaryData.allSubtasksDone.length}</p>
                   <p className="text-[10px] text-muted-foreground font-medium">Subtasks Done</p>
                 </div>
               </div>
-
-              {/* Quick Tasks completed */}
-              {quickTasks.length > 0 && (
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Zap className="h-3.5 w-3.5 text-emerald-500" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Quick Tasks</span>
-                  </div>
-                  <div className="space-y-1">
-                    {quickTasks.map(qt => (
-                      <div key={qt.id} className="flex items-center gap-2 rounded-lg bg-card px-3 py-2">
-                        {qt.is_completed ? (
-                          <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                        ) : (
-                          <X className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        )}
-                        <span className={cn("text-sm", qt.is_completed ? "text-foreground" : "text-muted-foreground")}>{qt.title}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {/* Main Tasks completed */}
               {summaryData.completedMain.length > 0 && (
