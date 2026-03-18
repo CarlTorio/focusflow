@@ -48,6 +48,8 @@ function pickInsight(data: Partial<AnalyticsData>): string {
   return `🚀 Start completing tasks to see your performance trends here. You've got this!`;
 }
 
+const db = supabase as any;
+
 export function usePerformanceAnalytics(period: PeriodFilter = "week") {
   const { user } = useAuth();
   const today = new Date();
@@ -79,17 +81,17 @@ export function usePerformanceAnalytics(period: PeriodFilter = "week") {
       const prevEndStr = format(prevEnd, "yyyy-MM-dd");
 
       const [currentRes, prevRes, onTimeRes, prevOnTimeRes] = await Promise.all([
-        (((supabase as any).from(".select("id, scheduled_date, status, end_time").gte("scheduled_date", startStr).lte("scheduled_date", endStr) as any),
-        (((supabase as any).from(".select("id, scheduled_date, status").gte("scheduled_date", prevStartStr).lte("scheduled_date", prevEndStr) as any),
-        (((supabase as any).from(".select("id, scheduled_date, status, end_time").gte("scheduled_date", startStr).lte("scheduled_date", endStr).eq("status", "completed") as any),
-        (((supabase as any).from(".select("id, status").gte("scheduled_date", prevStartStr).lte("scheduled_date", prevEndStr).eq("status", "completed") as any),
+        db.from("task_schedules").select("id, scheduled_date, status, end_time").gte("scheduled_date", startStr).lte("scheduled_date", endStr),
+        db.from("task_schedules").select("id, scheduled_date, status").gte("scheduled_date", prevStartStr).lte("scheduled_date", prevEndStr),
+        db.from("task_schedules").select("id, scheduled_date, status, end_time").gte("scheduled_date", startStr).lte("scheduled_date", endStr).eq("status", "completed"),
+        db.from("task_schedules").select("id, status").gte("scheduled_date", prevStartStr).lte("scheduled_date", prevEndStr).eq("status", "completed"),
       ]);
 
       const current = currentRes.data ?? [];
       const prev = prevRes.data ?? [];
 
       const days = period === "all"
-        ? eachDayOfInterval({ start, end }).filter((_, i) => i % 7 === 0)
+        ? eachDayOfInterval({ start, end }).filter((_: any, i: number) => i % 7 === 0)
         : eachDayOfInterval({ start, end });
 
       const byDay: Record<string, { completed: number; total: number }> = {};
@@ -101,7 +103,7 @@ export function usePerformanceAnalytics(period: PeriodFilter = "week") {
       });
 
       const todayStr = format(today, "yyyy-MM-dd");
-      const chartData: DayData[] = days.map((d) => {
+      const chartData: DayData[] = days.map((d: Date) => {
         const key = format(d, "yyyy-MM-dd");
         const entry = byDay[key] ?? { completed: 0, total: 0 };
         const future = key > todayStr;
@@ -140,11 +142,7 @@ export function usePerformanceAnalytics(period: PeriodFilter = "week") {
       const prevOnTimeRate = prevTotalCompleted > 0 ? Math.round((prevTotalCompleted / Math.max(prev.length, 1)) * 100) : 0;
 
       let streak = 0;
-      const allTimeRes = await (supabase
-        .from("task_schedules")
-        .select("scheduled_date, status")
-        .lte("scheduled_date", todayStr)
-        .order("scheduled_date", { ascending: false }) as any);
+      const allTimeRes = await db.from("task_schedules").select("scheduled_date, status").lte("scheduled_date", todayStr).order("scheduled_date", { ascending: false });
 
       if (allTimeRes.data) {
         const allByDay: Record<string, { completed: number; total: number }> = {};

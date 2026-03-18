@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
+const db = supabase as any;
+
 export function ProgressToday() {
   const { user } = useAuth();
   const now = new Date();
@@ -12,15 +14,12 @@ export function ProgressToday() {
     queryKey: ["progress-today", today],
     queryFn: async () => {
       const [completedRes, outstandingRes, completedDetailsRes] = await Promise.all([
-        (((supabase as any).from(".select("id", { count: "exact", head: true }).eq("scheduled_date", today).eq("status", "completed") as any),
-        (((supabase as any).from(".select("id", { count: "exact", head: true }).eq("scheduled_date", today).neq("status", "completed") as any),
-        (((supabase as any).from(".select("allocated_hours, actual_hours_spent, status, end_time").eq("scheduled_date", today).eq("status", "completed") as any),
+        db.from("task_schedules").select("id", { count: "exact", head: true }).eq("scheduled_date", today).eq("status", "completed"),
+        db.from("task_schedules").select("id", { count: "exact", head: true }).eq("scheduled_date", today).neq("status", "completed"),
+        db.from("task_schedules").select("allocated_hours, actual_hours_spent, status, end_time").eq("scheduled_date", today).eq("status", "completed"),
       ]);
 
-      const { count: routinesDone } = await (supabase
-        .from("routine_completions")
-        .select("id", { count: "exact", head: true })
-        .eq("completed_date", today) as any);
+      const { count: routinesDone } = await db.from("routine_completions").select("id", { count: "exact", head: true }).eq("completed_date", today);
 
       const completedCount = (completedRes.count || 0) + (routinesDone || 0);
       const outstandingCount = outstandingRes.count || 0;

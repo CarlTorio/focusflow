@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { subDays, format } from "date-fns";
 
+const db = supabase as any;
+
 const zoneLabels: Record<string, string> = {
   green: "positive 😊",
   yellow: "neutral 😐",
@@ -17,11 +19,11 @@ export function MoodInsights() {
   const { data } = useQuery({
     queryKey: ["mood-insights", weekAgo],
     queryFn: async () => {
-      const { data: entries } = await (supabase
+      const { data: entries } = await db
         .from("mood_entries")
         .select("mood_zone, logged_at")
         .gte("logged_at", `${weekAgo}T00:00:00`)
-        .order("logged_at", { ascending: true }) as any);
+        .order("logged_at", { ascending: true });
 
       if (!entries || entries.length < 3) return null;
 
