@@ -13,117 +13,108 @@ import { usePlanner, ScheduleWithTask } from "@/hooks/usePlanner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 
-const MAX_PER_SECTION = 3;
+const MAIN_TASKS_LIMIT = 1;
+const OTHER_TASKS_LIMIT = 3;
+
+const isDoneStatus = (status: string | null) => status === "completed" || status === "skipped";
+
+const getTaskPriority = (schedule: ScheduleWithTask) =>
+  schedule.task?.priority === "none" || schedule.task?.priority === "low"
+    ? "medium"
+    : (schedule.task?.priority || "medium");
+
+const dedupeByTask = (items: ScheduleWithTask[]) => {
+  const seen = new Set<string>();
+  return items.filter((s) => {
+    if (seen.has(s.task_id)) return false;
+    seen.add(s.task_id);
+    return true;
+  });
+};
+
+const mergeCarryAndRaw = (carry: ScheduleWithTask[], raw: ScheduleWithTask[]) => {
+  const merged = [...carry];
+  const byTask = new Map<string, number>();
+  merged.forEach((s, i) => byTask.set(s.task_id, i));
+
+  raw.forEach((s) => {
+    const idx = byTask.get(s.task_id);
+    if (idx === undefined) {
+      merged.push(s);
+      byTask.set(s.task_id, merged.length - 1);
+    } else {
+      merged[idx] = s;
+    }
+  });
+
+  return merged;
+};
+
+const sortMediumByUrgency = (items: ScheduleWithTask[], referenceDate: Date) => {
+  return [...items].sort((a, b) => {
+    const daysA = a.task?.due_date ? differenceInCalendarDays(parseISO(a.task.due_date), referenceDate) : 999;
+    const daysB = b.task?.due_date ? differenceInCalendarDays(parseISO(b.task.due_date), referenceDate) : 999;
+    const urgentA = daysA <= 3 ? 0 : 1;
+    const urgentB = daysB <= 3 ? 0 : 1;
+
+    if (urgentA !== urgentB) return urgentA - urgentB;
+    if (urgentA === 0 && urgentB === 0) return daysA - daysB;
+    return (a.created_at || "").localeCompare(b.created_at || "");
+  });
+};
 
 /**
- * Distribute schedules across visible days with a max of 3 per priority section.
- * Overflow (non-done/non-skipped only) spills to the next day.
+ * Daily planner projection:
+ * - Main Tasks: max 1 active/day
+ * - Other Tasks: max 3 active/day
+ * - Unfinished tasks continue to next day until done
+ * - Done tasks stay only on the day they were completed (not shown on future days)
  */
 function computeSpillover(
   schedulesByDate: Record<string, ScheduleWithTask[]>,
   sortedDates: string[]
 ): Record<string, ScheduleWithTask[]> {
   const result: Record<string, ScheduleWithTask[]> = {};
-  let highOverflow: ScheduleWithTask[] = [];
-  let mediumOverflow: ScheduleWithTask[] = [];
+  const todayStart = startOfDay(new Date());
 
-  // Track which task_ids are already done on a previous day so we don't show them again
+  let highCarry: ScheduleWithTask[] = [];
+  let mediumCarry: ScheduleWithTask[] = [];
   const doneTaskIds = new Set<string>();
 
   for (const dateStr of sortedDates) {
-    const rawDaySchedules = schedulesByDate[dateStr] || [];
+    const dayDate = startOfDay(parseISO(dateStr));
+    const isFutureDay = dayDate > todayStart;
 
-    // Only keep schedules whose tasks are NOT already done on a previous day
-    const daySchedules = rawDaySchedules.filter((s) => !doneTaskIds.has(s.task_id));
+    const raw = (schedulesByDate[dateStr] || []).filter((s) => !doneTaskIds.has(s.task_id));
+    const rawDone = dedupeByTask(raw.filter((s) => isDoneStatus(s.status)));
+    const rawActive = dedupeByTask(raw.filter((s) => !isDoneStatus(s.status)));
 
-    // Mark tasks that are completed/skipped on THIS day so future days exclude them
-    daySchedules.forEach((s) => {
-      if (s.status === "completed" || s.status === "skipped") {
-        doneTaskIds.add(s.task_id);
-      }
-    });
+    rawDone.forEach((s) => doneTaskIds.add(s.task_id));
 
-    // Add overflow from previous day (only non-done, avoid duplicates)
-    const existingTaskIds = new Set(daySchedules.map((s) => s.task_id));
-    highOverflow.forEach((s) => {
-      if (!existingTaskIds.has(s.task_id) && !doneTaskIds.has(s.task_id)) {
-        daySchedules.push(s);
-        existingTaskIds.add(s.task_id);
-      }
-    });
-    mediumOverflow.forEach((s) => {
-      if (!existingTaskIds.has(s.task_id) && !doneTaskIds.has(s.task_id)) {
-        daySchedules.push(s);
-        existingTaskIds.add(s.task_id);
-      }
-    });
+    highCarry = highCarry.filter((s) => !doneTaskIds.has(s.task_id));
+    mediumCarry = mediumCarry.filter((s) => !doneTaskIds.has(s.task_id));
 
-    // Categorize into high/medium, dedup projects
-    const high: ScheduleWithTask[] = [];
-    const medium: ScheduleWithTask[] = [];
-    const seenProjectIds = new Set<string>();
+    const rawHighActive = rawActive.filter((s) => getTaskPriority(s) === "high");
+    const rawMediumActive = rawActive.filter((s) => getTaskPriority(s) !== "high");
 
-    daySchedules.forEach((s) => {
-      const isProject = s.task?.subtasks && s.task.subtasks.length > 0;
-      if (isProject) {
-        if (seenProjectIds.has(s.task_id)) return;
-        seenProjectIds.add(s.task_id);
-      }
+    const rawHighDone = rawDone.filter((s) => getTaskPriority(s) === "high");
+    const rawMediumDone = rawDone.filter((s) => getTaskPriority(s) !== "high");
 
-      const priority = s.task?.priority === "none" || s.task?.priority === "low"
-        ? "medium"
-        : (s.task?.priority || "medium");
+    const highCandidates = mergeCarryAndRaw(highCarry, rawHighActive).filter((s) => !doneTaskIds.has(s.task_id));
+    const mediumCandidates = sortMediumByUrgency(
+      mergeCarryAndRaw(mediumCarry, rawMediumActive).filter((s) => !doneTaskIds.has(s.task_id)),
+      dayDate
+    );
 
-      if (priority === "high") {
-        high.push(s);
-      } else {
-        medium.push(s);
-      }
-    });
+    const visibleHigh = highCandidates.slice(0, MAIN_TASKS_LIMIT);
+    const visibleMedium = mediumCandidates.slice(0, OTHER_TASKS_LIMIT);
 
-    // Sort medium by urgency then created_at
-    const today = new Date();
-    medium.sort((a, b) => {
-      const daysA = a.task?.due_date ? differenceInCalendarDays(parseISO(a.task.due_date), today) : 999;
-      const daysB = b.task?.due_date ? differenceInCalendarDays(parseISO(b.task.due_date), today) : 999;
-      const urgentA = daysA <= 3 ? 0 : 1;
-      const urgentB = daysB <= 3 ? 0 : 1;
-      if (urgentA !== urgentB) return urgentA - urgentB;
-      if (urgentA === 0 && urgentB === 0) return daysA - daysB;
-      return (a.created_at || "").localeCompare(b.created_at || "");
-    });
+    // All unfinished continue to next day until marked done
+    highCarry = highCandidates;
+    mediumCarry = mediumCandidates;
 
-    // Split: max 3 active per section, done stays on its day, overflow spills
-    const keepHigh: ScheduleWithTask[] = [];
-    const newHighOverflow: ScheduleWithTask[] = [];
-    high.forEach((s) => {
-      const isDone = s.status === "completed" || s.status === "skipped";
-      if (isDone) {
-        keepHigh.push(s);
-      } else if (keepHigh.filter((k) => k.status !== "completed" && k.status !== "skipped").length < MAX_PER_SECTION) {
-        keepHigh.push(s);
-      } else {
-        newHighOverflow.push(s);
-      }
-    });
-
-    const keepMedium: ScheduleWithTask[] = [];
-    const newMediumOverflow: ScheduleWithTask[] = [];
-    medium.forEach((s) => {
-      const isDone = s.status === "completed" || s.status === "skipped";
-      if (isDone) {
-        keepMedium.push(s);
-      } else if (keepMedium.filter((k) => k.status !== "completed" && k.status !== "skipped").length < MAX_PER_SECTION) {
-        keepMedium.push(s);
-      } else {
-        newMediumOverflow.push(s);
-      }
-    });
-
-    highOverflow = newHighOverflow;
-    mediumOverflow = newMediumOverflow;
-
-    result[dateStr] = [...keepHigh, ...keepMedium];
+    const doneForDisplay = isFutureDay ? [] : [...rawHighDone, ...rawMediumDone];
+    result[dateStr] = [...visibleHigh, ...visibleMedium, ...doneForDisplay];
   }
 
   return result;
