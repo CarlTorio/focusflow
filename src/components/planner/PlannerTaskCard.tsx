@@ -157,7 +157,7 @@ export function PlannerTaskCard({
               {dueBadge.text}
             </span>
           )}
-          {task && !isLocked && (
+          {task && !isLocked && !isPast && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
