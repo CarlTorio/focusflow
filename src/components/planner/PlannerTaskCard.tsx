@@ -274,7 +274,8 @@ export function PlannerTaskCard({
         "group relative flex items-center gap-3 rounded-xl border-l-4 px-3 py-3 transition-all duration-200 select-none",
         PRIORITY_BORDER[priority],
         isCompleted && "opacity-50",
-        isLocked ? "bg-muted/30" : "bg-card shadow-sm hover:shadow-md",
+        isPast && "opacity-60",
+        isLocked ? "bg-muted/30" : isPast ? "bg-muted/20" : "bg-card shadow-sm hover:shadow-md",
         borderExtra,
         opacity
       )}
