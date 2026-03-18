@@ -353,6 +353,12 @@ export function PlannerTaskCard({
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="min-w-[140px]">
+            {onSwitchFocus && (
+              <DropdownMenuItem onClick={() => onSwitchFocus(schedule.task_id)}>
+                <ArrowRightLeft className="h-3.5 w-3.5 mr-2" />
+                Switch focus here
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem onClick={() => onEdit?.({ ...task, subtasks: task.subtasks || [] })}>
               Edit Project
             </DropdownMenuItem>
