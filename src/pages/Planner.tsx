@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const MAIN_TASKS_LIMIT = 1;
 const OTHER_TASKS_LIMIT = 3;
+const SPILLOVER_LOOKBACK_DAYS = 30;
 
 const isDoneStatus = (status: string | null) => status === "completed" || status === "skipped";
 
@@ -160,16 +161,17 @@ export default function Planner() {
   const [pastRevealed, setPastRevealed] = useState(false);
   const [summaryOpen, setSummaryOpen] = useState(false);
 
-  // Expand date range to include spillover context (previous day) + future buffer
+  // Expand query context so hidden overflow keeps distributing to later days.
   const dateRange = useMemo(() => {
     const visibleStart = isMobile ? selectedMobileDay : baseDate;
-    const start = addDays(visibleStart, -1); // needed so done/overflow from previous day affects current view correctly
-    const end = isMobile ? addDays(selectedMobileDay, 6) : addDays(baseDate, 7);
+    const projectionStart = addDays(visibleStart, -SPILLOVER_LOOKBACK_DAYS);
+    const projectionEnd = isMobile ? addDays(selectedMobileDay, 6) : addDays(baseDate, 7);
+
     return {
-      start,
-      end,
-      startStr: format(start, "yyyy-MM-dd"),
-      endStr: format(end, "yyyy-MM-dd"),
+      projectionStart,
+      projectionEnd,
+      startStr: format(projectionStart, "yyyy-MM-dd"),
+      endStr: format(projectionEnd, "yyyy-MM-dd"),
     };
   }, [baseDate, selectedMobileDay, isMobile]);
 
@@ -196,21 +198,18 @@ export default function Planner() {
     return map;
   }, [schedules]);
 
-  // Compute spillover-adjusted schedules
+  // Compute spillover-adjusted schedules using full projection context.
   const schedulesByDate = useMemo(() => {
     const dates: string[] = [];
-    const visibleStart = isMobile ? selectedMobileDay : baseDate;
-    const start = addDays(visibleStart, -1);
-    const endDate = isMobile ? addDays(selectedMobileDay, 6) : addDays(baseDate, 7);
+    let cur = dateRange.projectionStart;
 
-    let cur = start;
-    while (cur <= endDate) {
+    while (cur <= dateRange.projectionEnd) {
       dates.push(format(cur, "yyyy-MM-dd"));
       cur = addDays(cur, 1);
     }
 
     return computeSpillover(rawSchedulesByDate, dates);
-  }, [rawSchedulesByDate, baseDate, selectedMobileDay, isMobile]);
+  }, [rawSchedulesByDate, dateRange.projectionStart, dateRange.projectionEnd]);
 
   // Navigation
   const navDate = (dir: number) => {
