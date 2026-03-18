@@ -44,7 +44,7 @@ export function NudgeProvider({ children }: { children: ReactNode }) {
 
   const dismissNudge = useCallback(async (response: string) => {
     if (currentNudge && user) {
-      await supabase.from("nudge_logs" as any).insert({
+      await supabase.from("nudge_logs").insert({
         user_id: user.id,
         nudge_type: currentNudge.type,
         message: currentNudge.message,

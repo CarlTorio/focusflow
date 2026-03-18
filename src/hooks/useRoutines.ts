@@ -18,7 +18,7 @@ export function useRoutines() {
     queryKey: ["routines"],
     queryFn: async () => {
       const { data, error } = await (supabase
-        .from("routines" as any)
+        .from("routines")
         .select("*")
         .eq("is_active", true)
         .order("order_index", { ascending: true }) as any);
@@ -32,7 +32,7 @@ export function useRoutines() {
     queryKey: ["routine_completions", today],
     queryFn: async () => {
       const { data, error } = await (supabase
-        .from("routine_completions" as any)
+        .from("routine_completions")
         .select("*")
         .eq("completed_date", today) as any);
       if (error) throw error;
@@ -46,7 +46,7 @@ export function useRoutines() {
       if (!user) throw new Error("Not authenticated");
       const maxOrder = (routinesQuery.data || []).reduce((max, r) => Math.max(max, r.order_index), -1);
       const { data, error } = await (supabase
-        .from("routines" as any)
+        .from("routines")
         .insert({
           user_id: user.id,
           title: input.title,
@@ -71,7 +71,7 @@ export function useRoutines() {
   const updateRoutine = useMutation({
     mutationFn: async (input: { id: string; title: string; description?: string; deadline_time?: string }) => {
       const { error } = await (supabase
-        .from("routines" as any)
+        .from("routines")
         .update({
           title: input.title,
           description: input.description || null,
@@ -92,7 +92,7 @@ export function useRoutines() {
   const removeRoutine = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await (supabase
-        .from("routines" as any)
+        .from("routines")
         .update({ is_active: false })
         .eq("id", id) as any);
       if (error) throw error;
@@ -111,14 +111,14 @@ export function useRoutines() {
       if (!user) throw new Error("Not authenticated");
       if (isCompleted) {
         const { error } = await (supabase
-          .from("routine_completions" as any)
+          .from("routine_completions")
           .delete()
           .eq("routine_id", routineId)
           .eq("completed_date", today) as any);
         if (error) throw error;
       } else {
         const { error } = await (supabase
-          .from("routine_completions" as any)
+          .from("routine_completions")
           .insert({
             routine_id: routineId,
             user_id: user.id,

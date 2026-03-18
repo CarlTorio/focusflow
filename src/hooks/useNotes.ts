@@ -13,7 +13,7 @@ export function useNotes() {
     queryKey: ["notes", user?.id],
     queryFn: async () => {
       const { data, error } = await (supabase
-        .from("notes" as any)
+        .from("notes")
         .select("*")
         .eq("user_id", user!.id)
         .eq("is_archived", false)
@@ -28,7 +28,7 @@ export function useNotes() {
     queryKey: ["notes-all", user?.id],
     queryFn: async () => {
       const { data, error } = await (supabase
-        .from("notes" as any)
+        .from("notes")
         .select("*")
         .eq("user_id", user!.id)
         .order("updated_at", { ascending: false }) as any);
@@ -41,7 +41,7 @@ export function useNotes() {
   const createNote = useMutation({
     mutationFn: async (params: { title?: string; folder?: string }) => {
       const { data, error } = await (supabase
-        .from("notes" as any)
+        .from("notes")
         .insert({
           user_id: user!.id,
           title: params.title || "Untitled",
@@ -62,7 +62,7 @@ export function useNotes() {
     mutationFn: async (params: { id: string; title?: string; content?: string; folder?: string; is_starred?: boolean; is_archived?: boolean }) => {
       const { id, ...updates } = params;
       const { data, error } = await (supabase
-        .from("notes" as any)
+        .from("notes")
         .update(updates)
         .eq("id", id)
         .select()
@@ -103,7 +103,7 @@ export function useNotes() {
   const deleteNote = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await (supabase
-        .from("notes" as any)
+        .from("notes")
         .delete()
         .eq("id", id) as any);
       if (error) throw error;

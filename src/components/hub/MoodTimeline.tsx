@@ -40,7 +40,7 @@ export function MoodTimeline() {
     queryKey: ["mood-timeline", dateStr],
     queryFn: async () => {
       const { data } = await (supabase
-        .from("mood_entries" as any)
+        .from("mood_entries")
         .select("id, mood, mood_zone, logged_at, note")
         .gte("logged_at", `${dateStr}T00:00:00`)
         .lt("logged_at", `${dateStr}T23:59:59`)

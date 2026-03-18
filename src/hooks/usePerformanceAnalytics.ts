@@ -141,7 +141,7 @@ export function usePerformanceAnalytics(period: PeriodFilter = "week") {
 
       let streak = 0;
       const allTimeRes = await (supabase
-        .from("task_schedules" as any)
+        .from("task_schedules")
         .select("scheduled_date, status")
         .lte("scheduled_date", todayStr)
         .order("scheduled_date", { ascending: false }) as any);

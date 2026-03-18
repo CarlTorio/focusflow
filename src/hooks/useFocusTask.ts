@@ -20,7 +20,7 @@ export function useFocusTask() {
     queryKey: ["focus_schedules", today],
     queryFn: async () => {
       const { data: schedules, error } = await (supabase
-        .from("task_schedules" as any)
+        .from("task_schedules")
         .select("*")
         .eq("user_id", user!.id)
         .eq("scheduled_date", today)
@@ -32,12 +32,12 @@ export function useFocusTask() {
 
       const taskIds = [...new Set(schedules.map((s: any) => s.task_id))];
       const { data: tasks } = await (supabase
-        .from("tasks" as any)
+        .from("tasks")
         .select("*")
         .in("id", taskIds) as any);
 
       const { data: subtasks } = await (supabase
-        .from("subtasks" as any)
+        .from("subtasks")
         .select("*")
         .in("task_id", taskIds)
         .order("order_index", { ascending: true }) as any);
@@ -76,19 +76,19 @@ export function useFocusTask() {
       if (!schedule) throw new Error("Schedule not found");
 
       await (supabase
-        .from("task_schedules" as any)
+        .from("task_schedules")
         .update({ status: "completed" })
         .eq("id", scheduleId) as any);
 
       const { data: remaining } = await (supabase
-        .from("task_schedules" as any)
+        .from("task_schedules")
         .select("id")
         .eq("task_id", schedule.task_id)
         .in("status", ["scheduled", "in_progress"]) as any);
 
       if (!remaining || remaining.length === 0 || (remaining.length === 1 && remaining[0].id === scheduleId)) {
         await (supabase
-          .from("tasks" as any)
+          .from("tasks")
           .update({ status: "completed", completed_at: new Date().toISOString() })
           .eq("id", schedule.task_id) as any);
       }
@@ -104,7 +104,7 @@ export function useFocusTask() {
   const skipSchedule = useMutation({
     mutationFn: async (scheduleId: string) => {
       await (supabase
-        .from("task_schedules" as any)
+        .from("task_schedules")
         .update({ status: "skipped" })
         .eq("id", scheduleId) as any);
     },

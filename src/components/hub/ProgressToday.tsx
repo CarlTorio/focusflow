@@ -18,7 +18,7 @@ export function ProgressToday() {
       ]);
 
       const { count: routinesDone } = await (supabase
-        .from("routine_completions" as any)
+        .from("routine_completions")
         .select("id", { count: "exact", head: true })
         .eq("completed_date", today) as any);
 

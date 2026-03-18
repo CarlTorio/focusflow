@@ -18,7 +18,7 @@ export function MoodInsights() {
     queryKey: ["mood-insights", weekAgo],
     queryFn: async () => {
       const { data: entries } = await (supabase
-        .from("mood_entries" as any)
+        .from("mood_entries")
         .select("mood_zone, logged_at")
         .gte("logged_at", `${weekAgo}T00:00:00`)
         .order("logged_at", { ascending: true }) as any);

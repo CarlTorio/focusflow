@@ -30,7 +30,7 @@ export function useAlarms() {
     queryKey: ["alarms", user?.id],
     queryFn: async () => {
       const { data, error } = await (supabase
-        .from("alarms" as any)
+        .from("alarms")
         .select("*")
         .eq("user_id", user!.id)
         .order("alarm_time", { ascending: true }) as any);
@@ -44,7 +44,7 @@ export function useAlarms() {
     mutationFn: async (input: CreateAlarmInput) => {
       if (!user) throw new Error("Not authenticated");
       const { data, error } = await (supabase
-        .from("alarms" as any)
+        .from("alarms")
         .insert({
           user_id: user.id,
           ...input,
@@ -63,7 +63,7 @@ export function useAlarms() {
     mutationFn: async (params: { id: string } & Partial<Alarm>) => {
       const { id, ...updates } = params;
       const { data, error } = await (supabase
-        .from("alarms" as any)
+        .from("alarms")
         .update(updates)
         .eq("id", id)
         .select()
@@ -90,7 +90,7 @@ export function useAlarms() {
     mutationFn: async (alarm: Alarm) => {
       const newTime = new Date(Date.now() + alarm.snooze_duration_minutes * 60 * 1000).toISOString();
       const { error } = await (supabase
-        .from("alarms" as any)
+        .from("alarms")
         .update({
           alarm_time: newTime,
           snooze_count: alarm.snooze_count + 1,

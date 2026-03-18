@@ -58,7 +58,7 @@ export function useTasks() {
     queryKey: ["tasks"],
     queryFn: async () => {
       const { data, error } = await (supabase
-        .from("tasks" as any)
+        .from("tasks")
         .select("*")
         .order("created_at", { ascending: false }) as any);
       if (error) throw error;
@@ -71,7 +71,7 @@ export function useTasks() {
     queryKey: ["task_schedules"],
     queryFn: async () => {
       const { data, error } = await (supabase
-        .from("task_schedules" as any)
+        .from("task_schedules")
         .select("*")
         .order("scheduled_date", { ascending: true }) as any);
       if (error) throw error;
@@ -85,7 +85,7 @@ export function useTasks() {
       if (!user) throw new Error("Not authenticated");
 
       const { data: task, error: taskError } = await (supabase
-        .from("tasks" as any)
+        .from("tasks")
         .insert({
           user_id: user.id,
           title: input.title,
@@ -202,7 +202,7 @@ export function useTasks() {
     const hoursPerDay = Number(task.estimated_hours) / days.length;
 
     const { data: existingSchedules } = await (supabase
-      .from("task_schedules" as any)
+      .from("task_schedules")
       .select("scheduled_date, allocated_hours")
       .eq("user_id", userId)
       .in("scheduled_date", days) as any);
@@ -213,7 +213,7 @@ export function useTasks() {
     });
 
     const { data: profile } = await (supabase
-      .from("profiles" as any)
+      .from("profiles")
       .select("daily_hour_limit")
       .eq("id", userId)
       .single() as any);
@@ -274,18 +274,18 @@ export function useTasks() {
   const completeTask = useMutation({
     mutationFn: async (taskId: string) => {
       const { error } = await (supabase
-        .from("tasks" as any)
+        .from("tasks")
         .update({ status: "completed", completed_at: new Date().toISOString() })
         .eq("id", taskId) as any);
       if (error) throw error;
 
       await (supabase
-        .from("task_schedules" as any)
+        .from("task_schedules")
         .update({ status: "completed" })
         .eq("task_id", taskId) as any);
 
       await (supabase
-        .from("alarms" as any)
+        .from("alarms")
         .update({ is_active: false })
         .eq("user_id", user!.id)
         .eq("alarm_type", "task_reminder") as any);
@@ -303,7 +303,7 @@ export function useTasks() {
   const uncompleteTask = useMutation({
     mutationFn: async (taskId: string) => {
       const { error } = await (supabase
-        .from("tasks" as any)
+        .from("tasks")
         .update({ status: "pending", completed_at: null })
         .eq("id", taskId) as any);
       if (error) throw error;
