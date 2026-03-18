@@ -104,7 +104,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
   const [routineSummary, setRoutineSummary] = useState<{ completed: string[]; missed: string[] } | null>(null);
 
   useEffect(() => {
-    if (!showSummary || !isPastDay) return;
+    if (!summaryOpen || !isPastDay) return;
     const dateStr = format(date, "yyyy-MM-dd");
     (async () => {
       const { data: routines } = await supabase
