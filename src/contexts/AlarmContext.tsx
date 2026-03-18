@@ -134,7 +134,7 @@ export function AlarmProvider({ children }: { children: ReactNode }) {
     if (firingAlarm) {
       // Deactivate non-recurring alarms
       if (!firingAlarm.alarm.is_recurring) {
-        supabase
+        db
           .from("alarms")
           .update({ is_active: false } as any)
           .eq("id", firingAlarm.alarm.id)
