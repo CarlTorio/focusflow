@@ -112,6 +112,7 @@ interface DayColumnProps {
 }
 
 export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus, userName, onCompleteSubtask, onUpdateTask, onDeleteTask, externalOpenSummary, onSummaryOpenChange }: DayColumnProps) {
+  const queryClient = useQueryClient();
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({
     completed: true,
   });
@@ -124,6 +125,11 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
     if (onSummaryOpenChange) onSummaryOpenChange(open);
     setShowSummary(open);
   };
+
+  const handleUpdateStatus = useCallback(async (scheduleId: string, status: string) => {
+    await supabase.from("task_schedules").update({ status }).eq("id", scheduleId);
+    queryClient.invalidateQueries({ queryKey: ["planner"] });
+  }, [queryClient]);
 
   const isCurrentDay = isToday(date);
   const isTomorrowDay = isTomorrow(date);
