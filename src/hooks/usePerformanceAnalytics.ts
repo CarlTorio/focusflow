@@ -79,10 +79,10 @@ export function usePerformanceAnalytics(period: PeriodFilter = "week") {
       const prevEndStr = format(prevEnd, "yyyy-MM-dd");
 
       const [currentRes, prevRes, onTimeRes, prevOnTimeRes] = await Promise.all([
-        (((supabase as any).from("task_schedules" as any).select("id, scheduled_date, status, end_time").gte("scheduled_date", startStr).lte("scheduled_date", endStr) as any),
-        (((supabase as any).from("task_schedules" as any).select("id, scheduled_date, status").gte("scheduled_date", prevStartStr).lte("scheduled_date", prevEndStr) as any),
-        (((supabase as any).from("task_schedules" as any).select("id, scheduled_date, status, end_time").gte("scheduled_date", startStr).lte("scheduled_date", endStr).eq("status", "completed") as any),
-        (((supabase as any).from("task_schedules" as any).select("id, status").gte("scheduled_date", prevStartStr).lte("scheduled_date", prevEndStr).eq("status", "completed") as any),
+        (((supabase as any).from(".select("id, scheduled_date, status, end_time").gte("scheduled_date", startStr).lte("scheduled_date", endStr) as any),
+        (((supabase as any).from(".select("id, scheduled_date, status").gte("scheduled_date", prevStartStr).lte("scheduled_date", prevEndStr) as any),
+        (((supabase as any).from(".select("id, scheduled_date, status, end_time").gte("scheduled_date", startStr).lte("scheduled_date", endStr).eq("status", "completed") as any),
+        (((supabase as any).from(".select("id, status").gte("scheduled_date", prevStartStr).lte("scheduled_date", prevEndStr).eq("status", "completed") as any),
       ]);
 
       const current = currentRes.data ?? [];

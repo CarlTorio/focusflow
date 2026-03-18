@@ -53,7 +53,7 @@ export function MoodSelectorModal({ open, onClose }: { open: boolean; onClose: (
   const handleSubmit = async () => {
     if (!user || !selectedMood) return;
     setSubmitting(true);
-    const { error } = await (((supabase as any).from("mood_entries" as any).insert({
+    const { error } = await (((supabase as any).from(".insert({
       user_id: user.id,
       mood: selectedMood.mood,
       mood_zone: selectedMood.zone,

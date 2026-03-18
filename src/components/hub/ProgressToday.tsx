@@ -12,9 +12,9 @@ export function ProgressToday() {
     queryKey: ["progress-today", today],
     queryFn: async () => {
       const [completedRes, outstandingRes, completedDetailsRes] = await Promise.all([
-        (((supabase as any).from("task_schedules" as any).select("id", { count: "exact", head: true }).eq("scheduled_date", today).eq("status", "completed") as any),
-        (((supabase as any).from("task_schedules" as any).select("id", { count: "exact", head: true }).eq("scheduled_date", today).neq("status", "completed") as any),
-        (((supabase as any).from("task_schedules" as any).select("allocated_hours, actual_hours_spent, status, end_time").eq("scheduled_date", today).eq("status", "completed") as any),
+        (((supabase as any).from(".select("id", { count: "exact", head: true }).eq("scheduled_date", today).eq("status", "completed") as any),
+        (((supabase as any).from(".select("id", { count: "exact", head: true }).eq("scheduled_date", today).neq("status", "completed") as any),
+        (((supabase as any).from(".select("allocated_hours, actual_hours_spent, status, end_time").eq("scheduled_date", today).eq("status", "completed") as any),
       ]);
 
       const { count: routinesDone } = await (supabase
