@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { format, isToday, isTomorrow, isPast, startOfDay } from "date-fns";
 import { ChevronDown, ChevronRight, ClipboardList, Check, X, RotateCcw, Zap } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, db } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 import { PlannerTaskCard } from "./PlannerTaskCard";
 import { HighFocusSection } from "./HighFocusSection";
@@ -9,7 +9,6 @@ import { EditProjectSheet } from "./EditProjectSheet";
 import { QuickTaskSection } from "./QuickTaskSection";
 import { useQuickTasks } from "@/hooks/useQuickTasks";
 import type { ScheduleWithTask } from "@/hooks/usePlanner";
-import type { Tables } from "@/integrations/supabase/types";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";

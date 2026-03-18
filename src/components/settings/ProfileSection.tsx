@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/lib/supabase";
+import { supabase, db } from "@/lib/supabase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -58,7 +58,7 @@ export function ProfileSection() {
     const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
     if (error) { toast.error("Upload failed"); return; }
     const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
-    await (supabase as any).from("profiles").update({ avatar_url: urlData.publicUrl }).eq("id", user.id);
+    await db.from("profiles").update({ avatar_url: urlData.publicUrl }).eq("id", user.id);
     toast.success("Avatar updated");
     refreshProfile();
     setAvatarModalOpen(false);
@@ -72,11 +72,11 @@ export function ProfileSection() {
     if (!confirmed) return;
     // Delete user data from all tables
     await Promise.all([
-      (supabase as any).from("task_schedules").delete().eq("user_id", user.id),
-      (supabase as any).from("tasks").delete().eq("user_id", user.id),
-      (supabase as any).from("notes").delete().eq("user_id", user.id),
-      (supabase as any).from("mood_entries").delete().eq("user_id", user.id),
-      (supabase as any).from("alarms").delete().eq("user_id", user.id),
+      db.from("task_schedules").delete().eq("user_id", user.id),
+      db.from("tasks").delete().eq("user_id", user.id),
+      db.from("notes").delete().eq("user_id", user.id),
+      db.from("mood_entries").delete().eq("user_id", user.id),
+      db.from("alarms").delete().eq("user_id", user.id),
     ]);
     toast.success("All data deleted");
   };

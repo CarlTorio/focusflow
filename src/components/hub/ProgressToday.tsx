@@ -1,6 +1,6 @@
 import { CheckCircle2, CalendarX2, Clock, Zap } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, db } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 
 const db = supabase as any;
