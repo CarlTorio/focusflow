@@ -23,7 +23,8 @@ export default function Todos() {
     const completed = tasks.filter(t => t.status === "completed");
     const byPriority: Record<string, typeof active> = { high: [], medium: [], none: [] };
     active.forEach(t => {
-      (byPriority[t.priority] || byPriority.none).push(t);
+      const p = t.priority === "low" || t.priority === "none" ? "medium" : t.priority;
+      (byPriority[p] || byPriority.medium).push(t);
     });
     return { ...byPriority, completed };
   }, [tasks]);
