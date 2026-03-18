@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 import { PlannerTaskCard } from "./PlannerTaskCard";
 import { HighFocusSection } from "./HighFocusSection";
 import { EditProjectSheet } from "./EditProjectSheet";
+import { QuickTasksSection } from "./QuickTasksSection";
+import { useQuickTasks } from "@/hooks/useQuickTasks";
 import type { ScheduleWithTask } from "@/hooks/usePlanner";
 import type { Tables } from "@/integrations/supabase/types";
 import {
@@ -119,6 +121,9 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
     if (onSummaryOpenChange) onSummaryOpenChange(open);
     setShowSummary(open);
   };
+
+  const dateStr = format(date, "yyyy-MM-dd");
+  const { quickTasks, toggleQuickTask, deleteQuickTask } = useQuickTasks(dateStr);
 
   const isCurrentDay = isToday(date);
   const isTomorrowDay = isTomorrow(date);
@@ -260,6 +265,12 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
       </div>
 
       <div className="space-y-4">
+        {/* Quick Tasks */}
+        <QuickTasksSection
+          tasks={quickTasks}
+          onToggle={(id, completed) => toggleQuickTask.mutate({ id, completed })}
+          onDelete={(id) => deleteQuickTask.mutate(id)}
+        />
         {PRIORITY_ORDER.map((priority) => {
           const items = grouped[priority] || [];
           if (items.length === 0) return null;
