@@ -24,23 +24,35 @@ function computeSpillover(
   sortedDates: string[]
 ): Record<string, ScheduleWithTask[]> {
   const result: Record<string, ScheduleWithTask[]> = {};
-  // Carry-over queues per priority group
   let highOverflow: ScheduleWithTask[] = [];
   let mediumOverflow: ScheduleWithTask[] = [];
 
-  for (const dateStr of sortedDates) {
-    const daySchedules = [...(schedulesByDate[dateStr] || [])];
+  // Track which task_ids are already done on a previous day so we don't show them again
+  const doneTaskIds = new Set<string>();
 
-    // Add overflow from previous day (avoid duplicates by task_id)
+  for (const dateStr of sortedDates) {
+    const rawDaySchedules = schedulesByDate[dateStr] || [];
+
+    // Only keep schedules whose tasks are NOT already done on a previous day
+    const daySchedules = rawDaySchedules.filter((s) => !doneTaskIds.has(s.task_id));
+
+    // Mark tasks that are completed/skipped on THIS day so future days exclude them
+    daySchedules.forEach((s) => {
+      if (s.status === "completed" || s.status === "skipped") {
+        doneTaskIds.add(s.task_id);
+      }
+    });
+
+    // Add overflow from previous day (only non-done, avoid duplicates)
     const existingTaskIds = new Set(daySchedules.map((s) => s.task_id));
     highOverflow.forEach((s) => {
-      if (!existingTaskIds.has(s.task_id)) {
+      if (!existingTaskIds.has(s.task_id) && !doneTaskIds.has(s.task_id)) {
         daySchedules.push(s);
         existingTaskIds.add(s.task_id);
       }
     });
     mediumOverflow.forEach((s) => {
-      if (!existingTaskIds.has(s.task_id)) {
+      if (!existingTaskIds.has(s.task_id) && !doneTaskIds.has(s.task_id)) {
         daySchedules.push(s);
         existingTaskIds.add(s.task_id);
       }
@@ -49,7 +61,6 @@ function computeSpillover(
     // Categorize into high/medium, dedup projects
     const high: ScheduleWithTask[] = [];
     const medium: ScheduleWithTask[] = [];
-    const others: ScheduleWithTask[] = []; // completed/skipped go through as-is
     const seenProjectIds = new Set<string>();
 
     daySchedules.forEach((s) => {
@@ -59,7 +70,6 @@ function computeSpillover(
         seenProjectIds.add(s.task_id);
       }
 
-      const isDone = s.status === "completed" || s.status === "skipped";
       const priority = s.task?.priority === "none" || s.task?.priority === "low"
         ? "medium"
         : (s.task?.priority || "medium");
@@ -83,13 +93,12 @@ function computeSpillover(
       return (a.created_at || "").localeCompare(b.created_at || "");
     });
 
-    // Split into kept (max 3) and overflow (only non-done spill)
+    // Split: max 3 active per section, done stays on its day, overflow spills
     const keepHigh: ScheduleWithTask[] = [];
     const newHighOverflow: ScheduleWithTask[] = [];
     high.forEach((s) => {
       const isDone = s.status === "completed" || s.status === "skipped";
       if (isDone) {
-        // Done tasks always stay on their day, don't count toward limit
         keepHigh.push(s);
       } else if (keepHigh.filter((k) => k.status !== "completed" && k.status !== "skipped").length < MAX_PER_SECTION) {
         keepHigh.push(s);
