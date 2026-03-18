@@ -121,6 +121,8 @@ export function PlannerTaskCard({
       ? "opacity-50"
       : lockState === "tomorrow"
       ? "opacity-70"
+      : lockState === "past"
+      ? "opacity-80"
       : "opacity-100";
 
   // ─── Expanded Project View ──────────────────────────────────────────────
