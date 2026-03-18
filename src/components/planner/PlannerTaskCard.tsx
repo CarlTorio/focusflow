@@ -402,7 +402,7 @@ export function PlannerTaskCard({
 
 
       {/* 3-dot menu */}
-      {!isLocked && !isPast && !isCompleted && task && (
+      {!isLocked && !isPast && task && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
