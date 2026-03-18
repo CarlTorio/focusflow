@@ -36,6 +36,8 @@ export default function Notes() {
   const [mobileView, setMobileView] = useState<"list" | "editor">("list");
   const [deleteTarget, setDeleteTarget] = useState<Note | null>(null);
   const [folderVersion, setFolderVersion] = useState(0);
+  const [showNewFolderModal, setShowNewFolderModal] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
   const [pillsAtEnd, setPillsAtEnd] = useState(false);
   const pillsScrollRef = useRef<HTMLDivElement>(null);
 
