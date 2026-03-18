@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { format, addDays, startOfWeek, isToday, isPast, startOfDay } from "date-fns";
+import { format, addDays, startOfWeek, isToday, isPast, startOfDay, differenceInCalendarDays, parseISO } from "date-fns";
 import { ChevronLeft, ChevronRight, Plus, ClipboardList } from "lucide-react";
 import { MobileHeader } from "@/components/navigation/MobileHeader";
 import { cn } from "@/lib/utils";
@@ -9,9 +9,116 @@ import { DailySummaryBanner } from "@/components/planner/DailySummaryBanner";
 
 import { DailyRoutineSection } from "@/components/planner/DailyRoutineSection";
 import { Skeleton } from "@/components/ui/skeleton";
-import { usePlanner } from "@/hooks/usePlanner";
+import { usePlanner, ScheduleWithTask } from "@/hooks/usePlanner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
+
+const MAX_PER_SECTION = 3;
+
+/**
+ * Distribute schedules across visible days with a max of 3 per priority section.
+ * Overflow (non-done/non-skipped only) spills to the next day.
+ */
+function computeSpillover(
+  schedulesByDate: Record<string, ScheduleWithTask[]>,
+  sortedDates: string[]
+): Record<string, ScheduleWithTask[]> {
+  const result: Record<string, ScheduleWithTask[]> = {};
+  // Carry-over queues per priority group
+  let highOverflow: ScheduleWithTask[] = [];
+  let mediumOverflow: ScheduleWithTask[] = [];
+
+  for (const dateStr of sortedDates) {
+    const daySchedules = [...(schedulesByDate[dateStr] || [])];
+
+    // Add overflow from previous day (avoid duplicates by task_id)
+    const existingTaskIds = new Set(daySchedules.map((s) => s.task_id));
+    highOverflow.forEach((s) => {
+      if (!existingTaskIds.has(s.task_id)) {
+        daySchedules.push(s);
+        existingTaskIds.add(s.task_id);
+      }
+    });
+    mediumOverflow.forEach((s) => {
+      if (!existingTaskIds.has(s.task_id)) {
+        daySchedules.push(s);
+        existingTaskIds.add(s.task_id);
+      }
+    });
+
+    // Categorize into high/medium, dedup projects
+    const high: ScheduleWithTask[] = [];
+    const medium: ScheduleWithTask[] = [];
+    const others: ScheduleWithTask[] = []; // completed/skipped go through as-is
+    const seenProjectIds = new Set<string>();
+
+    daySchedules.forEach((s) => {
+      const isProject = s.task?.subtasks && s.task.subtasks.length > 0;
+      if (isProject) {
+        if (seenProjectIds.has(s.task_id)) return;
+        seenProjectIds.add(s.task_id);
+      }
+
+      const isDone = s.status === "completed" || s.status === "skipped";
+      const priority = s.task?.priority === "none" || s.task?.priority === "low"
+        ? "medium"
+        : (s.task?.priority || "medium");
+
+      if (priority === "high") {
+        high.push(s);
+      } else {
+        medium.push(s);
+      }
+    });
+
+    // Sort medium by urgency then created_at
+    const today = new Date();
+    medium.sort((a, b) => {
+      const daysA = a.task?.due_date ? differenceInCalendarDays(parseISO(a.task.due_date), today) : 999;
+      const daysB = b.task?.due_date ? differenceInCalendarDays(parseISO(b.task.due_date), today) : 999;
+      const urgentA = daysA <= 3 ? 0 : 1;
+      const urgentB = daysB <= 3 ? 0 : 1;
+      if (urgentA !== urgentB) return urgentA - urgentB;
+      if (urgentA === 0 && urgentB === 0) return daysA - daysB;
+      return (a.created_at || "").localeCompare(b.created_at || "");
+    });
+
+    // Split into kept (max 3) and overflow (only non-done spill)
+    const keepHigh: ScheduleWithTask[] = [];
+    const newHighOverflow: ScheduleWithTask[] = [];
+    high.forEach((s) => {
+      const isDone = s.status === "completed" || s.status === "skipped";
+      if (isDone) {
+        // Done tasks always stay on their day, don't count toward limit
+        keepHigh.push(s);
+      } else if (keepHigh.filter((k) => k.status !== "completed" && k.status !== "skipped").length < MAX_PER_SECTION) {
+        keepHigh.push(s);
+      } else {
+        newHighOverflow.push(s);
+      }
+    });
+
+    const keepMedium: ScheduleWithTask[] = [];
+    const newMediumOverflow: ScheduleWithTask[] = [];
+    medium.forEach((s) => {
+      const isDone = s.status === "completed" || s.status === "skipped";
+      if (isDone) {
+        keepMedium.push(s);
+      } else if (keepMedium.filter((k) => k.status !== "completed" && k.status !== "skipped").length < MAX_PER_SECTION) {
+        keepMedium.push(s);
+      } else {
+        newMediumOverflow.push(s);
+      }
+    });
+
+    highOverflow = newHighOverflow;
+    mediumOverflow = newMediumOverflow;
+
+    result[dateStr] = [...keepHigh, ...keepMedium];
+  }
+
+  return result;
+}
 
 export default function Planner() {
   const isMobile = useIsMobile();
@@ -23,10 +130,11 @@ export default function Planner() {
   const [pastRevealed, setPastRevealed] = useState(false);
   const [summaryOpen, setSummaryOpen] = useState(false);
 
-  // Date range calculations
+  // Expand date range to include spillover days (fetch a wider window)
   const dateRange = useMemo(() => {
     const start = isMobile ? selectedMobileDay : baseDate;
-    const end = isMobile ? selectedMobileDay : addDays(baseDate, 1);
+    // Fetch extra days ahead to accommodate spillover
+    const end = isMobile ? addDays(selectedMobileDay, 6) : addDays(baseDate, 7);
     return {
       start,
       end,
@@ -48,15 +156,29 @@ export default function Planner() {
     deleteTask,
   } = usePlanner(dateRange.startStr, dateRange.endStr);
 
-  // Group schedules by date
-  const schedulesByDate = useMemo(() => {
-    const map: Record<string, typeof schedules> = {};
+  // Group raw schedules by date
+  const rawSchedulesByDate = useMemo(() => {
+    const map: Record<string, ScheduleWithTask[]> = {};
     schedules.forEach((s) => {
       if (!map[s.scheduled_date]) map[s.scheduled_date] = [];
       map[s.scheduled_date].push(s);
     });
     return map;
   }, [schedules]);
+
+  // Compute spillover-adjusted schedules
+  const schedulesByDate = useMemo(() => {
+    // Build sorted list of dates in the range
+    const dates: string[] = [];
+    const start = isMobile ? selectedMobileDay : baseDate;
+    const endDate = isMobile ? addDays(selectedMobileDay, 6) : addDays(baseDate, 7);
+    let cur = start;
+    while (cur <= endDate) {
+      dates.push(format(cur, "yyyy-MM-dd"));
+      cur = addDays(cur, 1);
+    }
+    return computeSpillover(rawSchedulesByDate, dates);
+  }, [rawSchedulesByDate, baseDate, selectedMobileDay, isMobile]);
 
   // Navigation
   const navDate = (dir: number) => {
