@@ -17,54 +17,54 @@ export type Database = {
       alarms: {
         Row: {
           alarm_time: string
-          alarm_type: string
-          created_at: string
+          alarm_type: string | null
+          created_at: string | null
           custom_sound_url: string | null
           id: string
-          is_active: boolean
-          is_recurring: boolean
-          max_snoozes: number
+          is_active: boolean | null
+          is_recurring: boolean | null
+          max_snoozes: number | null
           recurrence_days: number[] | null
           recurrence_pattern: string | null
-          snooze_count: number
-          snooze_duration_minutes: number
-          sound_type: string
+          snooze_count: number | null
+          snooze_duration_minutes: number | null
+          sound_type: string | null
           task_schedule_id: string | null
           title: string
           user_id: string
         }
         Insert: {
           alarm_time: string
-          alarm_type: string
-          created_at?: string
+          alarm_type?: string | null
+          created_at?: string | null
           custom_sound_url?: string | null
           id?: string
-          is_active?: boolean
-          is_recurring?: boolean
-          max_snoozes?: number
+          is_active?: boolean | null
+          is_recurring?: boolean | null
+          max_snoozes?: number | null
           recurrence_days?: number[] | null
           recurrence_pattern?: string | null
-          snooze_count?: number
-          snooze_duration_minutes?: number
-          sound_type?: string
+          snooze_count?: number | null
+          snooze_duration_minutes?: number | null
+          sound_type?: string | null
           task_schedule_id?: string | null
           title: string
           user_id: string
         }
         Update: {
           alarm_time?: string
-          alarm_type?: string
-          created_at?: string
+          alarm_type?: string | null
+          created_at?: string | null
           custom_sound_url?: string | null
           id?: string
-          is_active?: boolean
-          is_recurring?: boolean
-          max_snoozes?: number
+          is_active?: boolean | null
+          is_recurring?: boolean | null
+          max_snoozes?: number | null
           recurrence_days?: number[] | null
           recurrence_pattern?: string | null
-          snooze_count?: number
-          snooze_duration_minutes?: number
-          sound_type?: string
+          snooze_count?: number | null
+          snooze_duration_minutes?: number | null
+          sound_type?: string | null
           task_schedule_id?: string | null
           title?: string
           user_id?: string
@@ -75,69 +75,6 @@ export type Database = {
             columns: ["task_schedule_id"]
             isOneToOne: false
             referencedRelation: "task_schedules"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "alarms_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      daily_summaries: {
-        Row: {
-          ai_insight: string | null
-          completion_rate: number | null
-          created_at: string | null
-          hours_worked: number | null
-          id: string
-          mood_average: string | null
-          routines_completed: number | null
-          routines_total: number | null
-          summary_date: string
-          tasks_completed: number | null
-          tasks_on_time: number | null
-          tasks_total: number | null
-          user_id: string
-        }
-        Insert: {
-          ai_insight?: string | null
-          completion_rate?: number | null
-          created_at?: string | null
-          hours_worked?: number | null
-          id?: string
-          mood_average?: string | null
-          routines_completed?: number | null
-          routines_total?: number | null
-          summary_date: string
-          tasks_completed?: number | null
-          tasks_on_time?: number | null
-          tasks_total?: number | null
-          user_id: string
-        }
-        Update: {
-          ai_insight?: string | null
-          completion_rate?: number | null
-          created_at?: string | null
-          hours_worked?: number | null
-          id?: string
-          mood_average?: string | null
-          routines_completed?: number | null
-          routines_total?: number | null
-          summary_date?: string
-          tasks_completed?: number | null
-          tasks_on_time?: number | null
-          tasks_total?: number | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "daily_summaries_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -167,120 +104,119 @@ export type Database = {
           note?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "mood_entries_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       notes: {
         Row: {
           content: string | null
-          created_at: string
-          folder: string
+          created_at: string | null
+          folder: string | null
           id: string
-          is_archived: boolean
-          is_starred: boolean
-          title: string
-          updated_at: string
+          is_archived: boolean | null
+          is_starred: boolean | null
+          title: string | null
+          updated_at: string | null
           user_id: string
         }
         Insert: {
           content?: string | null
-          created_at?: string
-          folder?: string
+          created_at?: string | null
+          folder?: string | null
           id?: string
-          is_archived?: boolean
-          is_starred?: boolean
-          title?: string
-          updated_at?: string
+          is_archived?: boolean | null
+          is_starred?: boolean | null
+          title?: string | null
+          updated_at?: string | null
           user_id: string
         }
         Update: {
           content?: string | null
-          created_at?: string
-          folder?: string
+          created_at?: string | null
+          folder?: string | null
           id?: string
-          is_archived?: boolean
-          is_starred?: boolean
-          title?: string
-          updated_at?: string
+          is_archived?: boolean | null
+          is_starred?: boolean | null
+          title?: string | null
+          updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "notes_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       profiles: {
         Row: {
           avatar_url: string | null
-          break_interval_hours: number | null
           created_at: string | null
           daily_hour_limit: number | null
+          display_name: string | null
           email: string | null
           first_name: string | null
           id: string
           last_name: string | null
           nudge_enabled: boolean | null
           nudge_frequency: string | null
-          quiet_hours_end: string | null
-          quiet_hours_start: string | null
+          onboarding_completed: boolean | null
           theme_color: string | null
           theme_intensity: number | null
           theme_mode: string | null
-          updated_at: string | null
-          working_hours_end: string | null
-          working_hours_start: string | null
         }
         Insert: {
           avatar_url?: string | null
-          break_interval_hours?: number | null
           created_at?: string | null
           daily_hour_limit?: number | null
+          display_name?: string | null
           email?: string | null
           first_name?: string | null
           id: string
           last_name?: string | null
           nudge_enabled?: boolean | null
           nudge_frequency?: string | null
-          quiet_hours_end?: string | null
-          quiet_hours_start?: string | null
+          onboarding_completed?: boolean | null
           theme_color?: string | null
           theme_intensity?: number | null
           theme_mode?: string | null
-          updated_at?: string | null
-          working_hours_end?: string | null
-          working_hours_start?: string | null
         }
         Update: {
           avatar_url?: string | null
-          break_interval_hours?: number | null
           created_at?: string | null
           daily_hour_limit?: number | null
+          display_name?: string | null
           email?: string | null
           first_name?: string | null
           id?: string
           last_name?: string | null
           nudge_enabled?: boolean | null
           nudge_frequency?: string | null
-          quiet_hours_end?: string | null
-          quiet_hours_start?: string | null
+          onboarding_completed?: boolean | null
           theme_color?: string | null
           theme_intensity?: number | null
           theme_mode?: string | null
-          updated_at?: string | null
-          working_hours_end?: string | null
-          working_hours_start?: string | null
+        }
+        Relationships: []
+      }
+      quick_tasks: {
+        Row: {
+          created_at: string | null
+          created_date: string | null
+          id: string
+          is_completed: boolean | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_date?: string | null
+          id?: string
+          is_completed?: boolean | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          created_date?: string | null
+          id?: string
+          is_completed?: boolean | null
+          title?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -314,13 +250,6 @@ export type Database = {
             referencedRelation: "routines"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "routine_completions_user_id_profiles_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       routines: {
@@ -330,7 +259,7 @@ export type Database = {
           description: string | null
           id: string
           is_active: boolean | null
-          order_index: number
+          order_index: number | null
           title: string
           user_id: string
         }
@@ -340,7 +269,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean | null
-          order_index?: number
+          order_index?: number | null
           title: string
           user_id: string
         }
@@ -350,19 +279,11 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean | null
-          order_index?: number
+          order_index?: number | null
           title?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "routines_user_id_profiles_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       subtasks: {
         Row: {
@@ -370,7 +291,7 @@ export type Database = {
           estimated_hours: number | null
           id: string
           is_completed: boolean | null
-          order_index: number
+          order_index: number | null
           task_id: string
           title: string
         }
@@ -379,7 +300,7 @@ export type Database = {
           estimated_hours?: number | null
           id?: string
           is_completed?: boolean | null
-          order_index?: number
+          order_index?: number | null
           task_id: string
           title: string
         }
@@ -388,7 +309,7 @@ export type Database = {
           estimated_hours?: number | null
           id?: string
           is_completed?: boolean | null
-          order_index?: number
+          order_index?: number | null
           task_id?: string
           title?: string
         }
@@ -405,45 +326,45 @@ export type Database = {
       task_schedules: {
         Row: {
           actual_hours_spent: number | null
-          allocated_hours: number
+          allocated_hours: number | null
           created_at: string | null
-          display_title: string
+          display_title: string | null
           end_time: string | null
           id: string
           is_locked: boolean | null
           scheduled_date: string
           start_time: string | null
-          status: string
+          status: string | null
           subtask_id: string | null
           task_id: string
           user_id: string
         }
         Insert: {
           actual_hours_spent?: number | null
-          allocated_hours: number
+          allocated_hours?: number | null
           created_at?: string | null
-          display_title?: string
+          display_title?: string | null
           end_time?: string | null
           id?: string
           is_locked?: boolean | null
           scheduled_date: string
           start_time?: string | null
-          status?: string
+          status?: string | null
           subtask_id?: string | null
           task_id: string
           user_id: string
         }
         Update: {
           actual_hours_spent?: number | null
-          allocated_hours?: number
+          allocated_hours?: number | null
           created_at?: string | null
-          display_title?: string
+          display_title?: string | null
           end_time?: string | null
           id?: string
           is_locked?: boolean | null
           scheduled_date?: string
           start_time?: string | null
-          status?: string
+          status?: string | null
           subtask_id?: string | null
           task_id?: string
           user_id?: string
@@ -463,13 +384,6 @@ export type Database = {
             referencedRelation: "tasks"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "task_schedules_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       tasks: {
@@ -478,14 +392,13 @@ export type Database = {
           created_at: string | null
           description: string | null
           due_date: string
-          estimated_hours: number
+          estimated_hours: number | null
           icon_color: string | null
           icon_emoji: string | null
           id: string
-          image_url: string | null
           preferred_time: string | null
-          priority: string
-          status: string
+          priority: string | null
+          status: string | null
           tags: string[] | null
           title: string
           user_id: string
@@ -495,14 +408,13 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           due_date: string
-          estimated_hours: number
+          estimated_hours?: number | null
           icon_color?: string | null
           icon_emoji?: string | null
           id?: string
-          image_url?: string | null
           preferred_time?: string | null
-          priority?: string
-          status?: string
+          priority?: string | null
+          status?: string | null
           tags?: string[] | null
           title: string
           user_id: string
@@ -512,27 +424,18 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           due_date?: string
-          estimated_hours?: number
+          estimated_hours?: number | null
           icon_color?: string | null
           icon_emoji?: string | null
           id?: string
-          image_url?: string | null
           preferred_time?: string | null
-          priority?: string
-          status?: string
+          priority?: string | null
+          status?: string | null
           tags?: string[] | null
           title?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "tasks_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
