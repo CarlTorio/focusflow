@@ -143,7 +143,7 @@ export function HighFocusSection({
                         }
                       });
                     }
-                  }
+                  }}
                   className="flex w-full items-center gap-3 rounded-xl border border-border bg-card px-3 py-3 text-left transition-all hover:border-primary/50 hover:shadow-sm"
                 >
                   <Target className="h-4 w-4 text-primary shrink-0" />
