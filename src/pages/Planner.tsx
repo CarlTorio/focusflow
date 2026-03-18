@@ -89,6 +89,7 @@ export default function Planner() {
   // Focus mode
 
   const selectedDate = isMobile ? selectedMobileDay : new Date();
+  const isPastSelected = isMobile && !isToday(selectedMobileDay) && isPast(startOfDay(selectedMobileDay));
 
   return (
     <>
