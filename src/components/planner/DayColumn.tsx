@@ -202,6 +202,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
           onOpenChange={(open) => !open && setEditTask(null)}
           task={editTask}
           onSave={(input) => onUpdateTask?.(input)}
+          onDelete={(taskId) => onDeleteTask?.(taskId)}
         />
       )}
 
