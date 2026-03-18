@@ -13,9 +13,8 @@ import { usePlanner, ScheduleWithTask } from "@/hooks/usePlanner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 
-const MAIN_TASKS_LIMIT = 1;
-const OTHER_TASKS_LIMIT = 3;
-const SPILLOVER_LOOKBACK_DAYS = 30;
+// No daily limits — all unfinished tasks appear on every future day.
+// Done tasks only appear on the day they were completed.
 
 const isDoneStatus = (status: string | null) => status === "completed" || status === "skipped";
 
