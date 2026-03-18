@@ -259,7 +259,7 @@ function RoutineTabWithManagement({
 function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => void; defaultDate: Date }) {
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState<Date | null>(null);
-  const [priority, setPriority] = useState("low");
+  const [priority, setPriority] = useState("medium");
   const [subtasks, setSubtasks] = useState<SubtaskInput[]>([{ title: "" }]);
   const [error, setError] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
