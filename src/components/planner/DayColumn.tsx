@@ -49,7 +49,6 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
   const [notesTask, setNotesTask] = useState<Tables<"tasks"> | null>(null);
   const [notesText, setNotesText] = useState("");
   const [showSummary, setShowSummary] = useState(false);
-  const [pastRevealed, setPastRevealed] = useState(false);
 
   const isCurrentDay = isToday(date);
   const isTomorrowDay = isTomorrow(date);
