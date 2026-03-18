@@ -131,7 +131,7 @@ export default function Planner() {
                     const selected = format(day, "yyyy-MM-dd") === format(selectedMobileDay, "yyyy-MM-dd");
                     const current = isToday(day);
                     return (
-                      <button key={day.toISOString()} onClick={() => setSelectedMobileDay(day)} className="flex flex-col items-center gap-0.5 px-1">
+                      <button key={day.toISOString()} onClick={() => { setSelectedMobileDay(day); setPastRevealed(false); setSummaryOpen(false); }} className="flex flex-col items-center gap-0.5 px-1">
                         <span className="text-[10px] uppercase text-muted-foreground">{format(day, "EEE")}</span>
                         <span className={cn("flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold transition-colors",
                           selected ? "bg-primary text-primary-foreground" : current ? "bg-primary/10 text-primary" : "text-foreground"
