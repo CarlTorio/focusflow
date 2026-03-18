@@ -127,6 +127,12 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
   };
 
   const handleUpdateStatus = useCallback(async (scheduleId: string, status: string) => {
+    // Optimistic update — instantly reflect in UI
+    queryClient.setQueriesData<ScheduleWithTask[]>(
+      { queryKey: ["planner_schedules"] },
+      (old) => old?.map((s) => (s.id === scheduleId ? { ...s, status } : s))
+    );
+    // Persist to DB in background
     await supabase.from("task_schedules").update({ status }).eq("id", scheduleId);
     queryClient.invalidateQueries({ queryKey: ["planner_schedules"] });
   }, [queryClient]);
