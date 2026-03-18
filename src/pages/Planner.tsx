@@ -44,6 +44,7 @@ export default function Planner() {
     completeSubtaskDirect,
     handleMissed,
     updateTask,
+    deleteTask,
   } = usePlanner(dateRange.startStr, dateRange.endStr);
 
   // Group schedules by date
