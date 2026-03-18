@@ -276,7 +276,7 @@ export function PlannerTaskCard({
       <button
         className="flex-1 min-w-0 text-left"
         onClick={() => {
-          if (isProject && !isLocked && priority === "high") {
+          if (isProject && !isLocked) {
             setExpanded(true);
           } else if (!isLocked && !isCompleted) {
             onOpenFocus?.(schedule.id);
