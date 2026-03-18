@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, db } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import type { DbTask, DbTaskSchedule, DbSubtask } from "@/types/database";
@@ -19,7 +19,7 @@ export function useFocusTask() {
   const schedulesQuery = useQuery({
     queryKey: ["focus_schedules", today],
     queryFn: async () => {
-      const { data: schedules, error } = await (supabase
+      const { data: schedules, error } = await db
         .from("task_schedules")
         .select("*")
         .eq("user_id", user!.id)
@@ -31,12 +31,12 @@ export function useFocusTask() {
       if (!schedules || schedules.length === 0) return [];
 
       const taskIds = [...new Set(schedules.map((s: any) => s.task_id))];
-      const { data: tasks } = await (supabase
+      const { data: tasks } = await db
         .from("tasks")
         .select("*")
         .in("id", taskIds) as any);
 
-      const { data: subtasks } = await (supabase
+      const { data: subtasks } = await db
         .from("subtasks")
         .select("*")
         .in("task_id", taskIds)
@@ -75,19 +75,19 @@ export function useFocusTask() {
       const schedule = schedulesQuery.data?.find((s) => s.id === scheduleId);
       if (!schedule) throw new Error("Schedule not found");
 
-      await (supabase
+      await db
         .from("task_schedules")
         .update({ status: "completed" })
         .eq("id", scheduleId) as any);
 
-      const { data: remaining } = await (supabase
+      const { data: remaining } = await db
         .from("task_schedules")
         .select("id")
         .eq("task_id", schedule.task_id)
         .in("status", ["scheduled", "in_progress"]) as any);
 
       if (!remaining || remaining.length === 0 || (remaining.length === 1 && remaining[0].id === scheduleId)) {
-        await (supabase
+        await db
           .from("tasks")
           .update({ status: "completed", completed_at: new Date().toISOString() })
           .eq("id", schedule.task_id) as any);
@@ -103,7 +103,7 @@ export function useFocusTask() {
 
   const skipSchedule = useMutation({
     mutationFn: async (scheduleId: string) => {
-      await (supabase
+      await db
         .from("task_schedules")
         .update({ status: "skipped" })
         .eq("id", scheduleId) as any);
