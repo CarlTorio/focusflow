@@ -65,10 +65,8 @@ const sortMediumByUrgency = (items: ScheduleWithTask[], referenceDate: Date) => 
 
 /**
  * Daily planner projection:
- * - Main Tasks: max 1 active/day
- * - Other Tasks: max 3 active/day
- * - Unfinished tasks continue to next day until done
- * - Done tasks stay only on the day they were completed (not shown on future days)
+ * - ALL unfinished tasks (not started / in progress) appear on every future day
+ * - Done/skipped tasks stay ONLY on the day they were completed
  */
 function computeSpillover(
   schedulesByDate: Record<string, ScheduleWithTask[]>,
