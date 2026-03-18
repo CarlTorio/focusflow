@@ -815,8 +815,10 @@ export function usePlanner(startDate: string, endDate: string) {
   return {
     schedules: schedulesQuery.data || [],
     isLoading: schedulesQuery.isLoading,
-    missedSchedules: missedQuery.data || [],
+    missedSchedules,
     dueSoonTasks: dueSoonQuery.data || [],
+    carriedCount: carryForwardQuery.data?.carriedCount || 0,
+    totalToday: todaySummaryQuery.data?.totalToday || 0,
     completeSchedule,
     completeSubtaskDirect,
     handleMissed,
