@@ -127,6 +127,9 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
   const isPastDay = !isCurrentDay && isPast(startOfDay(date));
   const lockState = isPastDay ? "past" as const : isCurrentDay ? "unlocked" as const : isTomorrowDay ? "tomorrow" as const : "future" as const;
 
+  const dateStr = format(date, "yyyy-MM-dd");
+  const { quickTasks, addQuickTask, toggleQuickTask, deleteQuickTask } = useQuickTasks(dateStr);
+
   const toggleGroup = (key: string) =>
     setCollapsedGroups((prev) => ({ ...prev, [key]: !prev[key] }));
 
