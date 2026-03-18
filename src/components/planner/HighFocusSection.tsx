@@ -163,9 +163,15 @@ export function HighFocusSection({
   });
   const otherUniqueItems = Array.from(otherUnique.values());
 
+  const handleSwitchFocus = (taskId: string) => {
+    setTodayFocus(taskId);
+    setFocusedTaskId(taskId);
+    setShowOthers(false);
+  };
+
   return (
     <div className="space-y-2 animate-in fade-in-0 duration-150">
-      {/* Focused task */}
+      {/* Focused task — auto-expanded */}
       {focusedItems.map((s) => (
         <PlannerTaskCard
           key={s.id}
@@ -175,6 +181,7 @@ export function HighFocusSection({
           onOpenFocus={onOpenFocus}
           allTodaySchedules={allTodaySchedules}
           isFocusedProject={true}
+          defaultExpanded={true}
           onCompleteSubtask={onCompleteSubtask}
           onEdit={onEdit}
           onViewNotes={onViewNotes}
@@ -212,6 +219,7 @@ export function HighFocusSection({
                     onCompleteSubtask={onCompleteSubtask}
                     onEdit={onEdit}
                     onViewNotes={onViewNotes}
+                    onSwitchFocus={handleSwitchFocus}
                   />
                 </div>
               ))}
