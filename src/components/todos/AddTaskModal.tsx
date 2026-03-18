@@ -27,9 +27,8 @@ import type { CreateTaskInput } from "@/hooks/useTasks";
 const HOUR_OPTIONS = [1, 2, 3, 4, 5, 6, 8, 10, 12];
 
 const PRIORITY_OPTIONS = [
-  { value: "high" as const, label: "HIGH", color: "bg-red-500", textColor: "text-red-500", bgLight: "bg-red-50 dark:bg-red-950" },
-  { value: "medium" as const, label: "MED", color: "bg-amber-500", textColor: "text-amber-500", bgLight: "bg-amber-50 dark:bg-amber-950" },
-  { value: "low" as const, label: "LOW", color: "bg-emerald-500", textColor: "text-emerald-500", bgLight: "bg-emerald-50 dark:bg-emerald-950" },
+  { value: "high" as const, label: "MAIN TASK", color: "bg-red-500", textColor: "text-red-500", bgLight: "bg-red-50 dark:bg-red-950" },
+  { value: "medium" as const, label: "OTHER TASK", color: "bg-primary", textColor: "text-primary", bgLight: "bg-primary/10" },
 ];
 
 interface AddTaskModalProps {
