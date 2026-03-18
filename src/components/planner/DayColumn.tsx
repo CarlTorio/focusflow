@@ -79,7 +79,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
         seenProjectIds.add(s.task_id);
       }
 
-      const priority = s.task?.priority === "none" ? "low" : (s.task?.priority || "low");
+      const priority = s.task?.priority === "none" || s.task?.priority === "low" ? "medium" : (s.task?.priority || "medium");
       groups[priority] = groups[priority] || [];
       groups[priority].push(s);
     });

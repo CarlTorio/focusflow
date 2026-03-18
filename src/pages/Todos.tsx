@@ -28,7 +28,7 @@ export default function Todos() {
     return { ...byPriority, completed };
   }, [tasks]);
 
-  const handleAdd = (priority: "high" | "medium" | "low") => {
+  const handleAdd = (priority: "high" | "medium") => {
     setDefaultPriority(priority);
     setModalOpen(true);
   };

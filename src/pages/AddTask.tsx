@@ -415,7 +415,7 @@ function SimpleTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => vo
   const today = new Date();
   const [title, setTitle] = useState("");
   const [hours, setHours] = useState<number | null>(null);
-  const [priority, setPriority] = useState("low");
+  const [priority, setPriority] = useState("medium");
   const [when, setWhen] = useState<"today" | "tomorrow" | "pick">("today");
   const [pickedDate, setPickedDate] = useState<Date>(defaultDate);
 
