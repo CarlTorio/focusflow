@@ -179,6 +179,15 @@ export function HighFocusSection({
     setTodayFocus(taskId);
     setFocusedTaskId(taskId);
     setShowOthers(false);
+    // Auto-set to in_progress when switched as focus
+    if (onUpdateStatus) {
+      const schedulesForTask = items.filter((item) => item.task_id === taskId);
+      schedulesForTask.forEach((item) => {
+        if (item.status !== "in_progress" && item.status !== "completed") {
+          onUpdateStatus(item.id, "in_progress");
+        }
+      });
+    }
   };
 
   return (
