@@ -16,7 +16,7 @@ const SECTIONS = [
 export default function Todos() {
   const { tasks, isLoading, createTask, completeTask, uncompleteTask } = useTasks();
   const [modalOpen, setModalOpen] = useState(false);
-  const [defaultPriority, setDefaultPriority] = useState<"high" | "medium" | "low">("low");
+  const [defaultPriority, setDefaultPriority] = useState<"high" | "medium">("medium");
 
   const grouped = useMemo(() => {
     const active = tasks.filter(t => t.status !== "completed");
