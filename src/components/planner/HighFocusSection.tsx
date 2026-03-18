@@ -75,7 +75,6 @@ export function HighFocusSection({
             onOpenFocus={onOpenFocus}
             allTodaySchedules={allTodaySchedules}
             isFocusedProject={false}
-            defaultExpanded={lockState === "past"}
             onCompleteSubtask={onCompleteSubtask}
             onEdit={onEdit}
             onViewNotes={onViewNotes}
