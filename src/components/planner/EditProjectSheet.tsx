@@ -94,7 +94,7 @@ export function EditProjectSheet({ open, onOpenChange, task, onSave, onDelete, i
 
           {/* Priority */}
           <div>
-            <label className="mb-1.5 block text-xs font-semibold text-muted-foreground">Priority</label>
+            <label className="mb-1.5 block text-xs font-semibold text-muted-foreground">Task Type</label>
             <div className="flex gap-2">
               {PRIORITIES.map((p) => (
                 <button
