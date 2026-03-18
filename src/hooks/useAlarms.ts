@@ -1,9 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase, db } from "@/lib/supabase";
+import { db } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import type { DbAlarm } from "@/types/database";
-
-const db = supabase as any;
 
 export type Alarm = DbAlarm;
 export type AlarmType = "task_reminder" | "custom" | "nudge" | "due_warning" | "break_reminder";

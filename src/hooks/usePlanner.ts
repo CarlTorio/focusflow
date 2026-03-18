@@ -149,8 +149,8 @@ export function usePlanner(startDate: string, endDate: string) {
           ...s,
           task: task
             ? {
-                ...task,
-                subtasks: subtasksByTask.get(task.id) || [],
+                ...(task as any),
+                subtasks: subtasksByTask.get((task as any).id) || [],
               }
             : null,
           subtask,

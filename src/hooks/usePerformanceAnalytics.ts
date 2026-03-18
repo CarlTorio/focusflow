@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase, db } from "@/lib/supabase";
+import { db } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   startOfWeek, endOfWeek, startOfMonth, endOfMonth,
@@ -48,7 +48,7 @@ function pickInsight(data: Partial<AnalyticsData>): string {
   return `🚀 Start completing tasks to see your performance trends here. You've got this!`;
 }
 
-const db = supabase as any;
+
 
 export function usePerformanceAnalytics(period: PeriodFilter = "week") {
   const { user } = useAuth();

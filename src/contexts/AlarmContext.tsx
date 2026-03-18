@@ -66,7 +66,7 @@ export function AlarmProvider({ children }: { children: ReactNode }) {
     const now = new Date();
     const fiveMinAgo = new Date(now.getTime() - 5 * 60 * 1000);
 
-    const { data: alarms } = await supabase
+    const { data: alarms } = await db
       .from("alarms")
       .select("*")
       .eq("user_id", user.id)
@@ -134,7 +134,7 @@ export function AlarmProvider({ children }: { children: ReactNode }) {
     if (firingAlarm) {
       // Deactivate non-recurring alarms
       if (!firingAlarm.alarm.is_recurring) {
-        supabase
+        db
           .from("alarms")
           .update({ is_active: false } as any)
           .eq("id", firingAlarm.alarm.id)
@@ -153,7 +153,7 @@ export function AlarmProvider({ children }: { children: ReactNode }) {
       return;
     }
     const newTime = new Date(Date.now() + alarm.snooze_duration_minutes * 60 * 1000).toISOString();
-    supabase
+    db
       .from("alarms")
       .update({
         alarm_time: newTime,

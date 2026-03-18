@@ -1,9 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
-import { supabase, db } from "@/lib/supabase";
+import { db } from "@/lib/supabase";
 import { subDays, format } from "date-fns";
-
-const db = supabase as any;
 
 const zoneLabels: Record<string, string> = {
   green: "positive 😊",

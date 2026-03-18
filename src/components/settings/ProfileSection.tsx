@@ -29,7 +29,7 @@ export function ProfileSection() {
   const handleSaveProfile = async () => {
     if (!profile) return;
     setSaving(true);
-    const { error } = await supabase
+    const { error } = await db
       .from("profiles")
       .update({ first_name: firstName, last_name: lastName })
       .eq("id", profile.id);

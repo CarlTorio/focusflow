@@ -1,11 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase, db } from "@/lib/supabase";
+import { db } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import type { DbRoutine, DbRoutineCompletion } from "@/types/database";
-
-const db = supabase as any;
 
 export type Routine = DbRoutine;
 export type RoutineCompletion = DbRoutineCompletion;

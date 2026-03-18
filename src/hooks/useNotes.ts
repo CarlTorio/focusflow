@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase, db } from "@/lib/supabase";
+import { db } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import type { DbNote } from "@/types/database";
 
@@ -12,7 +12,7 @@ export function useNotes() {
   const notesQuery = useQuery({
     queryKey: ["notes", user?.id],
     queryFn: async () => {
-      const { data, error } = await (supabase
+      const { data, error } = await db
         .from("notes")
         .select("*")
         .eq("user_id", user!.id)
@@ -27,7 +27,7 @@ export function useNotes() {
   const allNotesQuery = useQuery({
     queryKey: ["notes-all", user?.id],
     queryFn: async () => {
-      const { data, error } = await (supabase
+      const { data, error } = await db
         .from("notes")
         .select("*")
         .eq("user_id", user!.id)
@@ -40,7 +40,7 @@ export function useNotes() {
 
   const createNote = useMutation({
     mutationFn: async (params: { title?: string; folder?: string }) => {
-      const { data, error } = await (supabase
+      const { data, error } = await db
         .from("notes")
         .insert({
           user_id: user!.id,
@@ -61,7 +61,7 @@ export function useNotes() {
   const updateNote = useMutation({
     mutationFn: async (params: { id: string; title?: string; content?: string; folder?: string; is_starred?: boolean; is_archived?: boolean }) => {
       const { id, ...updates } = params;
-      const { data, error } = await (supabase
+      const { data, error } = await db
         .from("notes")
         .update(updates)
         .eq("id", id)
@@ -102,7 +102,7 @@ export function useNotes() {
 
   const deleteNote = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase
+      const { error } = await db
         .from("notes")
         .delete()
         .eq("id", id);

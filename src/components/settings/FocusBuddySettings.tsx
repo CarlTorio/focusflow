@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase, db } from "@/lib/supabase";
+import { db } from "@/lib/supabase";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +24,7 @@ export function FocusBuddySettings() {
   const handleSave = async () => {
     if (!profile) return;
     setSaving(true);
-    const { error } = await supabase
+    const { error } = await db
       .from("profiles")
       .update({
         nudge_enabled: enabled,
