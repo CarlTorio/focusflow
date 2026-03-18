@@ -420,11 +420,11 @@ function SimpleTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => vo
   const [pickedDate, setPickedDate] = useState<Date>(defaultDate);
 
   const dateStr = when === "today" ? format(today, "yyyy-MM-dd") : when === "tomorrow" ? format(addDays(today, 1), "yyyy-MM-dd") : format(pickedDate, "yyyy-MM-dd");
-  const canSave = title.trim() && hours !== null;
+  const canSave = !!title.trim();
 
   const save = () => {
     if (!canSave) return;
-    onSave({ kind: "simple", title: title.trim(), estimated_hours: hours!, priority, scheduled_date: dateStr });
+    onSave({ kind: "simple", title: title.trim(), estimated_hours: 0, priority, scheduled_date: dateStr });
   };
 
   return (
