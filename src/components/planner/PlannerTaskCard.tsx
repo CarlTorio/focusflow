@@ -72,6 +72,10 @@ export function PlannerTaskCard({
   const showParentSubtitle = subtaskId && displayTitle !== parentTitle;
 
   const [expanded, setExpanded] = useState(defaultExpanded ?? false);
+
+  useEffect(() => {
+    if (defaultExpanded !== undefined) setExpanded(defaultExpanded);
+  }, [defaultExpanded]);
   
   // Debounce guard for checkbox clicks
   const completingRef = useRef(false);
