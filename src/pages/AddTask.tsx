@@ -471,7 +471,7 @@ export default function AddTask() {
   const { addRoutine, updateRoutine, routines } = useRoutines();
   const { createTask } = usePlanner(format(defaultDate, "yyyy-MM-dd"), format(defaultDate, "yyyy-MM-dd"));
 
-  const [tab, setTab] = useState<"project" | "routine" | "simple">(defaultTab);
+  const [tab, setTab] = useState<"project" | "routine" | "quick">(defaultTab);
   const [editRoutine, setEditRoutine] = useState<Routine | null>(() => {
     if (editRoutineId) {
       return routines.find((r) => r.id === editRoutineId) || null;
