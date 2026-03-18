@@ -160,6 +160,15 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
             </span>
           )}
         </div>
+        {isPastDay && (
+          <button
+            onClick={() => setShowSummary(true)}
+            className="flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors"
+          >
+            <ClipboardList className="h-3.5 w-3.5" />
+            Summary
+          </button>
+        )}
       </div>
 
       <div className="space-y-4">
