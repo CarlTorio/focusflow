@@ -13,9 +13,8 @@ import { usePlanner, ScheduleWithTask } from "@/hooks/usePlanner";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 
-const MAIN_TASKS_LIMIT = 1;
-const OTHER_TASKS_LIMIT = 3;
-const SPILLOVER_LOOKBACK_DAYS = 30;
+// No daily limits — all unfinished tasks appear on every future day.
+// Done tasks only appear on the day they were completed.
 
 const isDoneStatus = (status: string | null) => status === "completed" || status === "skipped";
 
@@ -66,10 +65,8 @@ const sortMediumByUrgency = (items: ScheduleWithTask[], referenceDate: Date) => 
 
 /**
  * Daily planner projection:
- * - Main Tasks: max 1 active/day
- * - Other Tasks: max 3 active/day
- * - Unfinished tasks continue to next day until done
- * - Done tasks stay only on the day they were completed (not shown on future days)
+ * - ALL unfinished tasks (not started / in progress) appear on every future day
+ * - Done/skipped tasks stay ONLY on the day they were completed
  */
 function computeSpillover(
   schedulesByDate: Record<string, ScheduleWithTask[]>,
@@ -127,26 +124,14 @@ function computeSpillover(
       dayDate
     );
 
-    // Today & past: show ALL tasks (no limit). Future: apply limits for spillover.
-    let visibleHigh: ScheduleWithTask[];
-    let visibleMedium: ScheduleWithTask[];
+    // Show ALL unfinished tasks on every day (no limits).
+    // Done tasks only show on the day they were completed.
+    const visibleHigh = highCandidates;
+    const visibleMedium = mediumCandidates;
 
-    if (isFutureDay) {
-      visibleHigh = highCandidates.slice(0, MAIN_TASKS_LIMIT);
-      visibleMedium = mediumCandidates.slice(0, OTHER_TASKS_LIMIT);
-
-      // Keep unfinished items in a rotating queue so hidden backlog is
-      // continuously distributed day-by-day (including next month) until done.
-      highCarry = dedupeByTask([...highCandidates.slice(MAIN_TASKS_LIMIT), ...visibleHigh]);
-      mediumCarry = dedupeByTask([...mediumCandidates.slice(OTHER_TASKS_LIMIT), ...visibleMedium]);
-    } else {
-      // Today/past: show everything scheduled for this day.
-      // Keep unfinished as backlog source for the next future day.
-      visibleHigh = highCandidates;
-      visibleMedium = mediumCandidates;
-      highCarry = dedupeByTask(highCandidates);
-      mediumCarry = dedupeByTask(mediumCandidates);
-    }
+    // Carry all unfinished forward to the next day
+    highCarry = highCandidates;
+    mediumCarry = mediumCandidates;
 
     const doneForDisplay = isFutureDay ? [] : [...rawHighDone, ...rawMediumDone];
     result[dateStr] = [...visibleHigh, ...visibleMedium, ...doneForDisplay];
@@ -168,7 +153,7 @@ export default function Planner() {
   // Expand query context so hidden overflow keeps distributing to later days.
   const dateRange = useMemo(() => {
     const visibleStart = isMobile ? selectedMobileDay : baseDate;
-    const projectionStart = addDays(visibleStart, -SPILLOVER_LOOKBACK_DAYS);
+    const projectionStart = addDays(visibleStart, -30);
     const projectionEnd = isMobile ? addDays(selectedMobileDay, 6) : addDays(baseDate, 7);
 
     return {
