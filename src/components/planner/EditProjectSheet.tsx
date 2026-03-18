@@ -18,9 +18,8 @@ import {
 import type { Tables } from "@/integrations/supabase/types";
 
 const PRIORITIES = [
-  { value: "high", label: "HIGH", color: "bg-destructive text-destructive-foreground" },
-  { value: "medium", label: "MED", color: "bg-warning text-warning-foreground" },
-  { value: "low", label: "LOW", color: "bg-success text-success-foreground" },
+  { value: "high", label: "Main Task", color: "bg-destructive text-destructive-foreground" },
+  { value: "medium", label: "Other Task", color: "bg-primary text-primary-foreground" },
 ];
 
 interface EditProjectSheetProps {
