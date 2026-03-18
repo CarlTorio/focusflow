@@ -25,7 +25,7 @@ export function useFocusTask() {
         .eq("user_id", user!.id)
         .eq("scheduled_date", today)
         .in("status", ["scheduled", "in_progress"])
-        .order("start_time", { ascending: true, nullsFirst: false }) as any);
+        .order("start_time", { ascending: true, nullsFirst: false });
 
       if (error) throw error;
       if (!schedules || schedules.length === 0) return [];
@@ -34,13 +34,13 @@ export function useFocusTask() {
       const { data: tasks } = await db
         .from("tasks")
         .select("*")
-        .in("id", taskIds) as any);
+        .in("id", taskIds);
 
       const { data: subtasks } = await db
         .from("subtasks")
         .select("*")
         .in("task_id", taskIds)
-        .order("order_index", { ascending: true }) as any);
+        .order("order_index", { ascending: true });
 
       const taskMap = new Map((tasks || []).map((t: any) => [t.id, t]));
       const subtaskMap = new Map<string, DbSubtask[]>();
@@ -78,19 +78,19 @@ export function useFocusTask() {
       await db
         .from("task_schedules")
         .update({ status: "completed" })
-        .eq("id", scheduleId) as any);
+        .eq("id", scheduleId);
 
       const { data: remaining } = await db
         .from("task_schedules")
         .select("id")
         .eq("task_id", schedule.task_id)
-        .in("status", ["scheduled", "in_progress"]) as any);
+        .in("status", ["scheduled", "in_progress"]);
 
       if (!remaining || remaining.length === 0 || (remaining.length === 1 && remaining[0].id === scheduleId)) {
         await db
           .from("tasks")
           .update({ status: "completed", completed_at: new Date().toISOString() })
-          .eq("id", schedule.task_id) as any);
+          .eq("id", schedule.task_id);
       }
     },
     onSuccess: () => {
@@ -106,7 +106,7 @@ export function useFocusTask() {
       await db
         .from("task_schedules")
         .update({ status: "skipped" })
-        .eq("id", scheduleId) as any);
+        .eq("id", scheduleId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["focus_schedules"] });
