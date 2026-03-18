@@ -134,6 +134,11 @@ export function HighFocusSection({
                   onClick={() => {
                     setTodayFocus(s.task_id);
                     setFocusedTaskId(s.task_id);
+                    // Auto-set all schedules for this task to in_progress
+                    if (onUpdateStatus) {
+                      items.filter(item => item.task_id === s.task_id && item.status === "scheduled")
+                        .forEach(item => onUpdateStatus(item.id, "in_progress"));
+                    }
                   }}
                   className="flex w-full items-center gap-3 rounded-xl border border-border bg-card px-3 py-3 text-left transition-all hover:border-primary/50 hover:shadow-sm"
                 >
