@@ -361,20 +361,12 @@ export function PlannerTaskCard({
           </p>
         )}
 
-        {/* Subtask mini progress bar */}
+        {/* Subtask progress — checkmark + count */}
         {isProject && totalSteps > 0 && (
-          <div className="mt-1.5 flex items-center gap-2">
-            <div className="flex-1 h-1.5 rounded-full bg-border overflow-hidden">
-              <div
-                className={cn(
-                  "h-full rounded-full transition-all duration-500",
-                  progressPct >= 80 ? "bg-emerald-500" : progressPct >= 40 ? "bg-primary" : "bg-primary/60"
-                )}
-                style={{ width: `${progressPct}%` }}
-              />
-            </div>
-            <span className="text-[10px] text-muted-foreground shrink-0">
-              {doneSteps}/{totalSteps}
+          <div className="mt-1.5 flex items-center gap-1.5">
+            <Check className={cn("h-3.5 w-3.5", progressPct >= 100 ? "text-emerald-500" : "text-muted-foreground")} />
+            <span className={cn("text-[11px] font-medium", progressPct >= 100 ? "text-emerald-500" : "text-muted-foreground")}>
+              {doneSteps}/{totalSteps} done
             </span>
           </div>
         )}
