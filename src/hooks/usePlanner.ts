@@ -222,7 +222,7 @@ export function usePlanner(startDate: string, endDate: string) {
           display_title: s.display_title || "",
         }));
 
-        await ((supabase as any).from("task_schedules").insert(inserts);
+        await (supabase as any).from("task_schedules").insert(inserts);
 
         // Invalidate schedules so the planner refreshes
         queryClient.invalidateQueries({ queryKey: ["planner_schedules"] });
@@ -405,7 +405,7 @@ export function usePlanner(startDate: string, endDate: string) {
               }));
 
               if (newSchedules.length > 0) {
-                await ((supabase as any).from("task_schedules").insert(newSchedules as any);
+                await (supabase as any).from("task_schedules").insert(newSchedules as any);
               }
             }
 
@@ -501,7 +501,7 @@ export function usePlanner(startDate: string, endDate: string) {
           .single();
         if (tErr) throw tErr;
 
-        await ((supabase as any).from("task_schedules").insert({
+        await (supabase as any).from("task_schedules").insert({
           task_id: task.id,
           user_id: user.id,
           scheduled_date: input.scheduled_date,
@@ -557,7 +557,7 @@ export function usePlanner(startDate: string, endDate: string) {
         }
 
         if (schedules.length > 0) {
-          await ((supabase as any).from("task_schedules").insert(schedules);
+          await (supabase as any).from("task_schedules").insert(schedules);
         }
         return task;
       }
@@ -616,11 +616,11 @@ export function usePlanner(startDate: string, endDate: string) {
           }));
 
           if (scheduleRows.length > 0) {
-            await ((supabase as any).from("task_schedules").insert(scheduleRows as any);
+            await (supabase as any).from("task_schedules").insert(scheduleRows as any);
           }
         } else {
           // No subtasks — create a single schedule entry so it appears in planner
-          await ((supabase as any).from("task_schedules").insert({
+          await (supabase as any).from("task_schedules").insert({
             task_id: task.id,
             user_id: user.id,
             scheduled_date: startStr,
@@ -727,13 +727,13 @@ export function usePlanner(startDate: string, endDate: string) {
       if (input.description !== undefined) updates.description = input.description;
 
       if (Object.keys(updates).length > 0) {
-        await ((supabase as any).from("tasks").update(updates).eq("id", input.taskId);
+        await (supabase as any).from("tasks").update(updates).eq("id", input.taskId);
       }
 
       // Remove subtasks
       if (input.removeSubtaskIds && input.removeSubtaskIds.length > 0) {
-        await ((supabase as any).from("task_schedules").delete().in("subtask_id", input.removeSubtaskIds);
-        await ((supabase as any).from("subtasks").delete().in("id", input.removeSubtaskIds);
+        await (supabase as any).from("task_schedules").delete().in("subtask_id", input.removeSubtaskIds);
+        await (supabase as any).from("subtasks").delete().in("id", input.removeSubtaskIds);
       }
 
       // Add new subtasks
@@ -760,7 +760,7 @@ export function usePlanner(startDate: string, endDate: string) {
 
         // Schedule new subtasks
         if (newSubs && newSubs.length > 0 && user) {
-          const task = (await ((supabase as any).from("tasks").select("due_date").eq("id", input.taskId).single()).data;
+          const task = (await (supabase as any).from("tasks").select("due_date").eq("id", input.taskId).single()).data;
           if (task) {
             const todayStr = format(new Date(), "yyyy-MM-dd");
             const slots = distributeSubtasks(
@@ -779,7 +779,7 @@ export function usePlanner(startDate: string, endDate: string) {
               subtask_id: slot.subtaskId,
             }));
             if (scheduleRows.length > 0) {
-              await ((supabase as any).from("task_schedules").insert(scheduleRows as any);
+              await (supabase as any).from("task_schedules").insert(scheduleRows as any);
             }
           }
         }
@@ -798,7 +798,7 @@ export function usePlanner(startDate: string, endDate: string) {
 
   const deleteTask = useMutation({
     mutationFn: async (taskId: string) => {
-      const { error } = await ((supabase as any).from("tasks").delete().eq("id", taskId);
+      const { error } = await (supabase as any).from("tasks").delete().eq("id", taskId);
       if (error) throw error;
     },
     onSuccess: () => {

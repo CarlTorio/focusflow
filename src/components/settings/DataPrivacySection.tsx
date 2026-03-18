@@ -12,11 +12,11 @@ export function DataPrivacySection() {
     if (!user) return;
     toast.info("Exporting your data...");
     const [tasks, notes, moods, schedules, alarms] = await Promise.all([
-      ((supabase as any).from("tasks").select("*").eq("user_id", user.id),
-      ((supabase as any).from("notes").select("*").eq("user_id", user.id),
-      ((supabase as any).from("mood_entries").select("*").eq("user_id", user.id),
-      ((supabase as any).from("task_schedules").select("*").eq("user_id", user.id),
-      ((supabase as any).from("alarms").select("*").eq("user_id", user.id),
+      (supabase as any).from("tasks").select("*").eq("user_id", user.id),
+      (supabase as any).from("notes").select("*").eq("user_id", user.id),
+      (supabase as any).from("mood_entries").select("*").eq("user_id", user.id),
+      (supabase as any).from("task_schedules").select("*").eq("user_id", user.id),
+      (supabase as any).from("alarms").select("*").eq("user_id", user.id),
     ]);
     const exportData = {
       exported_at: new Date().toISOString(),
