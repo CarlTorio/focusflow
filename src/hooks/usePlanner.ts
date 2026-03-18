@@ -131,16 +131,16 @@ export function usePlanner(startDate: string, endDate: string) {
         .in("task_id", taskIds)
         .order("order_index", { ascending: true });
 
-      const taskMap = new Map((tasks || []).map((t) => [t.id, t]));
-      const subtasksByTask = new Map<string, Tables<"subtasks">[]>();
-      (subtaskRows || []).forEach((st) => {
+      const taskMap = new Map((tasks || []).map((t: any) => [t.id, t]));
+      const subtasksByTask = new Map<string, DbSubtask[]>();
+      (subtaskRows || []).forEach((st: any) => {
         const arr = subtasksByTask.get(st.task_id) || [];
         arr.push(st);
         subtasksByTask.set(st.task_id, arr);
       });
 
-      const subtaskMap = new Map<string, Tables<"subtasks">>();
-      (subtaskRows || []).forEach((st) => subtaskMap.set(st.id, st));
+      const subtaskMap = new Map<string, DbSubtask>();
+      (subtaskRows || []).forEach((st: any) => subtaskMap.set(st.id, st));
 
       return schedules.map((s) => {
         const task = taskMap.get(s.task_id) || null;
