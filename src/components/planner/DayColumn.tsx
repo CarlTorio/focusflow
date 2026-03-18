@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { format, isToday, isTomorrow, isPast, startOfDay } from "date-fns";
+import { format, isToday, isTomorrow, isPast, startOfDay, differenceInCalendarDays, parseISO } from "date-fns";
 import { ChevronDown, ChevronRight, ClipboardList, Check, X, RotateCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
