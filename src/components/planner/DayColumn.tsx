@@ -260,6 +260,8 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
         </div>
       </div>
 
+      <QuickTasksSection date={date} readOnly={isPastDay} />
+
       <div className="space-y-4">
         {PRIORITY_ORDER.map((priority) => {
           const items = grouped[priority] || [];
