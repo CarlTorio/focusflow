@@ -34,6 +34,7 @@ function OtherTasksList({
   onCompleteSubtask,
   onEdit,
   onViewNotes,
+  onUpdateStatus,
 }: {
   items: ScheduleWithTask[];
   lockState: "unlocked" | "tomorrow" | "future" | "past";
@@ -43,6 +44,7 @@ function OtherTasksList({
   onCompleteSubtask?: (subtaskId: string, taskId: string) => void;
   onEdit: (t: any) => void;
   onViewNotes: (t: any) => void;
+  onUpdateStatus?: (scheduleId: string, status: string) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const visible = expanded ? items : items.slice(0, OTHER_TASKS_LIMIT);
@@ -62,6 +64,7 @@ function OtherTasksList({
           onCompleteSubtask={onCompleteSubtask}
           onEdit={onEdit}
           onViewNotes={onViewNotes}
+          onUpdateStatus={onUpdateStatus}
         />
       ))}
       {hiddenCount > 0 && (
