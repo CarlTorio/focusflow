@@ -20,7 +20,8 @@ export default function Planner() {
   const userName = profile?.first_name ? `${profile.first_name} ${profile.last_name || ""}`.trim() : "";
   const [baseDate, setBaseDate] = useState(new Date());
   const [selectedMobileDay, setSelectedMobileDay] = useState(new Date());
-  
+  const [pastRevealed, setPastRevealed] = useState(false);
+  const [summaryOpen, setSummaryOpen] = useState(false);
 
   // Date range calculations
   const dateRange = useMemo(() => {
