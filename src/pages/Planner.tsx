@@ -153,7 +153,7 @@ export default function Planner() {
   // Expand query context so hidden overflow keeps distributing to later days.
   const dateRange = useMemo(() => {
     const visibleStart = isMobile ? selectedMobileDay : baseDate;
-    const projectionStart = addDays(visibleStart, -SPILLOVER_LOOKBACK_DAYS);
+    const projectionStart = addDays(visibleStart, -30);
     const projectionEnd = isMobile ? addDays(selectedMobileDay, 6) : addDays(baseDate, 7);
 
     return {
