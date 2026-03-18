@@ -419,6 +419,7 @@ export function usePlanner(startDate: string, endDate: string) {
       queryClient.invalidateQueries({ queryKey: ["progress-today"] });
       queryClient.invalidateQueries({ queryKey: ["priority_tasks_overview"] });
       queryClient.invalidateQueries({ queryKey: ["due_soon_tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["all_high_priority_tasks"] });
 
       if (result?.projectComplete) {
         toast({ title: `Project complete — "${result.displayTitle}"` });
