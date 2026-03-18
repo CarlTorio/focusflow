@@ -432,14 +432,6 @@ function SimpleTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => vo
       <p className="text-xs text-muted-foreground">Simple to-do — just get it done</p>
       <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="What do you need to do?" className="rounded-xl text-base focus-visible:ring-primary" autoFocus />
       <div>
-        <label className="mb-2 block text-sm font-semibold">Estimated Time</label>
-        <HourPills options={SIMPLE_HOURS} value={hours} onChange={setHours} />
-      </div>
-      <div>
-        <label className="mb-2 block text-sm font-semibold">Priority</label>
-        <PriorityPills value={priority} onChange={setPriority} />
-      </div>
-      <div>
         <label className="mb-2 block text-sm font-semibold">When</label>
         <div className="flex gap-2 flex-wrap">
           {(["today", "tomorrow", "pick"] as const).map((w) => (
