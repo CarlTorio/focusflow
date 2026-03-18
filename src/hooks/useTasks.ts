@@ -107,7 +107,7 @@ export function useTasks() {
           title,
           order_index: i,
         }));
-        const { error: subError } = await (supabase.from("subtasks" as any).insert(subtaskRows) as any);
+        const { error: subError } = await (((supabase as any).from("subtasks" as any).insert(subtaskRows) as any);
         if (subError) console.error("Subtask insert error:", subError);
       }
 
@@ -176,7 +176,7 @@ export function useTasks() {
     }
 
     if (alarmRows.length > 0) {
-      const { error } = await (supabase.from("alarms" as any).insert(alarmRows) as any);
+      const { error } = await (((supabase as any).from("alarms" as any).insert(alarmRows) as any);
       if (error) console.error("Alarm insert error:", error);
     }
   }
@@ -256,7 +256,7 @@ export function useTasks() {
     if (remainingHours > 0) hasOverflow = true;
 
     if (scheduleRows.length > 0) {
-      const { error } = await (supabase.from("task_schedules" as any).insert(scheduleRows) as any);
+      const { error } = await (((supabase as any).from("task_schedules" as any).insert(scheduleRows) as any);
       if (error) console.error("Schedule insert error:", error);
     }
 
@@ -318,7 +318,7 @@ export function useTasks() {
 
   const deleteTask = useMutation({
     mutationFn: async (taskId: string) => {
-      const { error } = await (supabase.from("tasks" as any).delete().eq("id", taskId) as any);
+      const { error } = await (((supabase as any).from("tasks" as any).delete().eq("id", taskId) as any);
       if (error) throw error;
     },
     onSuccess: () => {

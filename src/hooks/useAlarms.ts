@@ -78,7 +78,7 @@ export function useAlarms() {
 
   const deleteAlarm = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase.from("alarms" as any).delete().eq("id", id) as any);
+      const { error } = await (((supabase as any).from("alarms" as any).delete().eq("id", id) as any);
       if (error) throw error;
     },
     onSuccess: () => {

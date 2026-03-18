@@ -138,7 +138,7 @@ export function useRoutines() {
   const reorderRoutines = useMutation({
     mutationFn: async (orderedIds: string[]) => {
       const updates = orderedIds.map((id, index) =>
-        (supabase.from("routines" as any).update({ order_index: index }).eq("id", id) as any)
+        (((supabase as any).from("routines" as any).update({ order_index: index }).eq("id", id) as any)
       );
       await Promise.all(updates);
     },
