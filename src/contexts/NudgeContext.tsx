@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase, db } from "@/lib/supabase";
+import { db } from "@/lib/supabase";
 import { getNudgeMessage, NudgeType } from "@/lib/nudgeTemplates";
 import { useQuery } from "@tanstack/react-query";
 

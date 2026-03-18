@@ -1,11 +1,9 @@
 import { useState } from "react";
-import { supabase, db } from "@/lib/supabase";
+import { db } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { X } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-
-const db = supabase as any;
 
 interface MoodOption {
   mood: string;

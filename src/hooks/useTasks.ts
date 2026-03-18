@@ -5,8 +5,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
 import type { DbTask, DbTaskSchedule, DbSubtask } from "@/types/database";
 
-const db = supabase as any;
-
 export type Task = DbTask;
 export type TaskSchedule = DbTaskSchedule;
 export type Subtask = DbSubtask;
