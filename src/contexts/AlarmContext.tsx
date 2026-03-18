@@ -66,7 +66,7 @@ export function AlarmProvider({ children }: { children: ReactNode }) {
     const now = new Date();
     const fiveMinAgo = new Date(now.getTime() - 5 * 60 * 1000);
 
-    const { data: alarms } = await supabase
+    const { data: alarms } = await db
       .from("alarms")
       .select("*")
       .eq("user_id", user.id)
