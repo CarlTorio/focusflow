@@ -169,7 +169,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
       groups[priority].push(s);
     });
 
-    // Sort "Other Tasks": urgent (≤3 days to due) first, then stable order
+    // Sort "Other Tasks": urgent (≤3 days to due) first, then stable by created_at
     groups.medium.sort((a, b) => {
       const today = new Date();
       const daysA = a.task?.due_date ? differenceInCalendarDays(parseISO(a.task.due_date), today) : 999;
@@ -177,9 +177,12 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
       const urgentA = daysA <= 3 ? 0 : 1;
       const urgentB = daysB <= 3 ? 0 : 1;
       if (urgentA !== urgentB) return urgentA - urgentB;
-      // Within same urgency tier, sort urgent by due date, keep others stable
+      // Within same urgency tier, sort urgent by due date, others by created_at (stable)
       if (urgentA === 0 && urgentB === 0) return daysA - daysB;
-      return 0; // stable order for non-urgent
+      // Non-urgent: deterministic order by schedule creation time
+      const createdA = a.created_at || "";
+      const createdB = b.created_at || "";
+      return createdA.localeCompare(createdB);
     });
 
     return groups;
