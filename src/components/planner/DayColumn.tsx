@@ -122,7 +122,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
         missed: allRoutines.filter(r => !completedIds.has(r.id)).map(r => r.title),
       });
     })();
-  }, [showSummary, isPastDay, date]);
+  }, [summaryOpen, isPastDay, date]);
 
   // Summary data for past dates
   const summaryData = useMemo(() => {
