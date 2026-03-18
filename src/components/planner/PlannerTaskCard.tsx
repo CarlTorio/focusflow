@@ -187,27 +187,6 @@ export function PlannerTaskCard({
             </span>
           )}
 
-          {/* Notes button */}
-          {(!isLocked || isPast) && task && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!isPast) onViewNotes?.(task);
-              }}
-              className={cn(
-                "relative flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors",
-                isPast ? "cursor-default" : "",
-                task.description
-                  ? "bg-primary/15 text-primary hover:bg-primary/25"
-                  : isPast ? "hidden" : "text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted"
-              )}
-            >
-              <MessageSquare className="h-3.5 w-3.5" />
-              {task.description && (
-                <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-primary ring-2 ring-card" />
-              )}
-            </button>
-          )}
 
           {task && !isLocked && !isPast && (
             <DropdownMenu>
