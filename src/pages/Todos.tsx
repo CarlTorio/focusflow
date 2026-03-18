@@ -9,9 +9,8 @@ import { useTasks } from "@/hooks/useTasks";
 import type { CreateTaskInput } from "@/hooks/useTasks";
 
 const SECTIONS = [
-  { priority: "high" as const, label: "HIGH", dotColor: "#EF4444", placeholder: "Needs immediate attention" },
-  { priority: "medium" as const, label: "MEDIUM", dotColor: "#F59E0B", placeholder: "Things you should get done soon" },
-  { priority: "low" as const, label: "LOW", dotColor: "#10B981", placeholder: "Low priority todos" },
+  { priority: "high" as const, label: "MAIN TASK", dotColor: "#EF4444", placeholder: "Your top priority tasks" },
+  { priority: "medium" as const, label: "OTHER TASKS", dotColor: "hsl(var(--primary))", placeholder: "Other tasks you need to do" },
 ];
 
 export default function Todos() {
