@@ -18,9 +18,8 @@ import {
 import type { Tables } from "@/integrations/supabase/types";
 
 const PRIORITIES = [
-  { value: "high", label: "HIGH", color: "bg-destructive text-destructive-foreground" },
-  { value: "medium", label: "MED", color: "bg-warning text-warning-foreground" },
-  { value: "low", label: "LOW", color: "bg-success text-success-foreground" },
+  { value: "high", label: "Main Task", color: "bg-destructive text-destructive-foreground" },
+  { value: "medium", label: "Other Task", color: "bg-primary text-primary-foreground" },
 ];
 
 interface EditProjectSheetProps {
@@ -42,7 +41,7 @@ interface EditProjectSheetProps {
 
 export function EditProjectSheet({ open, onOpenChange, task, onSave, onDelete, isSaving }: EditProjectSheetProps) {
   const [title, setTitle] = useState(task.title);
-  const [priority, setPriority] = useState(task.priority === "none" ? "low" : task.priority);
+  const [priority, setPriority] = useState(task.priority === "high" ? "high" : "medium");
   const [dueDate, setDueDate] = useState<Date>(parseISO(task.due_date));
   const [description, setDescription] = useState(task.description || "");
   const [showNotes, setShowNotes] = useState(false);
@@ -53,7 +52,7 @@ export function EditProjectSheet({ open, onOpenChange, task, onSave, onDelete, i
 
   useEffect(() => {
     setTitle(task.title);
-    setPriority(task.priority === "none" ? "low" : task.priority);
+    setPriority(task.priority === "high" ? "high" : "medium");
     setDueDate(parseISO(task.due_date));
     setDescription(task.description || "");
     setNewSubtasks([]);
@@ -95,7 +94,7 @@ export function EditProjectSheet({ open, onOpenChange, task, onSave, onDelete, i
 
           {/* Priority */}
           <div>
-            <label className="mb-1.5 block text-xs font-semibold text-muted-foreground">Priority</label>
+            <label className="mb-1.5 block text-xs font-semibold text-muted-foreground">Task Type</label>
             <div className="flex gap-2">
               {PRIORITIES.map((p) => (
                 <button
