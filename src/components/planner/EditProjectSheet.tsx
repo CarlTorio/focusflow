@@ -52,7 +52,7 @@ export function EditProjectSheet({ open, onOpenChange, task, onSave, onDelete, i
 
   useEffect(() => {
     setTitle(task.title);
-    setPriority(task.priority === "none" ? "low" : task.priority);
+    setPriority(task.priority === "high" ? "high" : "medium");
     setDueDate(parseISO(task.due_date));
     setDescription(task.description || "");
     setNewSubtasks([]);
