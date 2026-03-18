@@ -108,7 +108,7 @@ export function usePlanner(startDate: string, endDate: string) {
   const schedulesQuery = useQuery({
     queryKey: ["planner_schedules", startDate, endDate],
     queryFn: async () => {
-      const { data: schedules, error } = await supabase
+      const { data: schedules, error } = await db
         .from("task_schedules")
         .select("*")
         .gte("scheduled_date", startDate)
@@ -116,16 +116,16 @@ export function usePlanner(startDate: string, endDate: string) {
         .order("start_time", { ascending: true, nullsFirst: true });
       if (error) throw error;
 
-      const taskIds = [...new Set(schedules.map((s) => s.task_id))];
+      const taskIds = [...new Set(schedules.map((s: any) => s.task_id))];
       if (taskIds.length === 0) return [] as ScheduleWithTask[];
 
-      const { data: tasks, error: tasksError } = await supabase
+      const { data: tasks, error: tasksError } = await db
         .from("tasks")
         .select("*")
         .in("id", taskIds);
       if (tasksError) throw tasksError;
 
-      const { data: subtaskRows } = await supabase
+      const { data: subtaskRows } = await db
         .from("subtasks")
         .select("*")
         .in("task_id", taskIds)
