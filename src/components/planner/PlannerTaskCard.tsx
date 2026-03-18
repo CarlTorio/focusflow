@@ -321,21 +321,19 @@ export function PlannerTaskCard({
           </p>
         )}
 
-        {/* Subtask dot progress indicator */}
+        {/* Subtask mini progress bar */}
         {isProject && totalSteps > 0 && (
-          <div className="mt-1.5 flex items-center gap-1">
-            <div className="flex items-center gap-[3px]">
-              {allSubtasks.map((st) => (
-                <span
-                  key={st.id}
-                  className={cn(
-                    "h-[6px] w-[6px] rounded-full transition-colors",
-                    st.is_completed ? "bg-primary" : "bg-border"
-                  )}
-                />
-              ))}
+          <div className="mt-1.5 flex items-center gap-2">
+            <div className="flex-1 h-1.5 rounded-full bg-border overflow-hidden">
+              <div
+                className={cn(
+                  "h-full rounded-full transition-all duration-500",
+                  progressPct >= 80 ? "bg-emerald-500" : progressPct >= 40 ? "bg-primary" : "bg-primary/60"
+                )}
+                style={{ width: `${progressPct}%` }}
+              />
             </div>
-            <span className="text-[10px] text-muted-foreground ml-1">
+            <span className="text-[10px] text-muted-foreground shrink-0">
               {doneSteps}/{totalSteps}
             </span>
           </div>
