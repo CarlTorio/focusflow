@@ -128,7 +128,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
 
   const handleUpdateStatus = useCallback(async (scheduleId: string, status: string) => {
     await supabase.from("task_schedules").update({ status }).eq("id", scheduleId);
-    queryClient.invalidateQueries({ queryKey: ["planner"] });
+    queryClient.invalidateQueries({ queryKey: ["planner_schedules"] });
   }, [queryClient]);
 
   const isCurrentDay = isToday(date);
