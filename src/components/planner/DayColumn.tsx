@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { format, isToday, isTomorrow, isPast, startOfDay } from "date-fns";
 import { ChevronDown, ChevronRight, ClipboardList, Check, X, RotateCcw, Zap } from "lucide-react";
 import { supabase, db } from "@/lib/supabase";
+import type { DbTask, DbSubtask } from "@/types/database";
 import { cn } from "@/lib/utils";
 import { PlannerTaskCard } from "./PlannerTaskCard";
 import { HighFocusSection } from "./HighFocusSection";
