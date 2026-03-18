@@ -84,6 +84,8 @@ function computeSpillover(
   for (const dateStr of sortedDates) {
     const dayDate = startOfDay(parseISO(dateStr));
     const isFutureDay = dayDate > todayStart;
+    const isToday = dayDate.getTime() === todayStart.getTime();
+    const isPastDay = dayDate < todayStart;
 
     // Filter out tasks already done on a previous day
     const rawAll = (schedulesByDate[dateStr] || []).filter((s) => !doneTaskIds.has(s.task_id));
@@ -100,7 +102,6 @@ function computeSpillover(
     const rawDone: ScheduleWithTask[] = [];
     const rawActive: ScheduleWithTask[] = [];
     taskStatusMap.forEach((entry, taskId) => {
-      // Pick one representative schedule per task
       const rep = entry.schedules[0];
       if (entry.hasCompleted) {
         doneTaskIds.add(taskId);
@@ -125,8 +126,18 @@ function computeSpillover(
       dayDate
     );
 
-    const visibleHigh = highCandidates.slice(0, MAIN_TASKS_LIMIT);
-    const visibleMedium = mediumCandidates.slice(0, OTHER_TASKS_LIMIT);
+    // Today & past: show ALL tasks (no limit). Future: apply limits for spillover.
+    let visibleHigh: ScheduleWithTask[];
+    let visibleMedium: ScheduleWithTask[];
+
+    if (isFutureDay) {
+      visibleHigh = highCandidates.slice(0, MAIN_TASKS_LIMIT);
+      visibleMedium = mediumCandidates.slice(0, OTHER_TASKS_LIMIT);
+    } else {
+      // Today/past: show everything scheduled for this day
+      visibleHigh = highCandidates;
+      visibleMedium = mediumCandidates;
+    }
 
     // All unfinished continue to next day until marked done
     highCarry = highCandidates;
