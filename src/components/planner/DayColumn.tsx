@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { format, isToday, isTomorrow, isPast, startOfDay } from "date-fns";
+import { format, isToday, isTomorrow, isPast, startOfDay, differenceInCalendarDays, parseISO } from "date-fns";
 import { ChevronDown, ChevronRight, ClipboardList, Check, X, RotateCcw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -127,6 +127,12 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
   };
 
   const handleUpdateStatus = useCallback(async (scheduleId: string, status: string) => {
+    // Optimistic update — instantly reflect in UI
+    queryClient.setQueriesData<ScheduleWithTask[]>(
+      { queryKey: ["planner_schedules"] },
+      (old) => old?.map((s) => (s.id === scheduleId ? { ...s, status } : s))
+    );
+    // Persist to DB in background
     await supabase.from("task_schedules").update({ status }).eq("id", scheduleId);
     queryClient.invalidateQueries({ queryKey: ["planner_schedules"] });
   }, [queryClient]);
@@ -163,11 +169,17 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
       groups[priority].push(s);
     });
 
-    // Sort "Other Tasks" by due date ascending (earliest due date first)
+    // Sort "Other Tasks": urgent (≤3 days to due) first, then stable order
     groups.medium.sort((a, b) => {
-      const dateA = a.task?.due_date || "9999-12-31";
-      const dateB = b.task?.due_date || "9999-12-31";
-      return dateA.localeCompare(dateB);
+      const today = new Date();
+      const daysA = a.task?.due_date ? differenceInCalendarDays(parseISO(a.task.due_date), today) : 999;
+      const daysB = b.task?.due_date ? differenceInCalendarDays(parseISO(b.task.due_date), today) : 999;
+      const urgentA = daysA <= 3 ? 0 : 1;
+      const urgentB = daysB <= 3 ? 0 : 1;
+      if (urgentA !== urgentB) return urgentA - urgentB;
+      // Within same urgency tier, sort urgent by due date, keep others stable
+      if (urgentA === 0 && urgentB === 0) return daysA - daysB;
+      return 0; // stable order for non-urgent
     });
 
     return groups;
