@@ -210,13 +210,6 @@ export function PlannerTaskCard({
           )}
         </div>
 
-        {/* Progress bar */}
-        <div className="mb-3 h-1 rounded-full bg-muted overflow-hidden">
-          <div
-            className={cn("h-full rounded-full transition-all duration-500", progressColor)}
-            style={{ width: `${progressPct}%` }}
-          />
-        </div>
 
         {/* All subtasks */}
         <div className="space-y-0.5">
