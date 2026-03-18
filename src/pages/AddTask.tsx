@@ -1,6 +1,5 @@
 import { useState, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useQuickTasks } from "@/hooks/useQuickTasks";
 import { ArrowLeft, GripVertical, MoreHorizontal, Clock, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -411,47 +410,59 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
   );
 }
 
-// ─── Quick Task Tab ───────────────────────────────────────────────────────────
-function QuickTaskTab({ defaultDate, onDone }: { defaultDate: Date; onDone: () => void }) {
-  const dateStr = format(defaultDate, "yyyy-MM-dd");
-  const { addQuickTask } = useQuickTasks(dateStr);
+// ─── Simple Tab ───────────────────────────────────────────────────────────────
+function SimpleTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => void; defaultDate: Date }) {
+  const today = new Date();
   const [title, setTitle] = useState("");
-  const { toast } = useToast();
+  const [hours, setHours] = useState<number | null>(null);
+  const [priority, setPriority] = useState("medium");
+  const [when, setWhen] = useState<"today" | "tomorrow" | "pick">("today");
+  const [pickedDate, setPickedDate] = useState<Date>(defaultDate);
 
-  const canSave = title.trim().length > 0;
+  const dateStr = when === "today" ? format(today, "yyyy-MM-dd") : when === "tomorrow" ? format(addDays(today, 1), "yyyy-MM-dd") : format(pickedDate, "yyyy-MM-dd");
+  const canSave = title.trim() && hours !== null;
 
   const save = () => {
     if (!canSave) return;
-    addQuickTask.mutate(title.trim(), {
-      onSuccess: () => {
-        toast({ title: "Quick task added!" });
-        onDone();
-      },
-    });
+    onSave({ kind: "simple", title: title.trim(), estimated_hours: hours!, priority, scheduled_date: dateStr });
   };
 
   return (
     <div className="space-y-5">
-      <div className="rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 p-4">
-        <p className="text-xs text-primary font-medium">
-          ⚡ Quick tasks are for today only — they won't carry over to tomorrow.
-        </p>
+      <p className="text-xs text-muted-foreground">Simple to-do — just get it done</p>
+      <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="What do you need to do?" className="rounded-xl text-base focus-visible:ring-primary" autoFocus />
+      <div>
+        <label className="mb-2 block text-sm font-semibold">Estimated Time</label>
+        <HourPills options={SIMPLE_HOURS} value={hours} onChange={setHours} />
       </div>
-      <Input
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="What's the quick task?"
-        className="rounded-xl text-base focus-visible:ring-primary"
-        autoFocus
-        onKeyDown={(e) => e.key === "Enter" && save()}
-      />
-      <Button
-        onClick={save}
-        disabled={!canSave || addQuickTask.isPending}
-        className="w-full rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
-      >
-        Add Quick Task
-      </Button>
+      <div>
+        <label className="mb-2 block text-sm font-semibold">Priority</label>
+        <PriorityPills value={priority} onChange={setPriority} />
+      </div>
+      <div>
+        <label className="mb-2 block text-sm font-semibold">When</label>
+        <div className="flex gap-2 flex-wrap">
+          {(["today", "tomorrow", "pick"] as const).map((w) => (
+            <button key={w} type="button" onClick={() => setWhen(w)}
+              className={cn("rounded-xl px-3 py-1.5 text-sm font-medium border-2 capitalize transition-all",
+                when === w ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"
+              )}>{w === "pick" ? "Pick date" : w.charAt(0).toUpperCase() + w.slice(1)}</button>
+          ))}
+        </div>
+        {when === "pick" && (
+          <div className="mt-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="rounded-xl font-normal"><CalendarIcon className="mr-2 h-4 w-4" />{format(pickedDate, "MMM d, yyyy")}</Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 z-[200]" align="start">
+                <Calendar mode="single" selected={pickedDate} onSelect={(d) => d && setPickedDate(d)} initialFocus className="p-3 pointer-events-auto" />
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
+      </div>
+      <Button onClick={save} disabled={!canSave} className="w-full rounded-xl bg-primary text-primary-foreground hover:bg-primary/90">Add Task</Button>
     </div>
   );
 }
@@ -463,7 +474,7 @@ export default function AddTask() {
   const { toast } = useToast();
 
   const defaultDateStr = searchParams.get("date");
-  const defaultTab = (searchParams.get("tab") as "project" | "routine" | "quick") || "project";
+  const defaultTab = (searchParams.get("tab") as "project" | "routine" | "simple") || "project";
   const editRoutineId = searchParams.get("editRoutine");
 
   const defaultDate = defaultDateStr ? new Date(defaultDateStr) : new Date();
@@ -471,7 +482,7 @@ export default function AddTask() {
   const { addRoutine, updateRoutine, routines } = useRoutines();
   const { createTask } = usePlanner(format(defaultDate, "yyyy-MM-dd"), format(defaultDate, "yyyy-MM-dd"));
 
-  const [tab, setTab] = useState<"project" | "routine" | "quick">(defaultTab);
+  const [tab, setTab] = useState<"project" | "routine" | "simple">(defaultTab);
   const [editRoutine, setEditRoutine] = useState<Routine | null>(() => {
     if (editRoutineId) {
       return routines.find((r) => r.id === editRoutineId) || null;
@@ -482,7 +493,7 @@ export default function AddTask() {
   const tabs = [
     { id: "project" as const, label: "Project" },
     { id: "routine" as const, label: "Routine" },
-    { id: "quick" as const, label: "Quick" },
+    { id: "simple" as const, label: "Quick" },
   ];
 
   const handleSaveTask = (input: CreateTaskInput) => {
@@ -548,7 +559,7 @@ export default function AddTask() {
             isSaving={addRoutine.isPending || updateRoutine.isPending}
           />
         )}
-        {tab === "quick" && <QuickTaskTab defaultDate={defaultDate} onDone={() => navigate(-1)} />}
+        {tab === "simple" && <SimpleTab onSave={handleSaveTask} defaultDate={defaultDate} />}
       </div>
     </div>
   );
