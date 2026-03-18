@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/lib/supabase";
+import { supabase, db } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,7 +36,7 @@ export default function Onboarding() {
   const finishOnboarding = async () => {
     if (!user) return;
     setSaving(true);
-    await supabase.from("profiles").update({
+    await db.from("profiles").update({
       onboarding_completed: true,
       challenges: selectedChallenges.length > 0 ? selectedChallenges : null,
       daily_hour_limit: dailyHours,
@@ -50,7 +50,7 @@ export default function Onboarding() {
 
   const skipOnboarding = async () => {
     if (!user) return;
-    await supabase.from("profiles").update({ onboarding_completed: true } as any).eq("id", user.id);
+    await db.from("profiles").update({ onboarding_completed: true } as any).eq("id", user.id);
     await refreshProfile();
     navigate("/hub", { replace: true });
   };

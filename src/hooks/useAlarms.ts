@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { supabase, db } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import type { DbAlarm } from "@/types/database";
 

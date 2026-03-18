@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
+import { supabase, db } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import type { DbNote } from "@/types/database";
 
@@ -17,7 +17,7 @@ export function useNotes() {
         .select("*")
         .eq("user_id", user!.id)
         .eq("is_archived", false)
-        .order("updated_at", { ascending: false }) as any);
+        .order("updated_at", { ascending: false });
       if (error) throw error;
       return data as Note[];
     },
@@ -31,7 +31,7 @@ export function useNotes() {
         .from("notes")
         .select("*")
         .eq("user_id", user!.id)
-        .order("updated_at", { ascending: false }) as any);
+        .order("updated_at", { ascending: false });
       if (error) throw error;
       return data as Note[];
     },
@@ -48,7 +48,7 @@ export function useNotes() {
           folder: params.folder || "General",
         })
         .select()
-        .single() as any);
+        .single();
       if (error) throw error;
       return data as Note;
     },
@@ -66,7 +66,7 @@ export function useNotes() {
         .update(updates)
         .eq("id", id)
         .select()
-        .single() as any);
+        .single();
       if (error) throw error;
       return data as Note;
     },
@@ -105,7 +105,7 @@ export function useNotes() {
       const { error } = await (supabase
         .from("notes")
         .delete()
-        .eq("id", id) as any);
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {

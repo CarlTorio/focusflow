@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useRef, useState, useCallback, ReactNode } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase, db } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { playAlarmSound, stopCustomSound } from "@/lib/alarmSounds";
 import { Alarm } from "@/hooks/useAlarms";

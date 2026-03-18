@@ -1,7 +1,8 @@
 import { useState, useMemo, useEffect } from "react";
 import { format, isToday, isTomorrow, isPast, startOfDay } from "date-fns";
 import { ChevronDown, ChevronRight, ClipboardList, Check, X, RotateCcw, Zap } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, db } from "@/lib/supabase";
+import type { DbTask, DbSubtask } from "@/types/database";
 import { cn } from "@/lib/utils";
 import { PlannerTaskCard } from "./PlannerTaskCard";
 import { HighFocusSection } from "./HighFocusSection";
@@ -9,7 +10,6 @@ import { EditProjectSheet } from "./EditProjectSheet";
 import { QuickTaskSection } from "./QuickTaskSection";
 import { useQuickTasks } from "@/hooks/useQuickTasks";
 import type { ScheduleWithTask } from "@/hooks/usePlanner";
-import type { Tables } from "@/integrations/supabase/types";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
@@ -112,8 +112,8 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({
     completed: true,
   });
-  const [editTask, setEditTask] = useState<(Tables<"tasks"> & { subtasks?: Tables<"subtasks">[] }) | null>(null);
-  const [notesTask, setNotesTask] = useState<Tables<"tasks"> | null>(null);
+  const [editTask, setEditTask] = useState<(DbTask & { subtasks?: DbSubtask[] }) | null>(null);
+  const [notesTask, setNotesTask] = useState<DbTask | null>(null);
   const [notesText, setNotesText] = useState("");
   const [showSummary, setShowSummary] = useState(false);
   const summaryOpen = externalOpenSummary !== undefined ? externalOpenSummary : showSummary;
