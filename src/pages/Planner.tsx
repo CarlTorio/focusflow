@@ -124,26 +124,14 @@ function computeSpillover(
       dayDate
     );
 
-    // Today & past: show ALL tasks (no limit). Future: apply limits for spillover.
-    let visibleHigh: ScheduleWithTask[];
-    let visibleMedium: ScheduleWithTask[];
+    // Show ALL unfinished tasks on every day (no limits).
+    // Done tasks only show on the day they were completed.
+    const visibleHigh = highCandidates;
+    const visibleMedium = mediumCandidates;
 
-    if (isFutureDay) {
-      visibleHigh = highCandidates.slice(0, MAIN_TASKS_LIMIT);
-      visibleMedium = mediumCandidates.slice(0, OTHER_TASKS_LIMIT);
-
-      // Keep unfinished items in a rotating queue so hidden backlog is
-      // continuously distributed day-by-day (including next month) until done.
-      highCarry = dedupeByTask([...highCandidates.slice(MAIN_TASKS_LIMIT), ...visibleHigh]);
-      mediumCarry = dedupeByTask([...mediumCandidates.slice(OTHER_TASKS_LIMIT), ...visibleMedium]);
-    } else {
-      // Today/past: show everything scheduled for this day.
-      // Keep unfinished as backlog source for the next future day.
-      visibleHigh = highCandidates;
-      visibleMedium = mediumCandidates;
-      highCarry = dedupeByTask(highCandidates);
-      mediumCarry = dedupeByTask(mediumCandidates);
-    }
+    // Carry all unfinished forward to the next day
+    highCarry = highCandidates;
+    mediumCarry = mediumCandidates;
 
     const doneForDisplay = isFutureDay ? [] : [...rawHighDone, ...rawMediumDone];
     result[dateStr] = [...visibleHigh, ...visibleMedium, ...doneForDisplay];
