@@ -51,9 +51,8 @@ import { CalendarIcon, Plus, X } from "lucide-react";
 // ─── Constants ─────────────────────────────────────────────────────────────────
 const SIMPLE_HOURS = [0.25, 0.5, 1, 1.5, 2, 3];
 const PRIORITIES = [
-  { value: "high", label: "HIGH", color: "bg-destructive text-destructive-foreground" },
-  { value: "medium", label: "MED", color: "bg-warning text-warning-foreground" },
-  { value: "low", label: "LOW", color: "bg-success text-success-foreground" },
+  { value: "high", label: "MAIN TASK", color: "bg-destructive text-destructive-foreground" },
+  { value: "medium", label: "OTHER TASK", color: "bg-primary text-primary-foreground" },
 ];
 
 function HourPills({ options, value, onChange }: { options: number[]; value: number | null; onChange: (v: number) => void }) {
