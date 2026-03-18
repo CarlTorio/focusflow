@@ -234,22 +234,16 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
                     onViewNotes={(t) => { setNotesTask(t); setNotesText(t.description || ""); }}
                   />
                 ) : (
-                  <div className="space-y-2 animate-in fade-in-0 duration-150">
-                    {items.map((s) => (
-                      <PlannerTaskCard
-                        key={s.id}
-                        schedule={s}
-                        lockState={lockState}
-                        onComplete={onComplete}
-                        onOpenFocus={onOpenFocus}
-                        allTodaySchedules={activeSchedules}
-                        isFocusedProject={false}
-                        onCompleteSubtask={onCompleteSubtask}
-                        onEdit={(t) => setEditTask(t)}
-                        onViewNotes={(t) => { setNotesTask(t); setNotesText(t.description || ""); }}
-                      />
-                    ))}
-                  </div>
+                  <OtherTasksList
+                    items={items}
+                    lockState={lockState}
+                    onComplete={onComplete}
+                    onOpenFocus={onOpenFocus}
+                    activeSchedules={activeSchedules}
+                    onCompleteSubtask={onCompleteSubtask}
+                    onEdit={(t) => setEditTask(t)}
+                    onViewNotes={(t) => { setNotesTask(t); setNotesText(t.description || ""); }}
+                  />
                 )
               )}
             </div>
