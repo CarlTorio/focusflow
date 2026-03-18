@@ -297,6 +297,8 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
   const save = () => {
     setError("");
     if (!title.trim()) return;
+    const tags: string[] = [];
+    if (priority === "high") tags.push(`difficulty:${difficultyLevel}`);
     onSave({
       kind: "project",
       title: title.trim(),
@@ -305,6 +307,7 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
       priority,
       subtasks: validSubtasks,
       start_date: startDate ? format(startDate, "yyyy-MM-dd") : undefined,
+      tags: tags.length > 0 ? tags : undefined,
     });
   };
 
