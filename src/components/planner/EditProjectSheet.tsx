@@ -10,6 +10,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle,
 } from "@/components/ui/sheet";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import type { Tables } from "@/integrations/supabase/types";
 
 const PRIORITIES = [
@@ -31,10 +36,11 @@ interface EditProjectSheetProps {
     addSubtasks?: { title: string }[];
     removeSubtaskIds?: string[];
   }) => void;
+  onDelete?: (taskId: string) => void;
   isSaving?: boolean;
 }
 
-export function EditProjectSheet({ open, onOpenChange, task, onSave, isSaving }: EditProjectSheetProps) {
+export function EditProjectSheet({ open, onOpenChange, task, onSave, onDelete, isSaving }: EditProjectSheetProps) {
   const [title, setTitle] = useState(task.title);
   const [priority, setPriority] = useState(task.priority === "none" ? "low" : task.priority);
   const [dueDate, setDueDate] = useState<Date>(parseISO(task.due_date));
@@ -194,8 +200,8 @@ export function EditProjectSheet({ open, onOpenChange, task, onSave, isSaving }:
             </div>
           </div>
 
-          {/* Notes toggle */}
-          <div>
+          {/* Notes toggle + Delete button */}
+          <div className="flex items-center justify-between">
             <button
               onClick={() => setShowNotes(!showNotes)}
               className="flex items-center gap-2 text-sm font-semibold text-primary"
@@ -203,15 +209,47 @@ export function EditProjectSheet({ open, onOpenChange, task, onSave, isSaving }:
               <MessageSquare className="h-4 w-4" />
               {showNotes ? "Hide Notes" : description ? "Edit Notes" : "Add Notes"}
             </button>
-            {showNotes && (
-              <Textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Add notes about this project..."
-                className="mt-2 rounded-xl min-h-[80px] text-sm"
-              />
+
+            {onDelete && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <button className="flex items-center gap-1.5 text-sm font-semibold text-destructive hover:text-destructive/80 transition-colors">
+                    <Trash2 className="h-4 w-4" />
+                    Delete
+                  </button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="rounded-2xl">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete project?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete "{task.title}" and all its subtasks. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      onClick={() => {
+                        onDelete(task.id);
+                        onOpenChange(false);
+                      }}
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
           </div>
+
+          {showNotes && (
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Add notes about this project..."
+              className="rounded-xl min-h-[80px] text-sm"
+            />
+          )}
 
           {/* Save */}
           <Button
