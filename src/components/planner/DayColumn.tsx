@@ -111,8 +111,8 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({
     completed: true,
   });
-  const [editTask, setEditTask] = useState<(Tables<"tasks"> & { subtasks?: Tables<"subtasks">[] }) | null>(null);
-  const [notesTask, setNotesTask] = useState<Tables<"tasks"> | null>(null);
+  const [editTask, setEditTask] = useState<(DbTask & { subtasks?: DbSubtask[] }) | null>(null);
+  const [notesTask, setNotesTask] = useState<DbTask | null>(null);
   const [notesText, setNotesText] = useState("");
   const [showSummary, setShowSummary] = useState(false);
   const summaryOpen = externalOpenSummary !== undefined ? externalOpenSummary : showSummary;
