@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { differenceInCalendarDays, parseISO, format, isToday, isTomorrow, addDays } from "date-fns";
-import type { Tables } from "@/integrations/supabase/types";
+import type { DbTask, DbSubtask } from "@/types/database";
 
 const PRIORITY_BORDER: Record<string, string> = {
   high: "border-l-red-500",
