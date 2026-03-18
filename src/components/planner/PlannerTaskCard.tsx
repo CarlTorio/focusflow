@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Check, Lock, RefreshCw, ChevronDown, ChevronUp, CircleDot, MoreVertical, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ScheduleWithTask } from "@/hooks/usePlanner";
