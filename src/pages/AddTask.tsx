@@ -463,7 +463,7 @@ export default function AddTask() {
   const { toast } = useToast();
 
   const defaultDateStr = searchParams.get("date");
-  const defaultTab = (searchParams.get("tab") as "project" | "routine" | "simple") || "project";
+  const defaultTab = (searchParams.get("tab") as "project" | "routine" | "quick") || "project";
   const editRoutineId = searchParams.get("editRoutine");
 
   const defaultDate = defaultDateStr ? new Date(defaultDateStr) : new Date();
