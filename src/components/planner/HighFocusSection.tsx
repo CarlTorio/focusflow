@@ -175,6 +175,11 @@ export function HighFocusSection({
     setTodayFocus(taskId);
     setFocusedTaskId(taskId);
     setShowOthers(false);
+    // Auto-set new focus to in_progress
+    if (onUpdateStatus) {
+      items.filter(item => item.task_id === taskId && item.status === "scheduled")
+        .forEach(item => onUpdateStatus(item.id, "in_progress"));
+    }
   };
 
   return (
