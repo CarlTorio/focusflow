@@ -15,7 +15,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import type { Tables } from "@/integrations/supabase/types";
+import type { DbTask, DbSubtask } from "@/types/database";
 
 const PRIORITIES = [
   { value: "high", label: "Main Task", color: "bg-destructive text-destructive-foreground" },
