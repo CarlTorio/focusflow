@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase, db } from "@/lib/supabase";
+import { db } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   startOfWeek, endOfWeek, startOfMonth, endOfMonth,
