@@ -140,9 +140,11 @@ function computeSpillover(
       visibleMedium = mediumCandidates;
     }
 
-    // All unfinished continue to next day until marked done
-    highCarry = highCandidates;
-    mediumCarry = mediumCandidates;
+    // Only carry the OVERFLOW (tasks that didn't fit today) to the next day.
+    // This ensures each future day gets a different set of tasks instead of
+    // the same first task repeating every day.
+    highCarry = highCandidates.slice(MAIN_TASKS_LIMIT);
+    mediumCarry = mediumCandidates.slice(OTHER_TASKS_LIMIT);
 
     const doneForDisplay = isFutureDay ? [] : [...rawHighDone, ...rawMediumDone];
     result[dateStr] = [...visibleHigh, ...visibleMedium, ...doneForDisplay];
