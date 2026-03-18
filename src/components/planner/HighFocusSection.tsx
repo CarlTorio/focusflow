@@ -134,6 +134,15 @@ export function HighFocusSection({
                   onClick={() => {
                     setTodayFocus(s.task_id);
                     setFocusedTaskId(s.task_id);
+                    // Auto-set to in_progress when selected as focus
+                    if (onUpdateStatus) {
+                      const schedulesForTask = items.filter((item) => item.task_id === s.task_id);
+                      schedulesForTask.forEach((item) => {
+                        if (item.status !== "in_progress" && item.status !== "completed") {
+                          onUpdateStatus(item.id, "in_progress");
+                        }
+                      });
+                    }
                   }}
                   className="flex w-full items-center gap-3 rounded-xl border border-border bg-card px-3 py-3 text-left transition-all hover:border-primary/50 hover:shadow-sm"
                 >
@@ -170,6 +179,15 @@ export function HighFocusSection({
     setTodayFocus(taskId);
     setFocusedTaskId(taskId);
     setShowOthers(false);
+    // Auto-set to in_progress when switched as focus
+    if (onUpdateStatus) {
+      const schedulesForTask = items.filter((item) => item.task_id === taskId);
+      schedulesForTask.forEach((item) => {
+        if (item.status !== "in_progress" && item.status !== "completed") {
+          onUpdateStatus(item.id, "in_progress");
+        }
+      });
+    }
   };
 
   return (
