@@ -21,7 +21,7 @@ export default function Todos() {
   const grouped = useMemo(() => {
     const active = tasks.filter(t => t.status !== "completed");
     const completed = tasks.filter(t => t.status === "completed");
-    const byPriority: Record<string, typeof active> = { high: [], medium: [], low: [], none: [] };
+    const byPriority: Record<string, typeof active> = { high: [], medium: [], none: [] };
     active.forEach(t => {
       (byPriority[t.priority] || byPriority.none).push(t);
     });
