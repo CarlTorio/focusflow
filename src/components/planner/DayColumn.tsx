@@ -265,6 +265,12 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
       </div>
 
       <div className="space-y-4">
+        {/* Quick Tasks */}
+        <QuickTasksSection
+          tasks={quickTasks}
+          onToggle={(id, completed) => toggleQuickTask.mutate({ id, completed })}
+          onDelete={(id) => deleteQuickTask.mutate(id)}
+        />
         {PRIORITY_ORDER.map((priority) => {
           const items = grouped[priority] || [];
           if (items.length === 0) return null;
