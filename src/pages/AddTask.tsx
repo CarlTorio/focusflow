@@ -410,59 +410,47 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
   );
 }
 
-// ─── Simple Tab ───────────────────────────────────────────────────────────────
-function SimpleTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => void; defaultDate: Date }) {
-  const today = new Date();
+// ─── Quick Task Tab ───────────────────────────────────────────────────────────
+function QuickTaskTab({ defaultDate, onDone }: { defaultDate: Date; onDone: () => void }) {
+  const dateStr = format(defaultDate, "yyyy-MM-dd");
+  const { addQuickTask } = useQuickTasks(dateStr);
   const [title, setTitle] = useState("");
-  const [hours, setHours] = useState<number | null>(null);
-  const [priority, setPriority] = useState("medium");
-  const [when, setWhen] = useState<"today" | "tomorrow" | "pick">("today");
-  const [pickedDate, setPickedDate] = useState<Date>(defaultDate);
+  const { toast } = useToast();
 
-  const dateStr = when === "today" ? format(today, "yyyy-MM-dd") : when === "tomorrow" ? format(addDays(today, 1), "yyyy-MM-dd") : format(pickedDate, "yyyy-MM-dd");
-  const canSave = title.trim() && hours !== null;
+  const canSave = title.trim().length > 0;
 
   const save = () => {
     if (!canSave) return;
-    onSave({ kind: "simple", title: title.trim(), estimated_hours: hours!, priority, scheduled_date: dateStr });
+    addQuickTask.mutate(title.trim(), {
+      onSuccess: () => {
+        toast({ title: "Quick task added!" });
+        onDone();
+      },
+    });
   };
 
   return (
     <div className="space-y-5">
-      <p className="text-xs text-muted-foreground">Simple to-do — just get it done</p>
-      <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="What do you need to do?" className="rounded-xl text-base focus-visible:ring-primary" autoFocus />
-      <div>
-        <label className="mb-2 block text-sm font-semibold">Estimated Time</label>
-        <HourPills options={SIMPLE_HOURS} value={hours} onChange={setHours} />
+      <div className="rounded-xl border-2 border-dashed border-emerald-500/30 bg-emerald-500/5 p-4">
+        <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+          ⚡ Quick tasks are for today only — they won't carry over to tomorrow.
+        </p>
       </div>
-      <div>
-        <label className="mb-2 block text-sm font-semibold">Priority</label>
-        <PriorityPills value={priority} onChange={setPriority} />
-      </div>
-      <div>
-        <label className="mb-2 block text-sm font-semibold">When</label>
-        <div className="flex gap-2 flex-wrap">
-          {(["today", "tomorrow", "pick"] as const).map((w) => (
-            <button key={w} type="button" onClick={() => setWhen(w)}
-              className={cn("rounded-xl px-3 py-1.5 text-sm font-medium border-2 capitalize transition-all",
-                when === w ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground"
-              )}>{w === "pick" ? "Pick date" : w.charAt(0).toUpperCase() + w.slice(1)}</button>
-          ))}
-        </div>
-        {when === "pick" && (
-          <div className="mt-2">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="rounded-xl font-normal"><CalendarIcon className="mr-2 h-4 w-4" />{format(pickedDate, "MMM d, yyyy")}</Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 z-[200]" align="start">
-                <Calendar mode="single" selected={pickedDate} onSelect={(d) => d && setPickedDate(d)} initialFocus className="p-3 pointer-events-auto" />
-              </PopoverContent>
-            </Popover>
-          </div>
-        )}
-      </div>
-      <Button onClick={save} disabled={!canSave} className="w-full rounded-xl bg-primary text-primary-foreground hover:bg-primary/90">Add Task</Button>
+      <Input
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="What's the quick task?"
+        className="rounded-xl text-base focus-visible:ring-emerald-500"
+        autoFocus
+        onKeyDown={(e) => e.key === "Enter" && save()}
+      />
+      <Button
+        onClick={save}
+        disabled={!canSave || addQuickTask.isPending}
+        className="w-full rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
+      >
+        Add Quick Task
+      </Button>
     </div>
   );
 }
