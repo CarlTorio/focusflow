@@ -416,3 +416,4 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
     </div>
   );
 }
+
