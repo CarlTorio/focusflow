@@ -84,6 +84,7 @@ function OtherTasksList({
   );
 }
 
+interface DayColumnProps {
   date: Date;
   schedules: ScheduleWithTask[];
   onComplete: (scheduleId: string) => void;
