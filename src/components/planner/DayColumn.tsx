@@ -265,6 +265,17 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
       </div>
 
       <div className="space-y-4">
+        {/* Quick Tasks — only show if there are quick tasks or it's today */}
+        {(quickTasks.length > 0 || isCurrentDay) && (
+          <QuickTaskSection
+            quickTasks={quickTasks}
+            onAdd={(title) => addQuickTask.mutate(title)}
+            onToggle={(id, is_completed) => toggleQuickTask.mutate({ id, is_completed })}
+            onDelete={(id) => deleteQuickTask.mutate(id)}
+            isPast={isPastDay}
+          />
+        )}
+
         {PRIORITY_ORDER.map((priority) => {
           const items = grouped[priority] || [];
           if (items.length === 0) return null;
