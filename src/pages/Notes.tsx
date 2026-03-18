@@ -8,6 +8,15 @@ import { NoteEditor } from "@/components/notes/NoteEditor";
 import { Plus, Star, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,6 +36,8 @@ export default function Notes() {
   const [mobileView, setMobileView] = useState<"list" | "editor">("list");
   const [deleteTarget, setDeleteTarget] = useState<Note | null>(null);
   const [folderVersion, setFolderVersion] = useState(0);
+  const [showNewFolderModal, setShowNewFolderModal] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
   const [pillsAtEnd, setPillsAtEnd] = useState(false);
   const pillsScrollRef = useRef<HTMLDivElement>(null);
 
@@ -183,10 +194,7 @@ export default function Notes() {
               </button>
             ))}
             <button
-              onClick={() => {
-                const name = prompt("New folder name:");
-                if (name) handleCreateFolder(name);
-              }}
+              onClick={() => { setNewFolderName(""); setShowNewFolderModal(true); }}
               className="shrink-0 rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-muted-foreground"
             >
               + New Folder
@@ -236,6 +244,41 @@ export default function Notes() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        <Dialog open={showNewFolderModal} onOpenChange={setShowNewFolderModal}>
+          <DialogContent className="max-w-[calc(100vw-2rem)]">
+            <DialogHeader>
+              <DialogTitle>New Folder</DialogTitle>
+            </DialogHeader>
+            <Input
+              autoFocus
+              value={newFolderName}
+              onChange={(e) => setNewFolderName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && newFolderName.trim()) {
+                  handleCreateFolder(newFolderName.trim());
+                  setShowNewFolderModal(false);
+                }
+              }}
+              placeholder="Folder name..."
+              className="text-sm"
+            />
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowNewFolderModal(false)}>Cancel</Button>
+              <Button
+                onClick={() => {
+                  if (newFolderName.trim()) {
+                    handleCreateFolder(newFolderName.trim());
+                    setShowNewFolderModal(false);
+                  }
+                }}
+                disabled={!newFolderName.trim()}
+              >
+                Create
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
