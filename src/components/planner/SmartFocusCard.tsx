@@ -9,8 +9,15 @@ const SMART_FOCUS_KEY = "smart_focus_selected";
 
 type TaskWithSubtasks = Tables<"tasks"> & {
   subtasks: Tables<"subtasks">[];
-  difficulty_level?: number;
 };
+
+function getDifficultyFromTags(tags: string[] | null): number {
+  if (!tags) return 5;
+  const tag = tags.find((t) => t.startsWith("difficulty:"));
+  if (!tag) return 5;
+  const val = parseInt(tag.split(":")[1], 10);
+  return isNaN(val) ? 5 : val;
+}
 
 interface SmartFocusCardProps {
   tasks: TaskWithSubtasks[];
