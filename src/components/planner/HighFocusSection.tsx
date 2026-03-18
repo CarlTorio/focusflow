@@ -191,25 +191,8 @@ export function HighFocusSection({
       {/* Collapsible others */}
       {otherUniqueItems.length > 0 && (
         <div>
-          <button
-            onClick={() => setShowOthers((prev) => !prev)}
-            className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-border py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            {showOthers ? (
-              <>
-                <ChevronDown className="h-3.5 w-3.5 rotate-180" />
-                Hide main tasks
-              </>
-            ) : (
-              <>
-                <ChevronDown className="h-3.5 w-3.5" />
-                Show {otherUniqueItems.length} more main {otherUniqueItems.length === 1 ? "task" : "tasks"}
-              </>
-            )}
-          </button>
-
           {showOthers && (
-            <div className="mt-1.5 space-y-2 animate-in fade-in-0 slide-in-from-top-1 duration-150">
+            <div className="space-y-2 animate-in fade-in-0 slide-in-from-top-1 duration-150 mb-1.5">
               {otherItems.map((s) => (
                 <div key={s.id} className="opacity-60">
                   <PlannerTaskCard
@@ -226,19 +209,25 @@ export function HighFocusSection({
                   />
                 </div>
               ))}
-
-              <button
-                onClick={() => {
-                  localStorage.removeItem(FOCUS_STORAGE_KEY);
-                  setFocusedTaskId(null);
-                  setShowOthers(false);
-                }}
-                className="w-full rounded-lg border border-dashed border-border px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors"
-              >
-                Change focus
-              </button>
             </div>
           )}
+
+          <button
+            onClick={() => setShowOthers((prev) => !prev)}
+            className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-border py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            {showOthers ? (
+              <>
+                <ChevronDown className="h-3.5 w-3.5 rotate-180" />
+                Hide main tasks
+              </>
+            ) : (
+              <>
+                <ChevronDown className="h-3.5 w-3.5" />
+                Show {otherUniqueItems.length} more main {otherUniqueItems.length === 1 ? "task" : "tasks"}
+              </>
+            )}
+          </button>
         </div>
       )}
     </div>
