@@ -192,7 +192,51 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
         )}
       </div>
 
-      <div className="space-y-4">
+      {/* Past day blur overlay with Summary CTA */}
+      {isPastDay && !pastRevealed ? (
+        <div className="relative">
+          <div className="blur-[6px] pointer-events-none select-none opacity-60">
+            <div className="space-y-4">
+              {PRIORITY_ORDER.map((priority) => {
+                const items = grouped[priority] || [];
+                if (items.length === 0) return null;
+                const meta = PRIORITY_META[priority];
+                return (
+                  <div key={priority}>
+                    <div className="mb-2 flex w-full items-center gap-2 text-xs">
+                      <div className={cn("h-2 w-2 rounded-full shrink-0", meta.dot)} />
+                      <span className={cn("font-bold uppercase tracking-wider", meta.header)}>
+                        {meta.label} ({items.length})
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      {items.slice(0, 3).map((s) => (
+                        <div key={s.id} className="rounded-xl bg-muted/30 h-14" />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          {/* Centered CTA */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+            <button
+              onClick={() => setShowSummary(true)}
+              className="flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors"
+            >
+              <ClipboardList className="h-4 w-4" />
+              View Summary
+            </button>
+            <button
+              onClick={() => setPastRevealed(true)}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
+            >
+              Show tasks instead
+            </button>
+          </div>
+        </div>
+      ) : (
         {PRIORITY_ORDER.map((priority) => {
           const items = grouped[priority] || [];
           if (items.length === 0) return null;
