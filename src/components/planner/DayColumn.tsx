@@ -127,15 +127,45 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
   };
 
   const handleUpdateStatus = useCallback(async (scheduleId: string, status: string) => {
+    // Find the schedule to get the task_id for subtask updates
+    const schedule = schedules.find((s) => s.id === scheduleId);
+
     // Optimistic update — instantly reflect in UI
     queryClient.setQueriesData<ScheduleWithTask[]>(
       { queryKey: ["planner_schedules"] },
-      (old) => old?.map((s) => (s.id === scheduleId ? { ...s, status } : s))
+      (old) => old?.map((s) => {
+        if (s.id === scheduleId) return { ...s, status };
+        return s;
+      })
     );
-    // Persist to DB in background
+
+    // If marking as "completed", also mark all subtasks as done
+    if (status === "completed" && schedule?.task?.subtasks && schedule.task.subtasks.length > 0) {
+      const subtaskIds = schedule.task.subtasks.map((st) => st.id);
+      // Optimistic: mark subtasks completed in cache
+      queryClient.setQueriesData<ScheduleWithTask[]>(
+        { queryKey: ["planner_schedules"] },
+        (old) => old?.map((s) => {
+          if (s.task_id === schedule.task_id && s.task?.subtasks) {
+            return {
+              ...s,
+              task: {
+                ...s.task,
+                subtasks: s.task.subtasks.map((st) => ({ ...st, is_completed: true })),
+              },
+            };
+          }
+          return s;
+        })
+      );
+      // Persist subtask completions
+      await supabase.from("subtasks").update({ is_completed: true }).in("id", subtaskIds);
+    }
+
+    // Persist status to DB
     await supabase.from("task_schedules").update({ status }).eq("id", scheduleId);
     queryClient.invalidateQueries({ queryKey: ["planner_schedules"] });
-  }, [queryClient]);
+  }, [queryClient, schedules]);
 
   const isCurrentDay = isToday(date);
   const isTomorrowDay = isTomorrow(date);
