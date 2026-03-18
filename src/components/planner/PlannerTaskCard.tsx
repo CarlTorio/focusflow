@@ -31,9 +31,11 @@ interface PlannerTaskCardProps {
   onOpenFocus?: (scheduleId: string) => void;
   allTodaySchedules?: ScheduleWithTask[];
   isFocusedProject?: boolean;
+  defaultExpanded?: boolean;
   onCompleteSubtask?: (subtaskId: string, taskId: string) => void;
   onEdit?: (task: Tables<"tasks"> & { subtasks?: Tables<"subtasks">[] }) => void;
   onViewNotes?: (task: Tables<"tasks">) => void;
+  onSwitchFocus?: (taskId: string) => void;
 }
 
 function formatTime12(time: string): string {
