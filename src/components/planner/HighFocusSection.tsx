@@ -114,14 +114,15 @@ export function HighFocusSection({
             {uniqueItems.map((s) => {
               const dueDate = s.task?.due_date;
               const daysLeft = dueDate ? differenceInCalendarDays(parseISO(dueDate), new Date()) : null;
-              const dueLabel = daysLeft === null ? null
+              const isNoDueDate = daysLeft === null || daysLeft >= 360;
+              const dueLabel = isNoDueDate ? "No Due Date"
                 : daysLeft < 0 ? "Overdue"
                 : daysLeft === 0 ? "Due today"
                 : daysLeft === 1 ? "Due tomorrow"
                 : `${daysLeft}d left`;
-              const dueColor = daysLeft === null ? ""
-                : daysLeft <= 0 ? "text-destructive"
-                : daysLeft <= 2 ? "text-orange-500"
+              const dueColor = isNoDueDate ? "text-muted-foreground"
+                : daysLeft! <= 0 ? "text-destructive"
+                : daysLeft! <= 2 ? "text-orange-500"
                 : "text-muted-foreground";
 
               return (
