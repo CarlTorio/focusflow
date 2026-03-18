@@ -245,6 +245,40 @@ export function usePlanner(startDate: string, endDate: string) {
     enabled: !!user,
   });
 
+  // ─── All HIGH priority tasks (for smart focus) ────────────────────────────
+  const allHighTasksQuery = useQuery({
+    queryKey: ["all_high_priority_tasks"],
+    queryFn: async () => {
+      const { data: tasks } = await supabase
+        .from("tasks")
+        .select("*")
+        .eq("priority", "high")
+        .neq("status", "completed");
+
+      if (!tasks || tasks.length === 0) return [];
+
+      const taskIds = tasks.map((t) => t.id);
+      const { data: subtasks } = await supabase
+        .from("subtasks")
+        .select("*")
+        .in("task_id", taskIds)
+        .order("order_index", { ascending: true });
+
+      const subtasksByTask = new Map<string, Tables<"subtasks">[]>();
+      (subtasks || []).forEach((st) => {
+        const arr = subtasksByTask.get(st.task_id) || [];
+        arr.push(st);
+        subtasksByTask.set(st.task_id, arr);
+      });
+
+      return tasks.map((t) => ({
+        ...t,
+        subtasks: subtasksByTask.get(t.id) || [],
+      }));
+    },
+    enabled: !!user,
+  });
+
   // ─── Complete schedule (with advancing logic) ─────────────────────────────
   const completeSchedule = useMutation({
     mutationFn: async ({
