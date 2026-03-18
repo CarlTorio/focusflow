@@ -108,7 +108,7 @@ function applyThemeToDOM(hsl: string, intensity: number, isDark: boolean) {
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const { profile } = useAuth();
   const [mode, setModeState] = useState<"system" | "light" | "dark">(
-    ((profile as any)?.theme_mode as any) || "system"
+    ((profile as any)?.theme_mode as any) || "light"
   );
   const [themeColor, setThemeColorState] = useState(
     (profile as any)?.theme_color || "262 100% 65%"
