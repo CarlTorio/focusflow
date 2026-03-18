@@ -548,7 +548,7 @@ export default function AddTask() {
             isSaving={addRoutine.isPending || updateRoutine.isPending}
           />
         )}
-        {tab === "simple" && <SimpleTab onSave={handleSaveTask} defaultDate={defaultDate} />}
+        {tab === "quick" && <QuickTaskTab defaultDate={defaultDate} onDone={() => navigate(-1)} />}
       </div>
     </div>
   );
