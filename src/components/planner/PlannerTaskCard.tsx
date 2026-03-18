@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { Check, Lock, RefreshCw, ChevronDown, ChevronUp, CircleDot, MoreVertical, MessageSquare } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Check, Lock, RefreshCw, ChevronDown, ChevronUp, CircleDot, MoreVertical, MessageSquare, ArrowRightLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ScheduleWithTask } from "@/hooks/usePlanner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -31,9 +31,11 @@ interface PlannerTaskCardProps {
   onOpenFocus?: (scheduleId: string) => void;
   allTodaySchedules?: ScheduleWithTask[];
   isFocusedProject?: boolean;
+  defaultExpanded?: boolean;
   onCompleteSubtask?: (subtaskId: string, taskId: string) => void;
   onEdit?: (task: Tables<"tasks"> & { subtasks?: Tables<"subtasks">[] }) => void;
   onViewNotes?: (task: Tables<"tasks">) => void;
+  onSwitchFocus?: (taskId: string) => void;
 }
 
 function formatTime12(time: string): string {
@@ -50,9 +52,11 @@ export function PlannerTaskCard({
   onOpenFocus,
   allTodaySchedules,
   isFocusedProject,
+  defaultExpanded,
   onCompleteSubtask,
   onEdit,
   onViewNotes,
+  onSwitchFocus,
 }: PlannerTaskCardProps) {
   const task = schedule.task;
   const isCompleted = schedule.status === "completed";
@@ -67,7 +71,11 @@ export function PlannerTaskCard({
   const parentTitle = task?.title || "";
   const showParentSubtitle = subtaskId && displayTitle !== parentTitle;
 
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(defaultExpanded ?? false);
+
+  useEffect(() => {
+    if (defaultExpanded !== undefined) setExpanded(defaultExpanded);
+  }, [defaultExpanded]);
   
   // Debounce guard for checkbox clicks
   const completingRef = useRef(false);
@@ -349,6 +357,12 @@ export function PlannerTaskCard({
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="min-w-[140px]">
+            {onSwitchFocus && (
+              <DropdownMenuItem onClick={() => onSwitchFocus(schedule.task_id)}>
+                <ArrowRightLeft className="h-3.5 w-3.5 mr-2" />
+                Switch focus here
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem onClick={() => onEdit?.({ ...task, subtasks: task.subtasks || [] })}>
               Edit Project
             </DropdownMenuItem>
