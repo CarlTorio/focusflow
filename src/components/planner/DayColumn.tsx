@@ -324,7 +324,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
           );
         })}
 
-        {schedules.length === 0 && (
+        {schedules.length === 0 && quickTasks.length === 0 && (
           <div className="rounded-xl border-2 border-dashed border-border p-6 text-center">
             <p className="text-sm font-medium text-foreground">Nothing planned</p>
             <p className="text-xs text-muted-foreground mt-0.5">Add a task to get started</p>
