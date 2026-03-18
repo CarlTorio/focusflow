@@ -120,27 +120,10 @@ export function PlannerTaskCard({
   const progressPct = totalSteps > 0 ? (doneSteps / totalSteps) * 100 : 0;
   const progressColor = progressPct > 60 ? "bg-emerald-500" : progressPct >= 30 ? "bg-amber-500" : "bg-red-500";
 
-  // Due date warnings
+  // Due date warnings — removed badge indicators per user request
   const dueDate = task?.due_date;
-  let dueBadge: { text: string; className: string } | null = null;
-  let borderExtra = "";
-
-  if (dueDate && !isCompleted) {
-    const daysUntilDue = differenceInCalendarDays(parseISO(dueDate), new Date());
-    if (daysUntilDue < 0) {
-      dueBadge = { text: "OVERDUE", className: "bg-destructive text-destructive-foreground" };
-      borderExtra = "ring-2 ring-destructive/50";
-    } else if (daysUntilDue === 0) {
-      dueBadge = { text: "Due today", className: "bg-destructive text-destructive-foreground" };
-      borderExtra = "ring-2 ring-destructive/40";
-    } else if (daysUntilDue === 1) {
-      dueBadge = { text: "Due tomorrow", className: "bg-destructive/80 text-destructive-foreground" };
-      borderExtra = "ring-1 ring-destructive/30";
-    } else if (daysUntilDue === 2) {
-      dueBadge = { text: "2 days left", className: "bg-warning text-warning-foreground" };
-      borderExtra = "ring-1 ring-warning/30";
-    }
-  }
+  const dueBadge: { text: string; className: string } | null = null;
+  const borderExtra = "";
 
   const opacity =
     lockState === "future"
