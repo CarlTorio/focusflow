@@ -244,6 +244,41 @@ export default function Notes() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        <Dialog open={showNewFolderModal} onOpenChange={setShowNewFolderModal}>
+          <DialogContent className="max-w-[calc(100vw-2rem)]">
+            <DialogHeader>
+              <DialogTitle>New Folder</DialogTitle>
+            </DialogHeader>
+            <Input
+              autoFocus
+              value={newFolderName}
+              onChange={(e) => setNewFolderName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && newFolderName.trim()) {
+                  handleCreateFolder(newFolderName.trim());
+                  setShowNewFolderModal(false);
+                }
+              }}
+              placeholder="Folder name..."
+              className="text-sm"
+            />
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowNewFolderModal(false)}>Cancel</Button>
+              <Button
+                onClick={() => {
+                  if (newFolderName.trim()) {
+                    handleCreateFolder(newFolderName.trim());
+                    setShowNewFolderModal(false);
+                  }
+                }}
+                disabled={!newFolderName.trim()}
+              >
+                Create
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
