@@ -37,8 +37,9 @@ export default function Planner() {
   const {
     schedules,
     isLoading,
-    missedSchedules,
     dueSoonTasks,
+    carriedCount,
+    totalToday,
     completeSchedule,
     completeSubtaskDirect,
     handleMissed,
