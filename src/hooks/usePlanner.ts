@@ -142,7 +142,7 @@ export function usePlanner(startDate: string, endDate: string) {
       const subtaskMap = new Map<string, DbSubtask>();
       (subtaskRows || []).forEach((st: any) => subtaskMap.set(st.id, st));
 
-      return schedules.map((s) => {
+      return schedules.map((s: any) => {
         const task = taskMap.get(s.task_id) || null;
         const subtask = s.subtask_id ? subtaskMap.get(s.subtask_id) || null : null;
         return {
