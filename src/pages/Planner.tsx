@@ -162,7 +162,7 @@ export default function Planner() {
                       />
                     </div>
                   </div>
-                  <div className="absolute inset-0 flex flex-col items-center gap-3" style={{ justifyContent: 'start', paddingTop: '40%' }}>
+                  <div className="absolute inset-0 flex flex-col items-center gap-3" style={{ justifyContent: 'start', paddingTop: '50%' }}>
                     <button
                       onClick={() => setSummaryOpen(true)}
                       className="flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors"
