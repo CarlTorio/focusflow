@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useQuickTasks } from "@/hooks/useQuickTasks";
 import { ArrowLeft, GripVertical, MoreHorizontal, Clock, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
