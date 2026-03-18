@@ -32,7 +32,7 @@ function setTodayFocus(taskId: string) {
 
 interface HighFocusSectionProps {
   items: ScheduleWithTask[];
-  lockState: "unlocked" | "tomorrow" | "future";
+  lockState: "unlocked" | "tomorrow" | "future" | "past";
   isToday: boolean;
   onComplete: (scheduleId: string) => void;
   onOpenFocus: (scheduleId: string) => void;

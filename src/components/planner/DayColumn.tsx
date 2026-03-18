@@ -51,7 +51,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
   const isCurrentDay = isToday(date);
   const isTomorrowDay = isTomorrow(date);
   const isPastDay = !isCurrentDay && isPast(startOfDay(date));
-  const lockState = isCurrentDay ? "unlocked" as const : isTomorrowDay ? "tomorrow" as const : "future" as const;
+  const lockState = isPastDay ? "past" as const : isCurrentDay ? "unlocked" as const : isTomorrowDay ? "tomorrow" as const : "future" as const;
 
   const toggleGroup = (key: string) =>
     setCollapsedGroups((prev) => ({ ...prev, [key]: !prev[key] }));
