@@ -265,6 +265,7 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
   const [error, setError] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [startDate, setStartDate] = useState<Date | null>(null);
+  const [difficultyLevel, setDifficultyLevel] = useState(5);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
