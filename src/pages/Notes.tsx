@@ -194,10 +194,7 @@ export default function Notes() {
               </button>
             ))}
             <button
-              onClick={() => {
-                const name = prompt("New folder name:");
-                if (name) handleCreateFolder(name);
-              }}
+              onClick={() => { setNewFolderName(""); setShowNewFolderModal(true); }}
               className="shrink-0 rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-muted-foreground"
             >
               + New Folder
