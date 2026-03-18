@@ -375,6 +375,34 @@ export function PlannerTaskCard({
         )}
       </button>
 
+      {/* Status badge */}
+      {!isLocked && !isPast && onUpdateStatus && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onUpdateStatus(schedule.id, statusConfig.next);
+          }}
+          className={cn(
+            "flex shrink-0 items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-semibold transition-all hover:scale-105 active:scale-95",
+            statusConfig.className
+          )}
+        >
+          <statusConfig.icon className="h-3 w-3" />
+          {statusConfig.label}
+        </button>
+      )}
+
+      {/* Past status (read-only) */}
+      {isPast && (
+        <span className={cn(
+          "flex shrink-0 items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-semibold",
+          statusConfig.className
+        )}>
+          <statusConfig.icon className="h-3 w-3" />
+          {statusConfig.label}
+        </span>
+      )}
+
       {/* Notes button — dot indicator when notes exist */}
       {(!isLocked || isPast) && task && (
         <button
