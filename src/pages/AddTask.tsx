@@ -28,7 +28,6 @@ import { usePlanner, CreateTaskInput, SubtaskInput } from "@/hooks/usePlanner";
 import { useToast } from "@/hooks/use-toast";
 import { format, addDays } from "date-fns";
 import { RoutineForm } from "@/components/planner/RoutineForm";
-import { DifficultySelector } from "@/components/planner/DifficultySelector";
 import {
   DndContext,
   closestCenter,
@@ -266,7 +265,6 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
   const [error, setError] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [startDate, setStartDate] = useState<Date | null>(null);
-  const [difficultyLevel, setDifficultyLevel] = useState(5);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -298,8 +296,6 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
   const save = () => {
     setError("");
     if (!title.trim()) return;
-    const tags: string[] = [];
-    if (priority === "high") tags.push(`difficulty:${difficultyLevel}`);
     onSave({
       kind: "project",
       title: title.trim(),
@@ -308,7 +304,6 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
       priority,
       subtasks: validSubtasks,
       start_date: startDate ? format(startDate, "yyyy-MM-dd") : undefined,
-      tags: tags.length > 0 ? tags : undefined,
     });
   };
 
@@ -336,10 +331,6 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
         <label className="mb-2 block text-sm font-semibold">Priority</label>
         <PriorityPills value={priority} onChange={setPriority} />
       </div>
-
-      {priority === "high" && (
-        <DifficultySelector value={difficultyLevel} onChange={setDifficultyLevel} />
-      )}
 
       {/* Subtasks + Advanced Options in one card */}
       <div className="rounded-xl border border-border p-4 space-y-3">

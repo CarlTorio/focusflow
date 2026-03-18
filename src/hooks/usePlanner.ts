@@ -245,40 +245,6 @@ export function usePlanner(startDate: string, endDate: string) {
     enabled: !!user,
   });
 
-  // ─── All HIGH priority tasks (for smart focus) ────────────────────────────
-  const allHighTasksQuery = useQuery({
-    queryKey: ["all_high_priority_tasks"],
-    queryFn: async () => {
-      const { data: tasks } = await supabase
-        .from("tasks")
-        .select("*")
-        .eq("priority", "high")
-        .neq("status", "completed");
-
-      if (!tasks || tasks.length === 0) return [];
-
-      const taskIds = tasks.map((t) => t.id);
-      const { data: subtasks } = await supabase
-        .from("subtasks")
-        .select("*")
-        .in("task_id", taskIds)
-        .order("order_index", { ascending: true });
-
-      const subtasksByTask = new Map<string, Tables<"subtasks">[]>();
-      (subtasks || []).forEach((st) => {
-        const arr = subtasksByTask.get(st.task_id) || [];
-        arr.push(st);
-        subtasksByTask.set(st.task_id, arr);
-      });
-
-      return tasks.map((t) => ({
-        ...t,
-        subtasks: subtasksByTask.get(t.id) || [],
-      }));
-    },
-    enabled: !!user,
-  });
-
   // ─── Complete schedule (with advancing logic) ─────────────────────────────
   const completeSchedule = useMutation({
     mutationFn: async ({
@@ -419,7 +385,6 @@ export function usePlanner(startDate: string, endDate: string) {
       queryClient.invalidateQueries({ queryKey: ["progress-today"] });
       queryClient.invalidateQueries({ queryKey: ["priority_tasks_overview"] });
       queryClient.invalidateQueries({ queryKey: ["due_soon_tasks"] });
-      queryClient.invalidateQueries({ queryKey: ["all_high_priority_tasks"] });
 
       if (result?.projectComplete) {
         toast({ title: `Project complete — "${result.displayTitle}"` });
@@ -646,7 +611,6 @@ export function usePlanner(startDate: string, endDate: string) {
             due_date: input.due_date,
             priority: input.priority,
             status: "pending",
-            tags: input.tags || null,
           })
           .select()
           .single();
@@ -712,7 +676,6 @@ export function usePlanner(startDate: string, endDate: string) {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["priority_tasks_overview"] });
       queryClient.invalidateQueries({ queryKey: ["due_soon_tasks"] });
-      queryClient.invalidateQueries({ queryKey: ["all_high_priority_tasks"] });
       toast({
         title:
           input.kind === "project"
@@ -772,7 +735,6 @@ export function usePlanner(startDate: string, endDate: string) {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["progress-today"] });
       queryClient.invalidateQueries({ queryKey: ["due_soon_tasks"] });
-      queryClient.invalidateQueries({ queryKey: ["all_high_priority_tasks"] });
       if (result?.projectComplete) {
         toast({ title: "Project complete!" });
       } else {
@@ -892,7 +854,6 @@ export function usePlanner(startDate: string, endDate: string) {
     isLoading: schedulesQuery.isLoading,
     missedSchedules: missedQuery.data || [],
     dueSoonTasks: dueSoonQuery.data || [],
-    allHighPriorityTasks: allHighTasksQuery.data || [],
     completeSchedule,
     completeSubtaskDirect,
     handleMissed,
