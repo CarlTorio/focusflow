@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { format } from "date-fns";
-import { ChevronDown, ChevronRight, Target, Sparkles } from "lucide-react";
+import { format, parseISO, differenceInCalendarDays } from "date-fns";
+import { ChevronDown, ChevronRight, Target, Sparkles, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PlannerTaskCard } from "./PlannerTaskCard";
 import type { ScheduleWithTask } from "@/hooks/usePlanner";
@@ -89,7 +89,11 @@ export function HighFocusSection({
   items.forEach((s) => {
     if (!uniqueTasks.has(s.task_id)) uniqueTasks.set(s.task_id, s);
   });
-  const uniqueItems = Array.from(uniqueTasks.values());
+  const uniqueItems = Array.from(uniqueTasks.values()).sort((a, b) => {
+    const dueDateA = a.task?.due_date ? parseISO(a.task.due_date).getTime() : Infinity;
+    const dueDateB = b.task?.due_date ? parseISO(b.task.due_date).getTime() : Infinity;
+    return dueDateA - dueDateB;
+  });
 
   // Validate that focusedTaskId still exists in current items
   const focusValid = focusedTaskId && uniqueItems.some((s) => s.task_id === focusedTaskId);
@@ -107,21 +111,41 @@ export function HighFocusSection({
             Pick one high-priority task to focus on. The rest will be hidden.
           </p>
           <div className="space-y-2">
-            {uniqueItems.map((s) => (
-              <button
-                key={s.task_id}
-                onClick={() => {
-                  setTodayFocus(s.task_id);
-                  setFocusedTaskId(s.task_id);
-                }}
-                className="flex w-full items-center gap-3 rounded-xl border border-border bg-card px-3 py-3 text-left transition-all hover:border-primary/50 hover:shadow-sm"
-              >
-                <Target className="h-4 w-4 text-primary shrink-0" />
-                <span className="text-sm font-semibold text-foreground truncate">
-                  {s.task?.title || s.display_title || "Untitled"}
-                </span>
-              </button>
-            ))}
+            {uniqueItems.map((s) => {
+              const dueDate = s.task?.due_date;
+              const daysLeft = dueDate ? differenceInCalendarDays(parseISO(dueDate), new Date()) : null;
+              const dueLabel = daysLeft === null ? null
+                : daysLeft < 0 ? "Overdue"
+                : daysLeft === 0 ? "Due today"
+                : daysLeft === 1 ? "Due tomorrow"
+                : `${daysLeft}d left`;
+              const dueColor = daysLeft === null ? ""
+                : daysLeft <= 0 ? "text-destructive"
+                : daysLeft <= 2 ? "text-orange-500"
+                : "text-muted-foreground";
+
+              return (
+                <button
+                  key={s.task_id}
+                  onClick={() => {
+                    setTodayFocus(s.task_id);
+                    setFocusedTaskId(s.task_id);
+                  }}
+                  className="flex w-full items-center gap-3 rounded-xl border border-border bg-card px-3 py-3 text-left transition-all hover:border-primary/50 hover:shadow-sm"
+                >
+                  <Target className="h-4 w-4 text-primary shrink-0" />
+                  <span className="text-sm font-semibold text-foreground truncate flex-1">
+                    {s.task?.title || s.display_title || "Untitled"}
+                  </span>
+                  {dueLabel && (
+                    <span className={cn("text-[11px] font-medium shrink-0 flex items-center gap-1", dueColor)}>
+                      <Clock className="h-3 w-3" />
+                      {dueLabel}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
