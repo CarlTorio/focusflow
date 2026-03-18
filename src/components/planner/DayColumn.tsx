@@ -38,9 +38,10 @@ interface DayColumnProps {
     addSubtasks?: { title: string }[];
     removeSubtaskIds?: string[];
   }) => void;
+  onDeleteTask?: (taskId: string) => void;
 }
 
-export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus, userName, onCompleteSubtask, onUpdateTask }: DayColumnProps) {
+export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus, userName, onCompleteSubtask, onUpdateTask, onDeleteTask }: DayColumnProps) {
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({
     completed: true,
   });
