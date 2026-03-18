@@ -94,13 +94,35 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
   ).length;
   const totalCompleted = grouped.completed.length;
 
+  // Routine data for past date summary
+  const [routineSummary, setRoutineSummary] = useState<{ completed: string[]; missed: string[] } | null>(null);
+
+  useEffect(() => {
+    if (!showSummary || !isPastDay) return;
+    const dateStr = format(date, "yyyy-MM-dd");
+    (async () => {
+      const { data: routines } = await supabase
+        .from("routines")
+        .select("id, title")
+        .eq("is_active", true);
+      const { data: completions } = await supabase
+        .from("routine_completions")
+        .select("routine_id")
+        .eq("completed_date", dateStr);
+      const completedIds = new Set((completions || []).map(c => c.routine_id));
+      const allRoutines = routines || [];
+      setRoutineSummary({
+        completed: allRoutines.filter(r => completedIds.has(r.id)).map(r => r.title),
+        missed: allRoutines.filter(r => !completedIds.has(r.id)).map(r => r.title),
+      });
+    })();
+  }, [showSummary, isPastDay, date]);
+
   // Summary data for past dates
   const summaryData = useMemo(() => {
     if (!isPastDay) return null;
     
     const completedTasks = activeSchedules.filter(s => s.status === "completed");
-    const skippedTasks = activeSchedules.filter(s => s.status === "skipped");
-    const pendingTasks = activeSchedules.filter(s => s.status !== "completed" && s.status !== "skipped");
     
     // Group completed by priority
     const completedMain = completedTasks.filter(s => {
@@ -126,11 +148,8 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
     return {
       completedMain,
       completedOther,
-      skippedTasks,
-      pendingTasks,
       allSubtasksDone,
       totalCompleted: completedTasks.length,
-      totalScheduled: activeSchedules.length,
     };
   }, [isPastDay, activeSchedules]);
 
