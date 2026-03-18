@@ -85,11 +85,30 @@ function computeSpillover(
     const dayDate = startOfDay(parseISO(dateStr));
     const isFutureDay = dayDate > todayStart;
 
-    const raw = (schedulesByDate[dateStr] || []).filter((s) => !doneTaskIds.has(s.task_id));
-    const rawDone = dedupeByTask(raw.filter((s) => isDoneStatus(s.status)));
-    const rawActive = dedupeByTask(raw.filter((s) => !isDoneStatus(s.status)));
+    // Filter out tasks already done on a previous day
+    const rawAll = (schedulesByDate[dateStr] || []).filter((s) => !doneTaskIds.has(s.task_id));
 
-    rawDone.forEach((s) => doneTaskIds.add(s.task_id));
+    // Dedup per task_id: if ANY schedule for a task is completed, treat the task as done
+    const taskStatusMap = new Map<string, { hasCompleted: boolean; schedules: ScheduleWithTask[] }>();
+    rawAll.forEach((s) => {
+      const entry = taskStatusMap.get(s.task_id) || { hasCompleted: false, schedules: [] };
+      if (isDoneStatus(s.status)) entry.hasCompleted = true;
+      entry.schedules.push(s);
+      taskStatusMap.set(s.task_id, entry);
+    });
+
+    const rawDone: ScheduleWithTask[] = [];
+    const rawActive: ScheduleWithTask[] = [];
+    taskStatusMap.forEach((entry, taskId) => {
+      // Pick one representative schedule per task
+      const rep = entry.schedules[0];
+      if (entry.hasCompleted) {
+        doneTaskIds.add(taskId);
+        rawDone.push(rep);
+      } else {
+        rawActive.push(rep);
+      }
+    });
 
     highCarry = highCarry.filter((s) => !doneTaskIds.has(s.task_id));
     mediumCarry = mediumCarry.filter((s) => !doneTaskIds.has(s.task_id));
