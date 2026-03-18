@@ -14,14 +14,12 @@ import type { Tables } from "@/integrations/supabase/types";
 
 const PRIORITY_BORDER: Record<string, string> = {
   high: "border-l-red-500",
-  medium: "border-l-amber-500",
-  low: "border-l-emerald-500",
+  medium: "border-l-primary",
 };
 
 const PRIORITY_DOT: Record<string, string> = {
   high: "bg-red-500",
-  medium: "bg-amber-500",
-  low: "bg-emerald-500",
+  medium: "bg-primary",
 };
 
 interface PlannerTaskCardProps {
