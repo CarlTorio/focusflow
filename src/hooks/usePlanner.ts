@@ -889,6 +889,7 @@ export function usePlanner(startDate: string, endDate: string) {
     isLoading: schedulesQuery.isLoading,
     missedSchedules: missedQuery.data || [],
     dueSoonTasks: dueSoonQuery.data || [],
+    allHighPriorityTasks: allHighTasksQuery.data || [],
     completeSchedule,
     completeSubtaskDirect,
     handleMissed,
