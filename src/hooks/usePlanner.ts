@@ -3,13 +3,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { format, addDays, parseISO, differenceInCalendarDays } from "date-fns";
-import type { Tables, TablesInsert } from "@/integrations/supabase/types";
+import type { DbTask, DbTaskSchedule, DbSubtask } from "@/types/database";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type ScheduleWithTask = Tables<"task_schedules"> & {
-  task: (Tables<"tasks"> & { subtasks?: Tables<"subtasks">[] }) | null;
-  subtask?: Tables<"subtasks"> | null;
+export type ScheduleWithTask = DbTaskSchedule & {
+  task: (DbTask & { subtasks?: DbSubtask[] }) | null;
+  subtask?: DbSubtask | null;
 };
 
 export interface SubtaskInput {
