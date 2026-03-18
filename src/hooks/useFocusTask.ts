@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase, db } from "@/lib/supabase";
+import { db } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import type { DbTask, DbTaskSchedule, DbSubtask } from "@/types/database";
@@ -18,7 +18,7 @@ export function useFocusTask() {
 
   const schedulesQuery = useQuery({
     queryKey: ["focus_schedules", today],
-    queryFn: async () => {
+    queryFn: async (): Promise<FocusSchedule[]> => {
       const { data: schedules, error } = await db
         .from("task_schedules")
         .select("*")
@@ -31,6 +31,7 @@ export function useFocusTask() {
       if (!schedules || schedules.length === 0) return [];
 
       const taskIds = [...new Set(schedules.map((s: any) => s.task_id))];
+
       const { data: tasks } = await db
         .from("tasks")
         .select("*")
@@ -65,7 +66,7 @@ export function useFocusTask() {
           const pa = priorityOrder[a.task.priority] ?? 3;
           const pb = priorityOrder[b.task.priority] ?? 3;
           return pa - pb;
-        }) as FocusSchedule[];
+        });
     },
     enabled: !!user,
   });
