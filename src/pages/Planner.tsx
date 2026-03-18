@@ -5,8 +5,7 @@ import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { MobileHeader } from "@/components/navigation/MobileHeader";
 import { cn } from "@/lib/utils";
 import { DayColumn } from "@/components/planner/DayColumn";
-import { MissedTaskBanner } from "@/components/planner/MissedTaskBanner";
-
+import { DailySummaryBanner } from "@/components/planner/DailySummaryBanner";
 
 import { DailyRoutineSection } from "@/components/planner/DailyRoutineSection";
 import { Skeleton } from "@/components/ui/skeleton";
