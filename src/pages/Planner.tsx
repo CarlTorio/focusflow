@@ -61,7 +61,11 @@ export default function Planner() {
   // Navigation
   const navDate = (dir: number) => {
     setBaseDate((prev) => addDays(prev, dir * (isMobile ? 1 : 2)));
-    if (isMobile) setSelectedMobileDay((prev) => addDays(prev, dir));
+    if (isMobile) {
+      setSelectedMobileDay((prev) => addDays(prev, dir));
+      setPastRevealed(false);
+      setSummaryOpen(false);
+    }
   };
 
   const headerText = useMemo(() => {
