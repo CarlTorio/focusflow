@@ -51,9 +51,8 @@ import { CalendarIcon, Plus, X } from "lucide-react";
 // ─── Constants ─────────────────────────────────────────────────────────────────
 const SIMPLE_HOURS = [0.25, 0.5, 1, 1.5, 2, 3];
 const PRIORITIES = [
-  { value: "high", label: "HIGH", color: "bg-destructive text-destructive-foreground" },
-  { value: "medium", label: "MED", color: "bg-warning text-warning-foreground" },
-  { value: "low", label: "LOW", color: "bg-success text-success-foreground" },
+  { value: "high", label: "MAIN TASK", color: "bg-destructive text-destructive-foreground" },
+  { value: "medium", label: "OTHER TASK", color: "bg-primary text-primary-foreground" },
 ];
 
 function HourPills({ options, value, onChange }: { options: number[]; value: number | null; onChange: (v: number) => void }) {
@@ -260,7 +259,7 @@ function RoutineTabWithManagement({
 function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => void; defaultDate: Date }) {
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState<Date | null>(null);
-  const [priority, setPriority] = useState("low");
+  const [priority, setPriority] = useState("medium");
   const [subtasks, setSubtasks] = useState<SubtaskInput[]>([{ title: "" }]);
   const [error, setError] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -416,7 +415,7 @@ function SimpleTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => vo
   const today = new Date();
   const [title, setTitle] = useState("");
   const [hours, setHours] = useState<number | null>(null);
-  const [priority, setPriority] = useState("low");
+  const [priority, setPriority] = useState("medium");
   const [when, setWhen] = useState<"today" | "tomorrow" | "pick">("today");
   const [pickedDate, setPickedDate] = useState<Date>(defaultDate);
 

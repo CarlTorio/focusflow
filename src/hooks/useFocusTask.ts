@@ -51,7 +51,7 @@ export function useFocusTask() {
       });
 
       // Sort: in_progress first, then by start_time, then priority
-      const priorityOrder: Record<string, number> = { high: 0, medium: 1, low: 2, none: 3 };
+      const priorityOrder: Record<string, number> = { high: 0, medium: 1, low: 1, none: 2 };
 
       return schedules
         .map((s) => ({

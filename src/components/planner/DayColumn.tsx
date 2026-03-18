@@ -13,12 +13,11 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
-const PRIORITY_ORDER = ["high", "medium", "low"];
+const PRIORITY_ORDER = ["high", "medium"];
 
 const PRIORITY_META: Record<string, { label: string; dot: string; header: string }> = {
-  high: { label: "HIGH", dot: "bg-red-500", header: "text-red-600 dark:text-red-400" },
-  medium: { label: "MED", dot: "bg-amber-500", header: "text-amber-600 dark:text-amber-400" },
-  low: { label: "LOW", dot: "bg-emerald-500", header: "text-emerald-600 dark:text-emerald-400" },
+  high: { label: "MAIN TASK", dot: "bg-red-500", header: "text-red-600 dark:text-red-400" },
+  medium: { label: "OTHER TASKS", dot: "bg-primary", header: "text-primary" },
 };
 
 interface DayColumnProps {
@@ -80,7 +79,7 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
         seenProjectIds.add(s.task_id);
       }
 
-      const priority = s.task?.priority === "none" ? "low" : (s.task?.priority || "low");
+      const priority = s.task?.priority === "none" || s.task?.priority === "low" ? "medium" : (s.task?.priority || "medium");
       groups[priority] = groups[priority] || [];
       groups[priority].push(s);
     });

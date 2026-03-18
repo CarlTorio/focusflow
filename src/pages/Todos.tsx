@@ -9,27 +9,27 @@ import { useTasks } from "@/hooks/useTasks";
 import type { CreateTaskInput } from "@/hooks/useTasks";
 
 const SECTIONS = [
-  { priority: "high" as const, label: "HIGH", dotColor: "#EF4444", placeholder: "Needs immediate attention" },
-  { priority: "medium" as const, label: "MEDIUM", dotColor: "#F59E0B", placeholder: "Things you should get done soon" },
-  { priority: "low" as const, label: "LOW", dotColor: "#10B981", placeholder: "Low priority todos" },
+  { priority: "high" as const, label: "MAIN TASK", dotColor: "#EF4444", placeholder: "Your top priority tasks" },
+  { priority: "medium" as const, label: "OTHER TASKS", dotColor: "hsl(var(--primary))", placeholder: "Other tasks you need to do" },
 ];
 
 export default function Todos() {
   const { tasks, isLoading, createTask, completeTask, uncompleteTask } = useTasks();
   const [modalOpen, setModalOpen] = useState(false);
-  const [defaultPriority, setDefaultPriority] = useState<"high" | "medium" | "low">("low");
+  const [defaultPriority, setDefaultPriority] = useState<"high" | "medium">("medium");
 
   const grouped = useMemo(() => {
     const active = tasks.filter(t => t.status !== "completed");
     const completed = tasks.filter(t => t.status === "completed");
-    const byPriority: Record<string, typeof active> = { high: [], medium: [], low: [], none: [] };
+    const byPriority: Record<string, typeof active> = { high: [], medium: [], none: [] };
     active.forEach(t => {
-      (byPriority[t.priority] || byPriority.none).push(t);
+      const p = t.priority === "low" || t.priority === "none" ? "medium" : t.priority;
+      (byPriority[p] || byPriority.medium).push(t);
     });
     return { ...byPriority, completed };
   }, [tasks]);
 
-  const handleAdd = (priority: "high" | "medium" | "low") => {
+  const handleAdd = (priority: "high" | "medium") => {
     setDefaultPriority(priority);
     setModalOpen(true);
   };
@@ -97,7 +97,7 @@ export default function Todos() {
         )}
       </div>
 
-      <FloatingActionButton onClick={() => handleAdd("low")} />
+      <FloatingActionButton onClick={() => handleAdd("medium")} />
 
       <AddTaskModal
         open={modalOpen}
