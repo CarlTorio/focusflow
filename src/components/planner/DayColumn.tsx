@@ -21,7 +21,69 @@ const PRIORITY_META: Record<string, { label: string; dot: string; header: string
   medium: { label: "OTHER TASKS", dot: "bg-primary", header: "text-primary" },
 };
 
-interface DayColumnProps {
+const OTHER_TASKS_LIMIT = 3;
+
+function OtherTasksList({
+  items,
+  lockState,
+  onComplete,
+  onOpenFocus,
+  activeSchedules,
+  onCompleteSubtask,
+  onEdit,
+  onViewNotes,
+}: {
+  items: ScheduleWithTask[];
+  lockState: "unlocked" | "tomorrow" | "future" | "past";
+  onComplete: (scheduleId: string) => void;
+  onOpenFocus: (scheduleId: string) => void;
+  activeSchedules: ScheduleWithTask[];
+  onCompleteSubtask?: (subtaskId: string, taskId: string) => void;
+  onEdit: (t: any) => void;
+  onViewNotes: (t: any) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const visible = expanded ? items : items.slice(0, OTHER_TASKS_LIMIT);
+  const hiddenCount = items.length - OTHER_TASKS_LIMIT;
+
+  return (
+    <div className="space-y-2 animate-in fade-in-0 duration-150">
+      {visible.map((s) => (
+        <PlannerTaskCard
+          key={s.id}
+          schedule={s}
+          lockState={lockState}
+          onComplete={onComplete}
+          onOpenFocus={onOpenFocus}
+          allTodaySchedules={activeSchedules}
+          isFocusedProject={false}
+          onCompleteSubtask={onCompleteSubtask}
+          onEdit={onEdit}
+          onViewNotes={onViewNotes}
+        />
+      ))}
+      {hiddenCount > 0 && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-border py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        >
+          {expanded ? (
+            <>
+              <ChevronDown className="h-3.5 w-3.5 rotate-180" />
+              Hide tasks
+            </>
+          ) : (
+            <>
+              <ChevronDown className="h-3.5 w-3.5" />
+              Show {hiddenCount} more {hiddenCount === 1 ? "task" : "tasks"}
+            </>
+          )}
+        </button>
+      )}
+    </div>
+  );
+}
+
   date: Date;
   schedules: ScheduleWithTask[];
   onComplete: (scheduleId: string) => void;
