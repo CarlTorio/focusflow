@@ -34,7 +34,29 @@ interface PlannerTaskCardProps {
   onEdit?: (task: Tables<"tasks"> & { subtasks?: Tables<"subtasks">[] }) => void;
   onViewNotes?: (task: Tables<"tasks">) => void;
   onSwitchFocus?: (taskId: string) => void;
+  onUpdateStatus?: (scheduleId: string, status: string) => void;
 }
+
+const STATUS_CONFIG: Record<string, { label: string; icon: typeof Circle; className: string; next: string }> = {
+  scheduled: {
+    label: "Not Started",
+    icon: Circle,
+    className: "text-muted-foreground bg-muted/50 border-border",
+    next: "in_progress",
+  },
+  in_progress: {
+    label: "In Progress",
+    icon: Play,
+    className: "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800",
+    next: "completed",
+  },
+  completed: {
+    label: "Done",
+    icon: CheckCircle2,
+    className: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800",
+    next: "scheduled",
+  },
+};
 
 function formatTime12(time: string): string {
   const [h, m] = time.split(":").map(Number);
