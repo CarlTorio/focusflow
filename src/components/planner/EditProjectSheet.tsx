@@ -25,7 +25,7 @@ const PRIORITIES = [
 interface EditProjectSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  task: Tables<"tasks"> & { subtasks?: Tables<"subtasks">[] };
+  task: DbTask & { subtasks?: DbSubtask[] };
   onSave: (input: {
     taskId: string;
     title?: string;

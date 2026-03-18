@@ -38,8 +38,8 @@ interface HighFocusSectionProps {
   onOpenFocus: (scheduleId: string) => void;
   allTodaySchedules: ScheduleWithTask[];
   onCompleteSubtask?: (subtaskId: string, taskId: string) => void;
-  onEdit?: (task: Tables<"tasks"> & { subtasks?: Tables<"subtasks">[] }) => void;
-  onViewNotes?: (task: Tables<"tasks">) => void;
+  onEdit?: (task: DbTask & { subtasks?: DbSubtask[] }) => void;
+  onViewNotes?: (task: DbTask) => void;
 }
 
 export function HighFocusSection({
