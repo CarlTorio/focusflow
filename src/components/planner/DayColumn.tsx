@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { format, isToday, isTomorrow, isPast, startOfDay } from "date-fns";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, ClipboardList, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PlannerTaskCard } from "./PlannerTaskCard";
 import { HighFocusSection } from "./HighFocusSection";
@@ -47,11 +47,12 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
   const [editTask, setEditTask] = useState<(Tables<"tasks"> & { subtasks?: Tables<"subtasks">[] }) | null>(null);
   const [notesTask, setNotesTask] = useState<Tables<"tasks"> | null>(null);
   const [notesText, setNotesText] = useState("");
+  const [showSummary, setShowSummary] = useState(false);
 
   const isCurrentDay = isToday(date);
   const isTomorrowDay = isTomorrow(date);
   const isPastDay = !isCurrentDay && isPast(startOfDay(date));
-  const lockState = isCurrentDay ? "unlocked" as const : isTomorrowDay ? "tomorrow" as const : "future" as const;
+  const lockState = isPastDay ? "past" as const : isCurrentDay ? "unlocked" as const : isTomorrowDay ? "tomorrow" as const : "future" as const;
 
   const toggleGroup = (key: string) =>
     setCollapsedGroups((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -92,6 +93,46 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
   ).length;
   const totalCompleted = grouped.completed.length;
 
+  // Summary data for past dates
+  const summaryData = useMemo(() => {
+    if (!isPastDay) return null;
+    
+    const completedTasks = activeSchedules.filter(s => s.status === "completed");
+    const skippedTasks = activeSchedules.filter(s => s.status === "skipped");
+    const pendingTasks = activeSchedules.filter(s => s.status !== "completed" && s.status !== "skipped");
+    
+    // Group completed by priority
+    const completedMain = completedTasks.filter(s => {
+      const p = s.task?.priority === "none" || s.task?.priority === "low" ? "medium" : (s.task?.priority || "medium");
+      return p === "high";
+    });
+    const completedOther = completedTasks.filter(s => {
+      const p = s.task?.priority === "none" || s.task?.priority === "low" ? "medium" : (s.task?.priority || "medium");
+      return p !== "high";
+    });
+    
+    // Completed subtasks across all projects
+    const allSubtasksDone: { taskTitle: string; subtaskTitle: string }[] = [];
+    const seenTasks = new Set<string>();
+    activeSchedules.forEach(s => {
+      if (seenTasks.has(s.task_id) || !s.task?.subtasks) return;
+      seenTasks.add(s.task_id);
+      s.task.subtasks.filter(st => st.is_completed).forEach(st => {
+        allSubtasksDone.push({ taskTitle: s.task!.title, subtaskTitle: st.title });
+      });
+    });
+
+    return {
+      completedMain,
+      completedOther,
+      skippedTasks,
+      pendingTasks,
+      allSubtasksDone,
+      totalCompleted: completedTasks.length,
+      totalScheduled: activeSchedules.length,
+    };
+  }, [isPastDay, activeSchedules]);
+
   return (
     <div className="flex-1 min-w-0">
       {/* Day Header */}
@@ -119,6 +160,15 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
             </span>
           )}
         </div>
+        {isPastDay && (
+          <button
+            onClick={() => setShowSummary(true)}
+            className="flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors"
+          >
+            <ClipboardList className="h-3.5 w-3.5" />
+            Summary
+          </button>
+        )}
       </div>
 
       <div className="space-y-4">
@@ -229,6 +279,116 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
           >
             Save Notes
           </Button>
+        </DialogContent>
+      </Dialog>
+
+      {/* Past Day Summary Dialog */}
+      <Dialog open={showSummary} onOpenChange={setShowSummary}>
+        <DialogContent className="sm:max-w-md rounded-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold">
+              📋 Summary — {format(date, "EEEE, MMMM d")}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {summaryData && (
+            <div className="space-y-4">
+              {/* Stats overview */}
+              <div className="flex gap-3">
+                <div className="flex-1 rounded-xl bg-primary/10 p-3 text-center">
+                  <p className="text-2xl font-bold text-primary">{summaryData.totalCompleted}</p>
+                  <p className="text-[10px] text-muted-foreground font-medium">Completed</p>
+                </div>
+                <div className="flex-1 rounded-xl bg-muted p-3 text-center">
+                  <p className="text-2xl font-bold text-muted-foreground">{summaryData.skippedTasks.length}</p>
+                  <p className="text-[10px] text-muted-foreground font-medium">Skipped</p>
+                </div>
+                <div className="flex-1 rounded-xl bg-muted p-3 text-center">
+                  <p className="text-2xl font-bold text-foreground">{summaryData.totalScheduled}</p>
+                  <p className="text-[10px] text-muted-foreground font-medium">Total</p>
+                </div>
+              </div>
+
+              {/* Main Tasks completed */}
+              {summaryData.completedMain.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="h-2 w-2 rounded-full bg-destructive" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-destructive">Main Tasks Done</span>
+                  </div>
+                  <div className="space-y-1">
+                    {summaryData.completedMain.map(s => (
+                      <div key={s.id} className="flex items-center gap-2 rounded-lg bg-card px-3 py-2">
+                        <Check className="h-3.5 w-3.5 text-primary shrink-0" />
+                        <span className="text-sm text-foreground">{s.display_title || s.task?.title}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Other Tasks completed */}
+              {summaryData.completedOther.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="h-2 w-2 rounded-full bg-primary" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-primary">Other Tasks Done</span>
+                  </div>
+                  <div className="space-y-1">
+                    {summaryData.completedOther.map(s => (
+                      <div key={s.id} className="flex items-center gap-2 rounded-lg bg-card px-3 py-2">
+                        <Check className="h-3.5 w-3.5 text-primary shrink-0" />
+                        <span className="text-sm text-foreground">{s.display_title || s.task?.title}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Subtasks completed */}
+              {summaryData.allSubtasksDone.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Check className="h-3.5 w-3.5 text-primary" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-foreground">Subtasks Completed</span>
+                  </div>
+                  <div className="space-y-1">
+                    {summaryData.allSubtasksDone.map((item, i) => (
+                      <div key={i} className="flex items-center gap-2 rounded-lg bg-card px-3 py-2">
+                        <Check className="h-3 w-3 text-primary shrink-0" />
+                        <div className="min-w-0">
+                          <span className="text-sm text-foreground block truncate">{item.subtaskTitle}</span>
+                          <span className="text-[10px] text-muted-foreground">{item.taskTitle}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Skipped */}
+              {summaryData.skippedTasks.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <X className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Skipped / Missed</span>
+                  </div>
+                  <div className="space-y-1">
+                    {summaryData.skippedTasks.map(s => (
+                      <div key={s.id} className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2">
+                        <X className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                        <span className="text-sm text-muted-foreground">{s.display_title || s.task?.title}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {summaryData.totalCompleted === 0 && summaryData.skippedTasks.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">No activity recorded for this day.</p>
+              )}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

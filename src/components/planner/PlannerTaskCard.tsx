@@ -24,7 +24,7 @@ const PRIORITY_DOT: Record<string, string> = {
 
 interface PlannerTaskCardProps {
   schedule: ScheduleWithTask;
-  lockState: "unlocked" | "tomorrow" | "future";
+  lockState: "unlocked" | "tomorrow" | "future" | "past";
   onComplete: (scheduleId: string) => void;
   onOpenFocus?: (scheduleId: string) => void;
   allTodaySchedules?: ScheduleWithTask[];
@@ -58,7 +58,8 @@ export function PlannerTaskCard({
 }: PlannerTaskCardProps) {
   const task = schedule.task;
   const isCompleted = schedule.status === "completed";
-  const isLocked = lockState !== "unlocked";
+  const isPast = lockState === "past";
+  const isLocked = lockState !== "unlocked" && lockState !== "past";
   const priority = task?.priority === "none" || task?.priority === "low" ? "medium" : (task?.priority || "medium");
   const hours = Number(schedule.allocated_hours);
   const isRecurring = (task as any)?.task_type === "recurring";
@@ -120,6 +121,8 @@ export function PlannerTaskCard({
       ? "opacity-50"
       : lockState === "tomorrow"
       ? "opacity-70"
+      : lockState === "past"
+      ? "opacity-80"
       : "opacity-100";
 
   // ─── Expanded Project View ──────────────────────────────────────────────
@@ -154,7 +157,7 @@ export function PlannerTaskCard({
               {dueBadge.text}
             </span>
           )}
-          {task && !isLocked && (
+          {task && !isLocked && !isPast && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
@@ -193,10 +196,14 @@ export function PlannerTaskCard({
               (prev) => prev.is_completed
             );
             // When focused, all uncompleted subtasks are unlocked
-            const canCheck = isFocusedProject
+            const canCheck = isPast
+              ? false
+              : isFocusedProject
               ? !isLocked && !isDone
               : !isLocked && !isDone && (isCurrent || priorDone);
-            const isFuture = isFocusedProject
+            const isFuture = isPast
+              ? !isDone
+              : isFocusedProject
               ? false
               : !isDone && !isCurrent && !priorDone;
 
@@ -276,9 +283,9 @@ export function PlannerTaskCard({
       <button
         className="flex-1 min-w-0 text-left"
         onClick={() => {
-          if (isProject && !isLocked) {
+          if (isProject && (!isLocked || isPast)) {
             setExpanded(true);
-          } else if (!isLocked && !isCompleted) {
+          } else if (!isLocked && !isPast && !isCompleted) {
             onOpenFocus?.(schedule.id);
           }
         }}
@@ -341,17 +348,18 @@ export function PlannerTaskCard({
       </button>
 
       {/* Notes button — dot indicator when notes exist */}
-      {!isLocked && task && (
+      {(!isLocked || isPast) && task && (
         <button
           onClick={(e) => {
             e.stopPropagation();
-            onViewNotes?.(task);
+            if (!isPast) onViewNotes?.(task);
           }}
           className={cn(
             "relative flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors",
+            isPast ? "cursor-default" : "",
             task.description
               ? "bg-primary/15 text-primary hover:bg-primary/25"
-              : "text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted"
+              : isPast ? "hidden" : "text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted"
           )}
         >
           <MessageSquare className="h-3.5 w-3.5" />
@@ -362,7 +370,7 @@ export function PlannerTaskCard({
       )}
 
       {/* 3-dot menu */}
-      {!isLocked && !isCompleted && task && (
+      {!isLocked && !isPast && !isCompleted && task && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
