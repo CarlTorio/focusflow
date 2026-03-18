@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, GripVertical, MoreHorizontal, Clock, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -26,6 +27,8 @@ import {
 import { useRoutines, Routine } from "@/hooks/useRoutines";
 import { usePlanner, CreateTaskInput, SubtaskInput } from "@/hooks/usePlanner";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { format, addDays } from "date-fns";
 import { RoutineForm } from "@/components/planner/RoutineForm";
 import {
@@ -411,25 +414,39 @@ function ProjectTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => v
 }
 
 // ─── Simple Tab ───────────────────────────────────────────────────────────────
-function SimpleTab({ onSave, defaultDate }: { onSave: (i: CreateTaskInput) => void; defaultDate: Date }) {
+function SimpleTab({ defaultDate }: { defaultDate: Date }) {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
   const today = new Date();
   const [title, setTitle] = useState("");
-  const [hours, setHours] = useState<number | null>(null);
-  const [priority, setPriority] = useState("medium");
   const [when, setWhen] = useState<"today" | "tomorrow" | "pick">("today");
   const [pickedDate, setPickedDate] = useState<Date>(defaultDate);
 
   const dateStr = when === "today" ? format(today, "yyyy-MM-dd") : when === "tomorrow" ? format(addDays(today, 1), "yyyy-MM-dd") : format(pickedDate, "yyyy-MM-dd");
   const canSave = !!title.trim();
 
-  const save = () => {
-    if (!canSave) return;
-    onSave({ kind: "simple", title: title.trim(), estimated_hours: 0, priority, scheduled_date: dateStr });
+  const save = async () => {
+    if (!canSave || !user) return;
+    const { error } = await supabase.from("quick_tasks").insert({
+      title: title.trim(),
+      user_id: user.id,
+      created_date: dateStr,
+    });
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+      return;
+    }
+    queryClient.invalidateQueries({ queryKey: ["quick_tasks"] });
+    toast({ title: "Quick task added!" });
+    navigate(-1);
   };
 
   return (
     <div className="space-y-5">
-      <p className="text-xs text-muted-foreground">Simple to-do — just get it done</p>
+      <p className="text-xs text-muted-foreground">Quick to-do — appears in Quick Tasks (green section)</p>
       <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="What do you need to do?" className="rounded-xl text-base focus-visible:ring-primary" autoFocus />
       <div>
         <label className="mb-2 block text-sm font-semibold">When</label>
@@ -551,7 +568,7 @@ export default function AddTask() {
             isSaving={addRoutine.isPending || updateRoutine.isPending}
           />
         )}
-        {tab === "simple" && <SimpleTab onSave={handleSaveTask} defaultDate={defaultDate} />}
+        {tab === "simple" && <SimpleTab defaultDate={defaultDate} />}
       </div>
     </div>
   );
