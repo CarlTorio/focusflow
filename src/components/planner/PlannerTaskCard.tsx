@@ -196,10 +196,14 @@ export function PlannerTaskCard({
               (prev) => prev.is_completed
             );
             // When focused, all uncompleted subtasks are unlocked
-            const canCheck = isFocusedProject
+            const canCheck = isPast
+              ? false
+              : isFocusedProject
               ? !isLocked && !isDone
               : !isLocked && !isDone && (isCurrent || priorDone);
-            const isFuture = isFocusedProject
+            const isFuture = isPast
+              ? !isDone
+              : isFocusedProject
               ? false
               : !isDone && !isCurrent && !priorDone;
 
