@@ -317,15 +317,11 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
               <div className="flex gap-3">
                 <div className="flex-1 rounded-xl bg-primary/10 p-3 text-center">
                   <p className="text-2xl font-bold text-primary">{summaryData.totalCompleted}</p>
-                  <p className="text-[10px] text-muted-foreground font-medium">Completed</p>
+                  <p className="text-[10px] text-muted-foreground font-medium">Tasks Done</p>
                 </div>
-                <div className="flex-1 rounded-xl bg-muted p-3 text-center">
-                  <p className="text-2xl font-bold text-muted-foreground">{summaryData.skippedTasks.length}</p>
-                  <p className="text-[10px] text-muted-foreground font-medium">Skipped</p>
-                </div>
-                <div className="flex-1 rounded-xl bg-muted p-3 text-center">
-                  <p className="text-2xl font-bold text-foreground">{summaryData.totalScheduled}</p>
-                  <p className="text-[10px] text-muted-foreground font-medium">Total</p>
+                <div className="flex-1 rounded-xl bg-primary/10 p-3 text-center">
+                  <p className="text-2xl font-bold text-primary">{summaryData.allSubtasksDone.length}</p>
+                  <p className="text-[10px] text-muted-foreground font-medium">Subtasks Done</p>
                 </div>
               </div>
 
@@ -386,25 +382,31 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
                 </div>
               )}
 
-              {/* Skipped */}
-              {summaryData.skippedTasks.length > 0 && (
+              {/* Daily Routine Summary */}
+              {routineSummary && (routineSummary.completed.length > 0 || routineSummary.missed.length > 0) && (
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <X className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Skipped / Missed</span>
+                    <RotateCcw className="h-3.5 w-3.5 text-foreground" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-foreground">Daily Routine</span>
                   </div>
                   <div className="space-y-1">
-                    {summaryData.skippedTasks.map(s => (
-                      <div key={s.id} className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2">
+                    {routineSummary.completed.map((title, i) => (
+                      <div key={`rc-${i}`} className="flex items-center gap-2 rounded-lg bg-card px-3 py-2">
+                        <Check className="h-3.5 w-3.5 text-primary shrink-0" />
+                        <span className="text-sm text-foreground">{title}</span>
+                      </div>
+                    ))}
+                    {routineSummary.missed.map((title, i) => (
+                      <div key={`rm-${i}`} className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2">
                         <X className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        <span className="text-sm text-muted-foreground">{s.display_title || s.task?.title}</span>
+                        <span className="text-sm text-muted-foreground">{title}</span>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {summaryData.totalCompleted === 0 && summaryData.skippedTasks.length === 0 && (
+              {summaryData.totalCompleted === 0 && summaryData.allSubtasksDone.length === 0 && (!routineSummary || (routineSummary.completed.length === 0 && routineSummary.missed.length === 0)) && (
                 <p className="text-sm text-muted-foreground text-center py-4">No activity recorded for this day.</p>
               )}
             </div>
