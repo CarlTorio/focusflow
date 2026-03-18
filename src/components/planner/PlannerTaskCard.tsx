@@ -348,17 +348,18 @@ export function PlannerTaskCard({
       </button>
 
       {/* Notes button — dot indicator when notes exist */}
-      {!isLocked && task && (
+      {(!isLocked || isPast) && task && (
         <button
           onClick={(e) => {
             e.stopPropagation();
-            onViewNotes?.(task);
+            if (!isPast) onViewNotes?.(task);
           }}
           className={cn(
             "relative flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors",
+            isPast ? "cursor-default" : "",
             task.description
               ? "bg-primary/15 text-primary hover:bg-primary/25"
-              : "text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted"
+              : isPast ? "hidden" : "text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted"
           )}
         >
           <MessageSquare className="h-3.5 w-3.5" />
@@ -369,7 +370,7 @@ export function PlannerTaskCard({
       )}
 
       {/* 3-dot menu */}
-      {!isLocked && !isCompleted && task && (
+      {!isLocked && !isPast && !isCompleted && task && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button

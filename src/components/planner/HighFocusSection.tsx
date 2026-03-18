@@ -63,7 +63,7 @@ export function HighFocusSection({
   }, [isTodayColumn]);
 
   // Not today → show all normally (no focus filtering)
-  if (!isTodayColumn) {
+  if (!isTodayColumn || lockState === "past") {
     return (
       <div className="space-y-2 animate-in fade-in-0 duration-150">
         {items.map((s) => (
@@ -75,6 +75,7 @@ export function HighFocusSection({
             onOpenFocus={onOpenFocus}
             allTodaySchedules={allTodaySchedules}
             isFocusedProject={false}
+            defaultExpanded={lockState === "past"}
             onCompleteSubtask={onCompleteSubtask}
             onEdit={onEdit}
             onViewNotes={onViewNotes}
