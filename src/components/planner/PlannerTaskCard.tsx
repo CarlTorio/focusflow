@@ -52,9 +52,11 @@ export function PlannerTaskCard({
   onOpenFocus,
   allTodaySchedules,
   isFocusedProject,
+  defaultExpanded,
   onCompleteSubtask,
   onEdit,
   onViewNotes,
+  onSwitchFocus,
 }: PlannerTaskCardProps) {
   const task = schedule.task;
   const isCompleted = schedule.status === "completed";
