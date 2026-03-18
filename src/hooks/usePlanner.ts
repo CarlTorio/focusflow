@@ -833,6 +833,22 @@ export function usePlanner(startDate: string, endDate: string) {
     },
   });
 
+  const deleteTask = useMutation({
+    mutationFn: async (taskId: string) => {
+      const { error } = await supabase.from("tasks").delete().eq("id", taskId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["planner_schedules"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["due_soon_tasks"] });
+      toast({ title: "Project deleted" });
+    },
+    onError: (err: Error) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
+  });
+
   return {
     schedules: schedulesQuery.data || [],
     isLoading: schedulesQuery.isLoading,
@@ -844,5 +860,6 @@ export function usePlanner(startDate: string, endDate: string) {
     createTask,
     createPlannerTask: createTask,
     updateTask,
+    deleteTask,
   };
 }
