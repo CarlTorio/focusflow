@@ -320,6 +320,26 @@ export function PlannerTaskCard({
             {schedule.start_time && ` · ${formatTime12(schedule.start_time)}`}
           </p>
         )}
+
+        {/* Subtask dot progress indicator */}
+        {isProject && totalSteps > 0 && (
+          <div className="mt-1.5 flex items-center gap-1">
+            <div className="flex items-center gap-[3px]">
+              {allSubtasks.map((st) => (
+                <span
+                  key={st.id}
+                  className={cn(
+                    "h-[6px] w-[6px] rounded-full transition-colors",
+                    st.is_completed ? "bg-primary" : "bg-border"
+                  )}
+                />
+              ))}
+            </div>
+            <span className="text-[10px] text-muted-foreground ml-1">
+              {doneSteps}/{totalSteps}
+            </span>
+          </div>
+        )}
       </button>
 
       {/* Notes button — dot indicator when notes exist */}
