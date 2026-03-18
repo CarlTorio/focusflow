@@ -24,7 +24,7 @@ const PRIORITY_DOT: Record<string, string> = {
 
 interface PlannerTaskCardProps {
   schedule: ScheduleWithTask;
-  lockState: "unlocked" | "tomorrow" | "future";
+  lockState: "unlocked" | "tomorrow" | "future" | "past";
   onComplete: (scheduleId: string) => void;
   onOpenFocus?: (scheduleId: string) => void;
   allTodaySchedules?: ScheduleWithTask[];
