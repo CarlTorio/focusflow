@@ -457,7 +457,7 @@ export function usePlanner(startDate: string, endDate: string) {
     },
   });
 
-  // ─── Handle missed task ────────────────────────────────────────────────────
+  // ─── Handle missed task (legacy — now auto-carried, kept for safety) ─────
   const handleMissed = useMutation({
     mutationFn: async ({
       scheduleId,
@@ -466,106 +466,11 @@ export function usePlanner(startDate: string, endDate: string) {
       scheduleId: string;
       action: "tonight" | "adjust" | "skip";
     }) => {
-      const missed = missedQuery.data?.find((s) => s.id === scheduleId);
-      if (!missed) return;
-
-      if (action === "skip") {
-        await supabase
-          .from("task_schedules")
-          .update({ status: "skipped" })
-          .eq("id", scheduleId);
-        return;
-      }
-
-      const todayStr = format(new Date(), "yyyy-MM-dd");
-
-      if (action === "tonight") {
-        await supabase
-          .from("task_schedules")
-          .update({ status: "missed" })
-          .eq("id", scheduleId);
-
-        await supabase.from("task_schedules").insert({
-          task_id: missed.task_id,
-          user_id: missed.user_id,
-          scheduled_date: todayStr,
-          allocated_hours: missed.allocated_hours,
-          start_time: missed.start_time,
-          end_time: missed.end_time,
-          status: "scheduled",
-          is_locked: false,
-          subtask_id: missed.subtask_id || null,
-          display_title: missed.display_title || missed.task?.title || "",
-        });
-      } else if (action === "adjust") {
-        await supabase
-          .from("task_schedules")
-          .update({ status: "missed" })
-          .eq("id", scheduleId);
-
-        const subtaskId = missed.subtask_id;
-
-        if (subtaskId && missed.task) {
-          // For project tasks: reschedule missed + shift remaining
-          // Get all remaining subtasks for this project
-          const { data: allSubtasks } = await supabase
-            .from("subtasks")
-            .select("*")
-            .eq("task_id", missed.task_id)
-            .eq("is_completed", false)
-            .order("order_index", { ascending: true });
-
-          // Delete future scheduled schedules
-          await supabase
-            .from("task_schedules")
-            .delete()
-            .eq("task_id", missed.task_id)
-            .in("status", ["scheduled"])
-            .gte("scheduled_date", todayStr);
-
-          // Redistribute all remaining subtasks from today
-          if (allSubtasks && allSubtasks.length > 0) {
-            const slots = distributeSubtasks(
-              allSubtasks.map((st) => ({ id: st.id, title: st.title })),
-              todayStr,
-              missed.task.due_date
-            );
-
-            const newSchedules = slots.map((slot) => ({
-              task_id: missed.task_id,
-              user_id: missed.user_id,
-              scheduled_date: slot.scheduledDate,
-              allocated_hours: 0,
-              status: "scheduled",
-              is_locked: slot.scheduledDate !== todayStr,
-              display_title: slot.subtaskTitle,
-              subtask_id: slot.subtaskId,
-            }));
-
-            if (newSchedules.length > 0) {
-              await supabase.from("task_schedules").insert(newSchedules as any);
-            }
-          }
-        } else {
-          // Non-project task: just reschedule to today
-          await supabase.from("task_schedules").insert({
-            task_id: missed.task_id,
-            user_id: missed.user_id,
-            scheduled_date: todayStr,
-            allocated_hours: missed.allocated_hours,
-            status: "scheduled",
-            is_locked: false,
-            display_title: missed.display_title || missed.task?.title || "",
-          });
-        }
-      }
+      // No-op since carry-forward handles this automatically
+      return;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["missed_schedules"] });
       queryClient.invalidateQueries({ queryKey: ["planner_schedules"] });
-      queryClient.invalidateQueries({ queryKey: ["progress-today"] });
-      queryClient.invalidateQueries({ queryKey: ["due_soon_tasks"] });
-      toast({ title: "Schedule updated!" });
     },
     onError: (err: Error) => {
       toast({ title: "Error", description: err.message, variant: "destructive" });
