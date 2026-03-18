@@ -1,6 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { format, isToday, isTomorrow, isPast, startOfDay } from "date-fns";
-import { ChevronDown, ChevronRight, ClipboardList, Check, X } from "lucide-react";
+import { ChevronDown, ChevronRight, ClipboardList, Check, X, RotateCcw } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { PlannerTaskCard } from "./PlannerTaskCard";
 import { HighFocusSection } from "./HighFocusSection";
@@ -93,13 +94,35 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
   ).length;
   const totalCompleted = grouped.completed.length;
 
+  // Routine data for past date summary
+  const [routineSummary, setRoutineSummary] = useState<{ completed: string[]; missed: string[] } | null>(null);
+
+  useEffect(() => {
+    if (!showSummary || !isPastDay) return;
+    const dateStr = format(date, "yyyy-MM-dd");
+    (async () => {
+      const { data: routines } = await supabase
+        .from("routines")
+        .select("id, title")
+        .eq("is_active", true);
+      const { data: completions } = await supabase
+        .from("routine_completions")
+        .select("routine_id")
+        .eq("completed_date", dateStr);
+      const completedIds = new Set((completions || []).map(c => c.routine_id));
+      const allRoutines = routines || [];
+      setRoutineSummary({
+        completed: allRoutines.filter(r => completedIds.has(r.id)).map(r => r.title),
+        missed: allRoutines.filter(r => !completedIds.has(r.id)).map(r => r.title),
+      });
+    })();
+  }, [showSummary, isPastDay, date]);
+
   // Summary data for past dates
   const summaryData = useMemo(() => {
     if (!isPastDay) return null;
     
     const completedTasks = activeSchedules.filter(s => s.status === "completed");
-    const skippedTasks = activeSchedules.filter(s => s.status === "skipped");
-    const pendingTasks = activeSchedules.filter(s => s.status !== "completed" && s.status !== "skipped");
     
     // Group completed by priority
     const completedMain = completedTasks.filter(s => {
@@ -125,11 +148,8 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
     return {
       completedMain,
       completedOther,
-      skippedTasks,
-      pendingTasks,
       allSubtasksDone,
       totalCompleted: completedTasks.length,
-      totalScheduled: activeSchedules.length,
     };
   }, [isPastDay, activeSchedules]);
 
@@ -297,15 +317,11 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
               <div className="flex gap-3">
                 <div className="flex-1 rounded-xl bg-primary/10 p-3 text-center">
                   <p className="text-2xl font-bold text-primary">{summaryData.totalCompleted}</p>
-                  <p className="text-[10px] text-muted-foreground font-medium">Completed</p>
+                  <p className="text-[10px] text-muted-foreground font-medium">Tasks Done</p>
                 </div>
-                <div className="flex-1 rounded-xl bg-muted p-3 text-center">
-                  <p className="text-2xl font-bold text-muted-foreground">{summaryData.skippedTasks.length}</p>
-                  <p className="text-[10px] text-muted-foreground font-medium">Skipped</p>
-                </div>
-                <div className="flex-1 rounded-xl bg-muted p-3 text-center">
-                  <p className="text-2xl font-bold text-foreground">{summaryData.totalScheduled}</p>
-                  <p className="text-[10px] text-muted-foreground font-medium">Total</p>
+                <div className="flex-1 rounded-xl bg-primary/10 p-3 text-center">
+                  <p className="text-2xl font-bold text-primary">{summaryData.allSubtasksDone.length}</p>
+                  <p className="text-[10px] text-muted-foreground font-medium">Subtasks Done</p>
                 </div>
               </div>
 
@@ -366,25 +382,31 @@ export function DayColumn({ date, schedules, onComplete, onAddTask, onOpenFocus,
                 </div>
               )}
 
-              {/* Skipped */}
-              {summaryData.skippedTasks.length > 0 && (
+              {/* Daily Routine Summary */}
+              {routineSummary && (routineSummary.completed.length > 0 || routineSummary.missed.length > 0) && (
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <X className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Skipped / Missed</span>
+                    <RotateCcw className="h-3.5 w-3.5 text-foreground" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-foreground">Daily Routine</span>
                   </div>
                   <div className="space-y-1">
-                    {summaryData.skippedTasks.map(s => (
-                      <div key={s.id} className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2">
+                    {routineSummary.completed.map((title, i) => (
+                      <div key={`rc-${i}`} className="flex items-center gap-2 rounded-lg bg-card px-3 py-2">
+                        <Check className="h-3.5 w-3.5 text-primary shrink-0" />
+                        <span className="text-sm text-foreground">{title}</span>
+                      </div>
+                    ))}
+                    {routineSummary.missed.map((title, i) => (
+                      <div key={`rm-${i}`} className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2">
                         <X className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                        <span className="text-sm text-muted-foreground">{s.display_title || s.task?.title}</span>
+                        <span className="text-sm text-muted-foreground">{title}</span>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {summaryData.totalCompleted === 0 && summaryData.skippedTasks.length === 0 && (
+              {summaryData.totalCompleted === 0 && summaryData.allSubtasksDone.length === 0 && (!routineSummary || (routineSummary.completed.length === 0 && routineSummary.missed.length === 0)) && (
                 <p className="text-sm text-muted-foreground text-center py-4">No activity recorded for this day.</p>
               )}
             </div>
