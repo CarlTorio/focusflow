@@ -202,8 +202,9 @@ export default function Planner() {
   // Compute spillover-adjusted schedules
   const schedulesByDate = useMemo(() => {
     const dates: string[] = [];
+    const today = startOfDay(new Date());
     const visibleStart = isMobile ? selectedMobileDay : baseDate;
-    const start = addDays(visibleStart, -1);
+    const start = today < visibleStart ? today : visibleStart;
     const endDate = isMobile ? addDays(selectedMobileDay, 6) : addDays(baseDate, 7);
 
     let cur = start;
