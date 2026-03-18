@@ -160,41 +160,99 @@ export function usePlanner(startDate: string, endDate: string) {
     enabled: !!user,
   });
 
-  // ─── Missed tasks query ────────────────────────────────────────────────────
+  // ─── Auto carry-forward: move yesterday's unfinished to today ────────────
+  const today = format(new Date(), "yyyy-MM-dd");
   const yesterday = format(addDays(new Date(), -1), "yyyy-MM-dd");
-  const missedQuery = useQuery({
-    queryKey: ["missed_schedules", yesterday],
+  const CARRY_KEY = `planner_carried_${today}`;
+
+  const carryForwardQuery = useQuery({
+    queryKey: ["carry_forward", today],
     queryFn: async () => {
-      const { data } = await supabase
+      // Check if we already carried forward today
+      if (localStorage.getItem(CARRY_KEY)) {
+        return { carriedCount: parseInt(localStorage.getItem(CARRY_KEY) || "0", 10) };
+      }
+
+      // Find yesterday's unfinished schedules
+      const { data: missed } = await supabase
         .from("task_schedules")
         .select("*")
         .eq("scheduled_date", yesterday)
         .in("status", ["scheduled", "in_progress"]);
 
-      if (!data || data.length === 0) return [];
-
-      const taskIds = [...new Set(data.map((s) => s.task_id))];
-      const { data: tasks } = await supabase
-        .from("tasks")
-        .select("*")
-        .in("id", taskIds);
-      const taskMap = new Map((tasks || []).map((t) => [t.id, t]));
-
-      const subtaskIds = data.map((s) => s.subtask_id).filter(Boolean) as string[];
-      const subtaskMap = new Map<string, Tables<"subtasks">>();
-      if (subtaskIds.length > 0) {
-        const { data: sts } = await supabase.from("subtasks").select("*").in("id", subtaskIds);
-        (sts || []).forEach((st) => subtaskMap.set(st.id, st));
+      if (!missed || missed.length === 0) {
+        localStorage.setItem(CARRY_KEY, "0");
+        return { carriedCount: 0 };
       }
 
-      return data.map((s) => ({
-        ...s,
-        task: taskMap.get(s.task_id) || null,
-        subtask: s.subtask_id ? subtaskMap.get(s.subtask_id) || null : null,
-      })) as ScheduleWithTask[];
+      // Check which ones are NOT already scheduled for today (avoid duplicates)
+      const missedKeys = missed.map((s) => `${s.task_id}_${s.subtask_id || "null"}`);
+      const { data: existingToday } = await supabase
+        .from("task_schedules")
+        .select("task_id, subtask_id")
+        .eq("scheduled_date", today)
+        .in("status", ["scheduled", "in_progress"]);
+
+      const existingKeys = new Set(
+        (existingToday || []).map((s) => `${s.task_id}_${s.subtask_id || "null"}`)
+      );
+
+      const toCarry = missed.filter(
+        (s) => !existingKeys.has(`${s.task_id}_${s.subtask_id || "null"}`)
+      );
+
+      if (toCarry.length > 0) {
+        // Mark old ones as "carried"
+        await supabase
+          .from("task_schedules")
+          .update({ status: "skipped" } as any)
+          .in("id", toCarry.map((s) => s.id));
+
+        // Create new schedules for today
+        const inserts = toCarry.map((s) => ({
+          task_id: s.task_id,
+          user_id: s.user_id,
+          scheduled_date: today,
+          allocated_hours: s.allocated_hours,
+          start_time: null,
+          end_time: null,
+          status: "scheduled" as const,
+          is_locked: false,
+          subtask_id: s.subtask_id || null,
+          display_title: s.display_title || "",
+        }));
+
+        await supabase.from("task_schedules").insert(inserts);
+
+        // Invalidate schedules so the planner refreshes
+        queryClient.invalidateQueries({ queryKey: ["planner_schedules"] });
+      }
+
+      const carriedCount = toCarry.length;
+      localStorage.setItem(CARRY_KEY, String(carriedCount));
+      return { carriedCount };
     },
     enabled: !!user,
+    staleTime: Infinity, // only run once per session
   });
+
+  // ─── Today's total task count ──────────────────────────────────────────────
+  const todaySummaryQuery = useQuery({
+    queryKey: ["today_summary", today],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("task_schedules")
+        .select("id", { count: "exact", head: true })
+        .eq("scheduled_date", today)
+        .neq("status", "completed")
+        .neq("status", "skipped");
+      return { totalToday: count || 0 };
+    },
+    enabled: !!user && !!carryForwardQuery.data,
+  });
+
+  // Keep missedQuery for backward compat but it returns empty now
+  const missedSchedules: ScheduleWithTask[] = [];
 
   // ─── Due date warnings query ──────────────────────────────────────────────
   const dueSoonQuery = useQuery({
@@ -399,7 +457,7 @@ export function usePlanner(startDate: string, endDate: string) {
     },
   });
 
-  // ─── Handle missed task ────────────────────────────────────────────────────
+  // ─── Handle missed task (legacy — now auto-carried, kept for safety) ─────
   const handleMissed = useMutation({
     mutationFn: async ({
       scheduleId,
@@ -408,106 +466,11 @@ export function usePlanner(startDate: string, endDate: string) {
       scheduleId: string;
       action: "tonight" | "adjust" | "skip";
     }) => {
-      const missed = missedQuery.data?.find((s) => s.id === scheduleId);
-      if (!missed) return;
-
-      if (action === "skip") {
-        await supabase
-          .from("task_schedules")
-          .update({ status: "skipped" })
-          .eq("id", scheduleId);
-        return;
-      }
-
-      const todayStr = format(new Date(), "yyyy-MM-dd");
-
-      if (action === "tonight") {
-        await supabase
-          .from("task_schedules")
-          .update({ status: "missed" })
-          .eq("id", scheduleId);
-
-        await supabase.from("task_schedules").insert({
-          task_id: missed.task_id,
-          user_id: missed.user_id,
-          scheduled_date: todayStr,
-          allocated_hours: missed.allocated_hours,
-          start_time: missed.start_time,
-          end_time: missed.end_time,
-          status: "scheduled",
-          is_locked: false,
-          subtask_id: missed.subtask_id || null,
-          display_title: missed.display_title || missed.task?.title || "",
-        });
-      } else if (action === "adjust") {
-        await supabase
-          .from("task_schedules")
-          .update({ status: "missed" })
-          .eq("id", scheduleId);
-
-        const subtaskId = missed.subtask_id;
-
-        if (subtaskId && missed.task) {
-          // For project tasks: reschedule missed + shift remaining
-          // Get all remaining subtasks for this project
-          const { data: allSubtasks } = await supabase
-            .from("subtasks")
-            .select("*")
-            .eq("task_id", missed.task_id)
-            .eq("is_completed", false)
-            .order("order_index", { ascending: true });
-
-          // Delete future scheduled schedules
-          await supabase
-            .from("task_schedules")
-            .delete()
-            .eq("task_id", missed.task_id)
-            .in("status", ["scheduled"])
-            .gte("scheduled_date", todayStr);
-
-          // Redistribute all remaining subtasks from today
-          if (allSubtasks && allSubtasks.length > 0) {
-            const slots = distributeSubtasks(
-              allSubtasks.map((st) => ({ id: st.id, title: st.title })),
-              todayStr,
-              missed.task.due_date
-            );
-
-            const newSchedules = slots.map((slot) => ({
-              task_id: missed.task_id,
-              user_id: missed.user_id,
-              scheduled_date: slot.scheduledDate,
-              allocated_hours: 0,
-              status: "scheduled",
-              is_locked: slot.scheduledDate !== todayStr,
-              display_title: slot.subtaskTitle,
-              subtask_id: slot.subtaskId,
-            }));
-
-            if (newSchedules.length > 0) {
-              await supabase.from("task_schedules").insert(newSchedules as any);
-            }
-          }
-        } else {
-          // Non-project task: just reschedule to today
-          await supabase.from("task_schedules").insert({
-            task_id: missed.task_id,
-            user_id: missed.user_id,
-            scheduled_date: todayStr,
-            allocated_hours: missed.allocated_hours,
-            status: "scheduled",
-            is_locked: false,
-            display_title: missed.display_title || missed.task?.title || "",
-          });
-        }
-      }
+      // No-op since carry-forward handles this automatically
+      return;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["missed_schedules"] });
       queryClient.invalidateQueries({ queryKey: ["planner_schedules"] });
-      queryClient.invalidateQueries({ queryKey: ["progress-today"] });
-      queryClient.invalidateQueries({ queryKey: ["due_soon_tasks"] });
-      toast({ title: "Schedule updated!" });
     },
     onError: (err: Error) => {
       toast({ title: "Error", description: err.message, variant: "destructive" });
@@ -852,8 +815,10 @@ export function usePlanner(startDate: string, endDate: string) {
   return {
     schedules: schedulesQuery.data || [],
     isLoading: schedulesQuery.isLoading,
-    missedSchedules: missedQuery.data || [],
+    missedSchedules,
     dueSoonTasks: dueSoonQuery.data || [],
+    carriedCount: carryForwardQuery.data?.carriedCount || 0,
+    totalToday: todaySummaryQuery.data?.totalToday || 0,
     completeSchedule,
     completeSubtaskDirect,
     handleMissed,
