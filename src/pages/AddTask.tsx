@@ -482,7 +482,7 @@ export default function AddTask() {
   const tabs = [
     { id: "project" as const, label: "Project" },
     { id: "routine" as const, label: "Routine" },
-    { id: "simple" as const, label: "Quick" },
+    { id: "quick" as const, label: "Quick" },
   ];
 
   const handleSaveTask = (input: CreateTaskInput) => {
