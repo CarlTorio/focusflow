@@ -210,6 +210,7 @@ export function HighFocusSection({
                     onEdit={onEdit}
                     onViewNotes={onViewNotes}
                     onSwitchFocus={handleSwitchFocus}
+                    onUpdateStatus={onUpdateStatus}
                   />
                 </div>
               ))}
