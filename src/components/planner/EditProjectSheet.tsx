@@ -41,7 +41,7 @@ interface EditProjectSheetProps {
 
 export function EditProjectSheet({ open, onOpenChange, task, onSave, onDelete, isSaving }: EditProjectSheetProps) {
   const [title, setTitle] = useState(task.title);
-  const [priority, setPriority] = useState(task.priority === "none" ? "low" : task.priority);
+  const [priority, setPriority] = useState(task.priority === "high" ? "high" : "medium");
   const [dueDate, setDueDate] = useState<Date>(parseISO(task.due_date));
   const [description, setDescription] = useState(task.description || "");
   const [showNotes, setShowNotes] = useState(false);
