@@ -145,7 +145,7 @@ export function AlarmProvider({ children }: { children: ReactNode }) {
   }, [firingAlarm, queryClient]);
 
   const snooze = useCallback(() => {
-    stopCustomSound();
+    stopAlarmSound();
     if (!firingAlarm) return;
     const alarm = firingAlarm.alarm;
     if (alarm.snooze_count >= alarm.max_snoozes) {

@@ -240,7 +240,7 @@ export function CreateAlarmModal({ open, onClose }: CreateAlarmModalProps) {
               {SOUND_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
-                  onClick={() => setSoundType(opt.value as SoundType)}
+                  onClick={() => setSoundType(opt.value)}
                   className={cn(
                     "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors",
                     soundType === opt.value
