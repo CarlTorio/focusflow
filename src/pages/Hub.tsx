@@ -1,7 +1,5 @@
 import { MobileHeader } from "@/components/navigation/MobileHeader";
 import { ProfileHero } from "@/components/hub/ProfileHero";
-import { MoodCheckCard } from "@/components/hub/MoodCheckCard";
-import { ProgressToday } from "@/components/hub/ProgressToday";
 import { PerformanceAnalytics } from "@/components/hub/PerformanceAnalytics";
 import { MoodTimeline } from "@/components/hub/MoodTimeline";
 import { MoodInsights } from "@/components/hub/MoodInsights";
@@ -14,8 +12,6 @@ export default function Hub() {
       <MobileHeader title="Today" />
       <ProfileHero />
       <div className="mx-auto max-w-2xl space-y-6 px-4 py-6">
-        <MoodCheckCard />
-        <ProgressToday />
         <PerformanceAnalytics />
         <MoodTimeline />
         <MoodInsights />
