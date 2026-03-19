@@ -14,6 +14,7 @@ export function ProfileSection() {
   const { profile, refreshProfile } = useAuth();
   const [firstName, setFirstName] = useState(profile?.first_name || "");
   const [lastName, setLastName] = useState(profile?.last_name || "");
+  const [nickname, setNickname] = useState(profile?.nickname || "");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -29,7 +30,7 @@ export function ProfileSection() {
 
     const { error } = await supabase
       .from("profiles")
-      .update({ first_name: firstName, last_name: lastName, avatar_url: selectedAvatar })
+      .update({ first_name: firstName, last_name: lastName, nickname, avatar_url: selectedAvatar })
       .eq("id", profile.id);
 
     if (error) toast.error("Failed to update profile");
@@ -90,6 +91,11 @@ export function ProfileSection() {
           </div>
 
           <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Nickname</Label>
+            <Input value={nickname} onChange={e => setNickname(e.target.value)} placeholder="What should we call you?" className="rounded-xl" />
+          </div>
+
+          <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">Email Address</Label>
             <Input value={profile?.email || ""} readOnly className="rounded-xl bg-muted text-muted-foreground" />
           </div>
@@ -118,7 +124,7 @@ export function ProfileSection() {
             />
           </div>
 
-          <Button onClick={handleSaveProfile} disabled={saving} className="w-full rounded-xl">
+          <Button type="button" onClick={handleSaveProfile} disabled={saving || !profile} className="w-full rounded-xl">
             {saving ? "Saving..." : "Save Profile"}
           </Button>
         </CardContent>
