@@ -107,9 +107,9 @@ function BottomSheet({
         <div className="px-6 pt-6 pb-2">
           <h3 className="text-lg font-semibold text-foreground">{title}</h3>
         </div>
-        <div className="max-h-[60vh] overflow-y-auto px-6">{children}</div>
+        <div className="max-h-[60vh] overflow-y-auto px-6 pb-4">{children}</div>
         {actions && (
-          <div className="flex items-center justify-end gap-6 border-t border-border px-6 py-4 pb-20 md:pb-4">
+          <div className="flex items-center justify-end gap-6 px-6 py-4 pb-20 md:pb-4">
             {actions}
           </div>
         )}
