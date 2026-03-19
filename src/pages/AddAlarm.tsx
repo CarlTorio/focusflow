@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAlarms } from "@/hooks/useAlarms";
 import { SOUND_OPTIONS, previewSound, stopAlarmSound } from "@/lib/alarmSounds";
-import { X, Check, ChevronRight, ArrowLeft } from "lucide-react";
+import { X, Check, ChevronRight, ArrowLeft, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Slider } from "@/components/ui/slider";
