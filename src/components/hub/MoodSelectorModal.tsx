@@ -84,7 +84,7 @@ export function MoodSelectorModal({ open, onClose }: { open: boolean; onClose: (
   return (
     <>
       <div className="fixed inset-0 z-50 bg-foreground/30" onClick={handleClose} />
-      <div className="fixed bottom-0 left-0 right-0 z-50 max-h-[80vh] overflow-y-auto rounded-t-3xl bg-card p-6 shadow-lg md:bottom-auto md:left-1/2 md:top-1/2 md:max-w-lg md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl">
+      <div className="fixed bottom-0 left-0 right-0 z-50 max-h-[80vh] overflow-y-auto rounded-t-3xl bg-card p-6 pb-24 shadow-lg md:bottom-auto md:left-1/2 md:top-1/2 md:max-w-lg md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl md:pb-6">
         <div className="mb-4 flex items-center justify-between">
           <div>
             <p className="text-xs font-medium text-primary">Mood Tracking</p>
