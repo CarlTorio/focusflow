@@ -6,17 +6,6 @@ import { Switch } from "@/components/ui/switch";
 import { Bell, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { toast } from "sonner";
 
 function LiveClock() {
   const [now, setNow] = useState(new Date());
