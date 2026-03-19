@@ -1,7 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { DecorativeShapes } from "@/components/DecorativeShapes";
-import wavingAvatar from "@/assets/waving-avatar.png";
+import { getAvatarById } from "@/lib/avatars";
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -13,7 +13,9 @@ function getGreeting() {
 export function ProfileHero() {
   const { profile } = useAuth();
 
-  const firstName = profile?.first_name || "User";
+  const displayName = profile?.nickname || profile?.first_name || "User";
+  const avatarId = profile?.avatar_url; // We store avatar_id in avatar_url field
+  const avatar = getAvatarById(avatarId);
 
   return (
     <div className="relative overflow-hidden bg-primary-light px-4 pb-8 pt-6">
@@ -21,13 +23,13 @@ export function ProfileHero() {
       <div className="relative z-10 flex flex-col items-center text-center">
         <div className="mb-2">
           <img
-            src={wavingAvatar}
-            alt="Waving avatar"
+            src={avatar.src}
+            alt="Your avatar"
             className="h-24 w-24 object-contain"
           />
         </div>
         <h2 className="text-lg font-bold text-foreground">
-          {getGreeting()}, {firstName}! 👋
+          {getGreeting()}, {displayName}! 👋
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">Welcome back</p>
         <span className="mt-3 rounded-full bg-primary-light px-4 py-1.5 text-xs font-medium text-primary-dark">
