@@ -20,6 +20,7 @@ import Hub from "./pages/Hub";
 import Planner from "./pages/Planner";
 import AddTask from "./pages/AddTask";
 import Alarm from "./pages/Alarm";
+import AddAlarm from "./pages/AddAlarm";
 import Notes from "./pages/Notes";
 import Breathing from "./pages/Breathing";
 import SettingsPage from "./pages/SettingsPage";
