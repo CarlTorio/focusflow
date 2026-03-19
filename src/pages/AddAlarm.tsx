@@ -380,7 +380,7 @@ export default function AddAlarm() {
         <button onClick={() => navigate("/alarm")} className="text-foreground p-1">
           <X className="h-6 w-6" />
         </button>
-        <span className="text-base font-semibold text-foreground">Add alarm</span>
+        <span className="text-base font-semibold text-foreground">{isEdit ? "Edit alarm" : "Add alarm"}</span>
         <button
           onClick={handleSave}
           disabled={saving}
