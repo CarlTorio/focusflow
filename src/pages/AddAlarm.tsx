@@ -195,22 +195,50 @@ const RING_DURATION_OPTIONS = [
 
 export default function AddAlarm() {
   const navigate = useNavigate();
-  const { createAlarm } = useAlarms();
+  const { id: editId } = useParams<{ id: string }>();
+  const { alarms, createAlarm, updateAlarm } = useAlarms();
+  const isEdit = !!editId;
+  const editAlarm = isEdit ? alarms.find((a) => a.id === editId) : null;
 
   const hours12 = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0"));
   const minutes60 = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"));
   const periods = ["am", "pm"];
 
-  const [hourIdx, setHourIdx] = useState(8);
-  const [minIdx, setMinIdx] = useState(0);
-  const [periodIdx, setPeriodIdx] = useState(0);
+  // Compute initial values from editAlarm
+  const getInitialValues = () => {
+    if (editAlarm) {
+      const d = new Date(editAlarm.alarm_time);
+      const h = d.getHours();
+      const h12Val = h % 12 || 12;
+      return {
+        hourIdx: h12Val - 1,
+        minIdx: d.getMinutes(),
+        periodIdx: h >= 12 ? 1 : 0,
+        customDays: editAlarm.recurrence_days || [],
+        soundType: editAlarm.sound_type || "alarm-1",
+        label: editAlarm.title || "Alarm",
+        snoozeMins: editAlarm.snooze_duration_minutes || 5,
+        snoozeCount: editAlarm.max_snoozes || 3,
+      };
+    }
+    return {
+      hourIdx: 8, minIdx: 0, periodIdx: 0,
+      customDays: [] as number[], soundType: "alarm-1",
+      label: "Alarm", snoozeMins: 5, snoozeCount: 3,
+    };
+  };
+
+  const init = getInitialValues();
+  const [hourIdx, setHourIdx] = useState(init.hourIdx);
+  const [minIdx, setMinIdx] = useState(init.minIdx);
+  const [periodIdx, setPeriodIdx] = useState(init.periodIdx);
 
   // Settings
-  const [customDays, setCustomDays] = useState<number[]>([]);
-  const [soundType, setSoundType] = useState("alarm-1");
-  const [label, setLabel] = useState("Alarm");
-  const [snoozeMins, setSnoozeMins] = useState(5);
-  const [snoozeCount, setSnoozeCount] = useState(3);
+  const [customDays, setCustomDays] = useState<number[]>(init.customDays);
+  const [soundType, setSoundType] = useState(init.soundType);
+  const [label, setLabel] = useState(init.label);
+  const [snoozeMins, setSnoozeMins] = useState(init.snoozeMins);
+  const [snoozeCount, setSnoozeCount] = useState(init.snoozeCount);
   const [ringDuration, setRingDuration] = useState(5);
   const [saving, setSaving] = useState(false);
 
@@ -248,22 +276,37 @@ export default function AddAlarm() {
 
       const isRecurring = customDays.length > 0;
 
-      await createAlarm.mutateAsync({
-        title: label.trim() || "Alarm",
-        alarm_type: "custom",
-        alarm_time: alarmDate.toISOString(),
-        sound_type: soundType,
-        is_recurring: isRecurring,
-        recurrence_pattern: isRecurring ? "custom" : undefined,
-        recurrence_days: isRecurring ? customDays : undefined,
-        snooze_duration_minutes: snoozeMins,
-        max_snoozes: snoozeCount,
-      });
+      if (isEdit && editId) {
+        await updateAlarm.mutateAsync({
+          id: editId,
+          title: label.trim() || "Alarm",
+          alarm_time: alarmDate.toISOString(),
+          sound_type: soundType,
+          is_recurring: isRecurring,
+          recurrence_pattern: isRecurring ? "custom" : null,
+          recurrence_days: isRecurring ? customDays : null,
+          snooze_duration_minutes: snoozeMins,
+          max_snoozes: snoozeCount,
+        } as any);
+        toast.success("Alarm updated!");
+      } else {
+        await createAlarm.mutateAsync({
+          title: label.trim() || "Alarm",
+          alarm_type: "custom",
+          alarm_time: alarmDate.toISOString(),
+          sound_type: soundType,
+          is_recurring: isRecurring,
+          recurrence_pattern: isRecurring ? "custom" : undefined,
+          recurrence_days: isRecurring ? customDays : undefined,
+          snooze_duration_minutes: snoozeMins,
+          max_snoozes: snoozeCount,
+        });
+        toast.success("Alarm set!");
+      }
 
-      toast.success("Alarm set!");
       navigate("/alarm");
     } catch (err: any) {
-      toast.error(err.message || "Failed to set alarm");
+      toast.error(err.message || "Failed to save alarm");
     } finally {
       setSaving(false);
     }
