@@ -386,7 +386,7 @@ export default function Planner() {
           {showFabHint && (
             <div className="absolute bottom-16 right-0 mb-2 w-48 animate-bounce">
               <div className="relative rounded-xl bg-primary px-4 py-2 text-xs font-medium text-primary-foreground shadow-lg">
-                Tap here to add a task! ✨
+                Tap here to add a task!
                 <div className="absolute -bottom-1.5 right-5 h-3 w-3 rotate-45 bg-primary" />
               </div>
             </div>
