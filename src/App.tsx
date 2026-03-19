@@ -25,6 +25,7 @@ import Notes from "./pages/Notes";
 import Breathing from "./pages/Breathing";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
+import AdminDashboard from "./pages/AdminDashboard";
 
 import { initOfflineSync } from "@/lib/offlineStorage";
 
