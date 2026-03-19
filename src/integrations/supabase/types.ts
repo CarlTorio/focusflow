@@ -155,7 +155,6 @@ export type Database = {
           first_name: string | null
           id: string
           last_name: string | null
-          nickname: string | null
           nudge_enabled: boolean | null
           nudge_frequency: string | null
           onboarding_completed: boolean | null
@@ -172,7 +171,6 @@ export type Database = {
           first_name?: string | null
           id: string
           last_name?: string | null
-          nickname?: string | null
           nudge_enabled?: boolean | null
           nudge_frequency?: string | null
           onboarding_completed?: boolean | null
@@ -189,7 +187,6 @@ export type Database = {
           first_name?: string | null
           id?: string
           last_name?: string | null
-          nickname?: string | null
           nudge_enabled?: boolean | null
           nudge_frequency?: string | null
           onboarding_completed?: boolean | null
