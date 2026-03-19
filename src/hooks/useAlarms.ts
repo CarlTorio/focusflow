@@ -76,8 +76,17 @@ export function useAlarms() {
       if (error) throw error;
       return data as Alarm;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["alarms"] });
+      // Schedule native notification
+      if (isNativePlatform() && data) {
+        scheduleAlarmNotification({
+          id: data.id,
+          title: data.title,
+          alarm_time: data.alarm_time,
+          sound_type: data.sound_type,
+        });
+      }
     },
   });
 
