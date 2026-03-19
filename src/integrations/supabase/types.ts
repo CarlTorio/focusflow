@@ -481,15 +481,98 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      admin_user_stats: {
+        Row: {
+          avatar_url: string | null
+          completed_tasks: number | null
+          created_at: string | null
+          display_name: string | null
+          email: string | null
+          first_name: string | null
+          id: string | null
+          last_activity: string | null
+          last_name: string | null
+          nickname: string | null
+          onboarding_completed: boolean | null
+          theme_mode: string | null
+          total_alarms: number | null
+          total_mood_entries: number | null
+          total_notes: number | null
+          total_tasks: number | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          completed_tasks?: never
+          created_at?: string | null
+          display_name?: string | null
+          email?: string | null
+          first_name?: string | null
+          id?: string | null
+          last_activity?: never
+          last_name?: string | null
+          nickname?: string | null
+          onboarding_completed?: boolean | null
+          theme_mode?: string | null
+          total_alarms?: never
+          total_mood_entries?: never
+          total_notes?: never
+          total_tasks?: never
+        }
+        Update: {
+          avatar_url?: string | null
+          completed_tasks?: never
+          created_at?: string | null
+          display_name?: string | null
+          email?: string | null
+          first_name?: string | null
+          id?: string | null
+          last_activity?: never
+          last_name?: string | null
+          nickname?: string | null
+          onboarding_completed?: boolean | null
+          theme_mode?: string | null
+          total_alarms?: never
+          total_mood_entries?: never
+          total_notes?: never
+          total_tasks?: never
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -616,6 +699,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const

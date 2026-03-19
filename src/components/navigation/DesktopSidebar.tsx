@@ -1,9 +1,10 @@
 import {
   Home, CalendarDays, Bell, FileText,
-  Settings,
+  Settings, ShieldCheck,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAdmin } from "@/hooks/useAdmin";
 
 const mainNav = [
   { label: "Hub", icon: Home, to: "/hub" },
@@ -18,6 +19,7 @@ const secondaryNav = [
 
 export function DesktopSidebar() {
   const { profile } = useAuth();
+  const { isAdmin } = useAdmin();
   const initials = profile
     ? `${(profile.first_name || "")[0] || ""}${(profile.last_name || "")[0] || ""}`.toUpperCase()
     : "?";
@@ -54,6 +56,20 @@ export function DesktopSidebar() {
         ))}
 
         <div className="my-2 h-px w-8 bg-border" />
+
+        {isAdmin && (
+          <NavLink
+            to="/admin"
+            className={({ isActive }) =>
+              `flex w-14 flex-col items-center gap-0.5 rounded-xl py-2 text-[10px] transition-colors ${
+                isActive ? "text-primary bg-primary-light font-semibold" : "text-muted-foreground hover:bg-secondary"
+              }`
+            }
+          >
+            <ShieldCheck className="h-5 w-5" />
+            <span>Admin</span>
+          </NavLink>
+        )}
 
         {secondaryNav.map((item) => (
           <NavLink

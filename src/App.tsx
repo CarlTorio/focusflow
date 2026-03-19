@@ -25,6 +25,7 @@ import Notes from "./pages/Notes";
 import Breathing from "./pages/Breathing";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
+import AdminDashboard from "./pages/AdminDashboard";
 
 import { initOfflineSync } from "@/lib/offlineStorage";
 
@@ -76,6 +77,7 @@ const App = () => (
                     <Route path="/notes" element={<Notes />} />
                     <Route path="/breathing" element={<Breathing />} />
                     <Route path="/settings" element={<SettingsPage />} />
+                    <Route path="/admin" element={<AdminDashboard />} />
                   </Route>
                   <Route path="/" element={<Navigate to="/hub" replace />} />
                   <Route path="*" element={<NotFound />} />
