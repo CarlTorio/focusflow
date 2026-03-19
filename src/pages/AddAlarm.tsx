@@ -196,7 +196,7 @@ const RING_DURATION_OPTIONS = [
 export default function AddAlarm() {
   const navigate = useNavigate();
   const { id: editId } = useParams<{ id: string }>();
-  const { alarms, createAlarm, updateAlarm } = useAlarms();
+  const { alarms, createAlarm, updateAlarm, deleteAlarm } = useAlarms();
   const isEdit = !!editId;
   const editAlarm = isEdit ? alarms.find((a) => a.id === editId) : null;
 
