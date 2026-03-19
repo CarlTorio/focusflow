@@ -95,6 +95,7 @@ function AlarmRow({
 }
 
 export default function Alarm() {
+  const [showInlineForm, setShowInlineForm] = useState(false);
   const navigate = useNavigate();
   const { alarms, updateAlarm } = useAlarms();
 
