@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState, useCallback, ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
-import { playAlarmSound, stopCustomSound } from "@/lib/alarmSounds";
+import { playAlarmSound, stopAlarmSound } from "@/lib/alarmSounds";
 import { Alarm } from "@/hooks/useAlarms";
 import { useQueryClient } from "@tanstack/react-query";
 
