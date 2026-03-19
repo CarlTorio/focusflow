@@ -43,6 +43,26 @@ export function QuickTasksSection({ date, readOnly = false }: QuickTasksSectionP
   const addTask = useMutation({
     mutationFn: async (title: string) => {
       if (!user) throw new Error("Not authenticated");
+      const newTask = {
+        id: crypto.randomUUID(),
+        title,
+        user_id: user.id,
+        created_date: dateStr,
+        is_completed: false,
+        created_at: new Date().toISOString(),
+      };
+
+      if (!isOnline()) {
+        await addPendingMutation({
+          table: "quick_tasks",
+          operation: "insert",
+          data: newTask,
+        });
+        const cached = await getCachedData<any[]>(cacheKey) || [];
+        await setCachedData(cacheKey, [...cached, newTask]);
+        return;
+      }
+
       const { error } = await supabase.from("quick_tasks").insert({
         title,
         user_id: user.id,
