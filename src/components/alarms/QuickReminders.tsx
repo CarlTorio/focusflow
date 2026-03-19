@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { isOnline, addPendingMutation, getCachedData, setCachedData } from "@/lib/offlineStorage";
 import { Plus, Check, Bell, Trash2, StickyNote, CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -49,23 +50,52 @@ export function QuickReminders() {
   const [customMin, setCustomMin] = useState("00");
   const [customPeriod, setCustomPeriod] = useState<"AM" | "PM">("AM");
 
+  const reminderCacheKey = `reminder_notes_${user?.id}`;
+
   const { data: notes = [] } = useQuery({
     queryKey: ["reminder_notes", user?.id],
     queryFn: async () => {
+      if (!isOnline()) {
+        const cached = await getCachedData<ReminderNote[]>(reminderCacheKey);
+        return cached || [];
+      }
       const { data, error } = await supabase
         .from("reminder_notes")
         .select("*")
         .eq("user_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
+      await setCachedData(reminderCacheKey, data);
       return data as ReminderNote[];
     },
     enabled: !!user,
+    retry: isOnline() ? 3 : 0,
   });
 
   const addNote = useMutation({
     mutationFn: async (title: string) => {
       if (!user) throw new Error("Not authenticated");
+      const newNote = {
+        id: crypto.randomUUID(),
+        user_id: user.id,
+        title,
+        is_done: false,
+        linked_alarm_id: null,
+        notify_schedule: null,
+        created_at: new Date().toISOString(),
+      };
+
+      if (!isOnline()) {
+        await addPendingMutation({
+          table: "reminder_notes",
+          operation: "insert",
+          data: newNote,
+        });
+        const cached = await getCachedData<ReminderNote[]>(reminderCacheKey) || [];
+        await setCachedData(reminderCacheKey, [newNote, ...cached]);
+        return;
+      }
+
       const { error } = await supabase.from("reminder_notes").insert({
         user_id: user.id,
         title,
@@ -81,6 +111,18 @@ export function QuickReminders() {
 
   const toggleDone = useMutation({
     mutationFn: async ({ id, is_done }: { id: string; is_done: boolean }) => {
+      if (!isOnline()) {
+        await addPendingMutation({
+          table: "reminder_notes",
+          operation: "update",
+          data: { is_done },
+          matchColumn: "id",
+          matchValue: id,
+        });
+        const cached = await getCachedData<ReminderNote[]>(reminderCacheKey) || [];
+        await setCachedData(reminderCacheKey, cached.map((n) => (n.id === id ? { ...n, is_done } : n)));
+        return;
+      }
       const { error } = await supabase
         .from("reminder_notes")
         .update({ is_done } as any)
@@ -92,6 +134,18 @@ export function QuickReminders() {
 
   const deleteNote = useMutation({
     mutationFn: async (id: string) => {
+      if (!isOnline()) {
+        await addPendingMutation({
+          table: "reminder_notes",
+          operation: "delete",
+          data: {},
+          matchColumn: "id",
+          matchValue: id,
+        });
+        const cached = await getCachedData<ReminderNote[]>(reminderCacheKey) || [];
+        await setCachedData(reminderCacheKey, cached.filter((n) => n.id !== id));
+        return;
+      }
       const { error } = await supabase.from("reminder_notes").delete().eq("id", id);
       if (error) throw error;
     },

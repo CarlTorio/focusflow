@@ -26,7 +26,14 @@ import Breathing from "./pages/Breathing";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 
+import { initOfflineSync } from "@/lib/offlineStorage";
+
 const queryClient = new QueryClient();
+
+// Initialize offline sync - will auto-sync pending mutations when back online
+initOfflineSync(() => {
+  queryClient.invalidateQueries();
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

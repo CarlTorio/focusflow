@@ -1,9 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
+import { isOnline, addPendingMutation, getCachedData, setCachedData } from "@/lib/offlineStorage";
 import type { Tables } from "@/integrations/supabase/types";
 
 export type Note = Tables<"notes">;
+
+const CACHE_KEY = "notes";
 
 export function useNotes() {
   const { user } = useAuth();
@@ -12,6 +15,10 @@ export function useNotes() {
   const notesQuery = useQuery({
     queryKey: ["notes", user?.id],
     queryFn: async () => {
+      if (!isOnline()) {
+        const cached = await getCachedData<Note[]>(CACHE_KEY + "_" + user!.id);
+        return (cached || []).filter((n) => !n.is_archived);
+      }
       const { data, error } = await supabase
         .from("notes")
         .select("*")
@@ -19,27 +26,63 @@ export function useNotes() {
         .eq("is_archived", false)
         .order("updated_at", { ascending: false });
       if (error) throw error;
-      return data as Note[];
+      const notes = data as Note[];
+      await setCachedData(CACHE_KEY + "_" + user!.id, notes);
+      return notes;
     },
     enabled: !!user,
+    retry: isOnline() ? 3 : 0,
   });
 
   const allNotesQuery = useQuery({
     queryKey: ["notes-all", user?.id],
     queryFn: async () => {
+      if (!isOnline()) {
+        const cached = await getCachedData<Note[]>(CACHE_KEY + "_all_" + user!.id);
+        return cached || [];
+      }
       const { data, error } = await supabase
         .from("notes")
         .select("*")
         .eq("user_id", user!.id)
         .order("updated_at", { ascending: false });
       if (error) throw error;
-      return data as Note[];
+      const notes = data as Note[];
+      await setCachedData(CACHE_KEY + "_all_" + user!.id, notes);
+      return notes;
     },
     enabled: !!user,
+    retry: isOnline() ? 3 : 0,
   });
 
   const createNote = useMutation({
     mutationFn: async (params: { title?: string; folder?: string }) => {
+      const newNote: any = {
+        id: crypto.randomUUID(),
+        user_id: user!.id,
+        title: params.title || "Untitled",
+        folder: params.folder || "General",
+        content: null,
+        is_starred: false,
+        is_archived: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      if (!isOnline()) {
+        await addPendingMutation({
+          table: "notes",
+          operation: "insert",
+          data: newNote,
+        });
+        // Update caches
+        const cached = await getCachedData<Note[]>(CACHE_KEY + "_" + user!.id) || [];
+        await setCachedData(CACHE_KEY + "_" + user!.id, [newNote, ...cached]);
+        const cachedAll = await getCachedData<Note[]>(CACHE_KEY + "_all_" + user!.id) || [];
+        await setCachedData(CACHE_KEY + "_all_" + user!.id, [newNote, ...cachedAll]);
+        return newNote as Note;
+      }
+
       const { data, error } = await supabase
         .from("notes")
         .insert({
@@ -61,6 +104,27 @@ export function useNotes() {
   const updateNote = useMutation({
     mutationFn: async (params: { id: string; title?: string; content?: string; folder?: string; is_starred?: boolean; is_archived?: boolean }) => {
       const { id, ...updates } = params;
+
+      if (!isOnline()) {
+        await addPendingMutation({
+          table: "notes",
+          operation: "update",
+          data: { ...updates, updated_at: new Date().toISOString() },
+          matchColumn: "id",
+          matchValue: id,
+        });
+
+        // Update caches optimistically
+        const patchFn = (notes: Note[]) =>
+          notes.map((n) => (n.id === id ? { ...n, ...updates, updated_at: new Date().toISOString() } : n));
+        const cached = await getCachedData<Note[]>(CACHE_KEY + "_" + user!.id);
+        if (cached) await setCachedData(CACHE_KEY + "_" + user!.id, patchFn(cached));
+        const cachedAll = await getCachedData<Note[]>(CACHE_KEY + "_all_" + user!.id);
+        if (cachedAll) await setCachedData(CACHE_KEY + "_all_" + user!.id, patchFn(cachedAll));
+
+        return { id, ...updates } as unknown as Note;
+      }
+
       const { data, error } = await supabase
         .from("notes")
         .update(updates)
@@ -72,15 +136,12 @@ export function useNotes() {
     },
     onMutate: async (params) => {
       const { id, ...updates } = params;
-      // Cancel any in-flight refetches so they don't overwrite our optimistic update
       await queryClient.cancelQueries({ queryKey: ["notes", user?.id] });
       await queryClient.cancelQueries({ queryKey: ["notes-all", user?.id] });
 
-      // Snapshot previous values for rollback
       const prevNotes = queryClient.getQueryData<Note[]>(["notes", user?.id]);
       const prevAllNotes = queryClient.getQueryData<Note[]>(["notes-all", user?.id]);
 
-      // Optimistically patch the cache instantly
       const patchNote = (note: Note) =>
         note.id === id ? { ...note, ...updates } : note;
 
@@ -94,7 +155,6 @@ export function useNotes() {
       return { prevNotes, prevAllNotes };
     },
     onError: (_err, _params, context) => {
-      // Roll back on error
       if (context?.prevNotes) queryClient.setQueryData(["notes", user?.id], context.prevNotes);
       if (context?.prevAllNotes) queryClient.setQueryData(["notes-all", user?.id], context.prevAllNotes);
     },
@@ -106,10 +166,22 @@ export function useNotes() {
 
   const deleteNote = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("notes")
-        .delete()
-        .eq("id", id);
+      if (!isOnline()) {
+        await addPendingMutation({
+          table: "notes",
+          operation: "delete",
+          data: {},
+          matchColumn: "id",
+          matchValue: id,
+        });
+        const cached = await getCachedData<Note[]>(CACHE_KEY + "_" + user!.id);
+        if (cached) await setCachedData(CACHE_KEY + "_" + user!.id, cached.filter((n) => n.id !== id));
+        const cachedAll = await getCachedData<Note[]>(CACHE_KEY + "_all_" + user!.id);
+        if (cachedAll) await setCachedData(CACHE_KEY + "_all_" + user!.id, cachedAll.filter((n) => n.id !== id));
+        return;
+      }
+
+      const { error } = await supabase.from("notes").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
