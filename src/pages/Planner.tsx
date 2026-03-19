@@ -381,13 +381,26 @@ export default function Planner() {
           )}
         </div>
 
-        {/* FAB */}
-        <button
-          onClick={() => openAddTask()}
-          className="fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-110 active:scale-95 md:bottom-6"
-        >
-          <Plus className="h-6 w-6" />
-        </button>
+        {/* FAB with hint tooltip */}
+        <div className="fixed bottom-24 right-4 z-40 md:bottom-6">
+          {showFabHint && (
+            <div className="absolute bottom-16 right-0 mb-2 w-48 animate-bounce">
+              <div className="relative rounded-xl bg-primary px-4 py-2 text-xs font-medium text-primary-foreground shadow-lg">
+                Tap here to add a task! ✨
+                <div className="absolute -bottom-1.5 right-5 h-3 w-3 rotate-45 bg-primary" />
+              </div>
+            </div>
+          )}
+          <button
+            onClick={() => {
+              dismissFabHint();
+              openAddTask();
+            }}
+            className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-110 active:scale-95"
+          >
+            <Plus className="h-6 w-6" />
+          </button>
+        </div>
       </div>
     </>
   );
