@@ -1,13 +1,15 @@
-import { useAlarmContext } from "@/contexts/AlarmContext";
+import { useAlarmContextSafe } from "@/contexts/AlarmContext";
 import { Bell, X, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
 export function AlarmNotificationBanner() {
-  const { firingAlarm, dismiss, snooze } = useAlarmContext();
+  const ctx = useAlarmContextSafe();
 
-  if (!firingAlarm) return null;
+  if (!ctx || !ctx.firingAlarm) return null;
+
+  const { firingAlarm, dismiss, snooze } = ctx;
 
   const alarm = firingAlarm.alarm;
   const canSnooze = alarm.snooze_count < alarm.max_snoozes;
