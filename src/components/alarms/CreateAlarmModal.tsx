@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { useAlarms, SoundType } from "@/hooks/useAlarms";
+import { useAlarms } from "@/hooks/useAlarms";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { previewSound, SOUND_OPTIONS, stopAlarmSound } from "@/lib/alarmSounds";
