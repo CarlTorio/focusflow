@@ -1,6 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  scheduleAlarmNotification,
+  cancelAlarmNotification,
+  isNativePlatform,
+} from "@/lib/nativeNotifications";
 
 export interface Alarm {
   id: string;
