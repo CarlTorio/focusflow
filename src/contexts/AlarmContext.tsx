@@ -4,6 +4,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { playAlarmSound, stopAlarmSound } from "@/lib/alarmSounds";
 import { Alarm } from "@/hooks/useAlarms";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  initializeNativeNotifications,
+  onNotificationAction,
+  isNativePlatform,
+  scheduleAlarmNotification,
+  cancelAlarmNotification,
+} from "@/lib/nativeNotifications";
 
 interface FiringAlarm {
   alarm: Alarm;
@@ -101,6 +108,60 @@ export function AlarmProvider({ children }: { children: ReactNode }) {
       }
     }
   }, [user, firingAlarm, isInQuietHours]);
+
+  // Initialize native notifications on mount
+  useEffect(() => {
+    if (!user) return;
+    
+    if (isNativePlatform()) {
+      initializeNativeNotifications();
+      
+      // Listen for snooze/dismiss from native notification actions
+      onNotificationAction(({ actionId, alarmId }) => {
+        if (actionId === "snooze") {
+          // Find the alarm and snooze it
+          supabase
+            .from("alarms")
+            .select("*")
+            .eq("id", alarmId)
+            .single()
+            .then(({ data }) => {
+              if (data) {
+                const alarm = data as Alarm;
+                const newTime = new Date(Date.now() + alarm.snooze_duration_minutes * 60 * 1000).toISOString();
+                supabase
+                  .from("alarms")
+                  .update({ alarm_time: newTime, snooze_count: alarm.snooze_count + 1 } as any)
+                  .eq("id", alarmId)
+                  .then(() => {
+                    queryClient.invalidateQueries({ queryKey: ["alarms"] });
+                    // Re-schedule the notification for the new snooze time
+                    scheduleAlarmNotification({ ...alarm, alarm_time: newTime });
+                  });
+              }
+            });
+        } else {
+          // Dismiss - deactivate if not recurring
+          supabase
+            .from("alarms")
+            .select("*")
+            .eq("id", alarmId)
+            .single()
+            .then(({ data }) => {
+              if (data && !data.is_recurring) {
+                supabase
+                  .from("alarms")
+                  .update({ is_active: false } as any)
+                  .eq("id", alarmId)
+                  .then(() => queryClient.invalidateQueries({ queryKey: ["alarms"] }));
+              }
+            });
+        }
+        setFiringAlarm(null);
+        stopAlarmSound();
+      });
+    }
+  }, [user, queryClient]);
 
   useEffect(() => {
     if (!user) return;

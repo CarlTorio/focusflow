@@ -1,6 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  scheduleAlarmNotification,
+  cancelAlarmNotification,
+  isNativePlatform,
+} from "@/lib/nativeNotifications";
 
 export interface Alarm {
   id: string;
@@ -71,8 +76,17 @@ export function useAlarms() {
       if (error) throw error;
       return data as Alarm;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["alarms"] });
+      // Schedule native notification
+      if (isNativePlatform() && data) {
+        scheduleAlarmNotification({
+          id: data.id,
+          title: data.title,
+          alarm_time: data.alarm_time,
+          sound_type: data.sound_type,
+        });
+      }
     },
   });
 
@@ -88,13 +102,30 @@ export function useAlarms() {
       if (error) throw error;
       return data as Alarm;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["alarms"] });
+      // Re-schedule native notification if alarm time changed
+      if (isNativePlatform() && data) {
+        if (data.is_active) {
+          scheduleAlarmNotification({
+            id: data.id,
+            title: data.title,
+            alarm_time: data.alarm_time,
+            sound_type: data.sound_type,
+          });
+        } else {
+          cancelAlarmNotification(data.id);
+        }
+      }
     },
   });
 
   const deleteAlarm = useMutation({
     mutationFn: async (id: string) => {
+      // Cancel native notification before deleting
+      if (isNativePlatform()) {
+        cancelAlarmNotification(id);
+      }
       const { error } = await supabase.from("alarms").delete().eq("id", id);
       if (error) throw error;
     },
