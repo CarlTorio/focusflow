@@ -20,6 +20,7 @@ import Hub from "./pages/Hub";
 import Planner from "./pages/Planner";
 import AddTask from "./pages/AddTask";
 import Alarm from "./pages/Alarm";
+import AddAlarm from "./pages/AddAlarm";
 import Notes from "./pages/Notes";
 import Breathing from "./pages/Breathing";
 import SettingsPage from "./pages/SettingsPage";
@@ -63,6 +64,7 @@ const App = () => (
                     <Route path="/planner" element={<Planner />} />
                     <Route path="/add-task" element={<AddTask />} />
                     <Route path="/alarm" element={<Alarm />} />
+                    <Route path="/alarm/add" element={<AddAlarm />} />
                     <Route path="/notes" element={<Notes />} />
                     <Route path="/breathing" element={<Breathing />} />
                     <Route path="/settings" element={<SettingsPage />} />
