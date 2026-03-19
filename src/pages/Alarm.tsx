@@ -173,9 +173,17 @@ export default function Alarm() {
         <div className="hidden md:grid md:grid-cols-2 md:gap-8">
           {/* Left — Alarms */}
           <div>
-            <div className="mb-3 flex items-center gap-2">
-              <Bell className="h-4 w-4 text-primary" />
-              <h3 className="text-sm font-bold text-foreground">Alarms</h3>
+            <div className="mb-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Bell className="h-4 w-4 text-primary" />
+                <h3 className="text-sm font-bold text-foreground">Alarms</h3>
+              </div>
+              <button
+                onClick={() => navigate("/alarm/add")}
+                className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors hover:bg-primary/20"
+              >
+                <Plus className="h-4 w-4" />
+              </button>
             </div>
             <div className="space-y-3">
               {alarms.map((alarm) => (
