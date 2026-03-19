@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 import { useAlarms, SoundType } from "@/hooks/useAlarms";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
-import { playBuiltInSound, SOUND_OPTIONS, stopCustomSound } from "@/lib/alarmSounds";
+import { previewSound, SOUND_OPTIONS, stopAlarmSound } from "@/lib/alarmSounds";
 import {
   Dialog,
   DialogContent,
