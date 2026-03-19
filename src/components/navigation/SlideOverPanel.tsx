@@ -1,13 +1,16 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import {
   X, Sun, Moon, Monitor, CalendarDays, Mail, Settings, UserPen,
   LogOut, Bell,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 export function SlideOverPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { profile, user, signOut } = useAuth();
+  const { mode, setMode } = useTheme();
   const navigate = useNavigate();
 
   const initials = profile
@@ -48,7 +51,13 @@ export function SlideOverPanel({ open, onClose }: { open: boolean; onClose: () =
           ].map((t) => (
             <button
               key={t.label}
-              className="flex flex-1 items-center justify-center gap-1 rounded-xl border border-border p-2 text-xs text-muted-foreground"
+              onClick={() => setMode(t.label.toLowerCase() as "system" | "light" | "dark")}
+              className={cn(
+                "flex flex-1 items-center justify-center gap-1 rounded-xl border p-2 text-xs transition-colors",
+                mode === t.label.toLowerCase()
+                  ? "border-primary bg-primary/10 text-primary font-semibold"
+                  : "border-border text-muted-foreground hover:bg-secondary"
+              )}
             >
               <t.icon className="h-4 w-4" />
               {t.label}
