@@ -165,6 +165,7 @@ export default function Alarm() {
               alarm={alarm}
               onToggle={() => handleToggle(alarm)}
               onDelete={() => setDeleteTarget(alarm)}
+              onEdit={() => navigate(`/alarm/edit/${alarm.id}`)}
             />
           ))}
 

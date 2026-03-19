@@ -65,6 +65,7 @@ const App = () => (
                     <Route path="/add-task" element={<AddTask />} />
                     <Route path="/alarm" element={<Alarm />} />
                     <Route path="/alarm/add" element={<AddAlarm />} />
+                    <Route path="/alarm/edit/:id" element={<AddAlarm />} />
                     <Route path="/notes" element={<Notes />} />
                     <Route path="/breathing" element={<Breathing />} />
                     <Route path="/settings" element={<SettingsPage />} />
