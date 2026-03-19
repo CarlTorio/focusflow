@@ -23,11 +23,6 @@ export function AboutSection() {
             Made with <Heart className="h-3.5 w-3.5 fill-destructive text-destructive" /> for ADHD brains
           </p>
         </div>
-        <div className="flex flex-col gap-1">
-          <a href="#" className="rounded-xl p-2.5 text-center text-sm text-muted-foreground hover:text-foreground">Support</a>
-          <a href="#" className="rounded-xl p-2.5 text-center text-sm text-muted-foreground hover:text-foreground">Documentation</a>
-          <a href="#" className="rounded-xl p-2.5 text-center text-sm text-muted-foreground hover:text-foreground">Leave a Review</a>
-        </div>
         <Button
           onClick={handleLogout}
           variant="ghost"
