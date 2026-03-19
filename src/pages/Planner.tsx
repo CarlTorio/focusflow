@@ -240,8 +240,8 @@ export default function Planner() {
       // No first task yet — show hint
       setShowFabHint(true);
     } else {
-      const daysSince = (Date.now() - Number(dismissedAt)) / (1000 * 60 * 60 * 24);
-      setShowFabHint(daysSince < 2);
+      const hoursSince = (Date.now() - Number(dismissedAt)) / (1000 * 60 * 60);
+      setShowFabHint(hoursSince < 1);
     }
   }, [schedules]);
 
