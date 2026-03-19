@@ -73,6 +73,13 @@ export default function Register() {
             />
           </div>
           <Input
+            placeholder="Nickname (e.g. JC)"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+            className="h-12 rounded-xl border-border bg-card focus-visible:ring-primary"
+            required
+          />
+          <Input
             type="email"
             placeholder="Email address"
             value={email}
