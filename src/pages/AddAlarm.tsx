@@ -440,6 +440,17 @@ export default function AddAlarm() {
             onClick={() => { setTempLabel(label); setShowLabel(true); }}
           />
         </div>
+
+        {/* Delete button (edit mode only) */}
+        {isEdit && (
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-destructive/10 py-4 text-sm font-semibold text-destructive transition-colors hover:bg-destructive/20"
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete alarm
+          </button>
+        )}
       </div>
 
       {/* ─── Repeat bottom sheet ─── */}
