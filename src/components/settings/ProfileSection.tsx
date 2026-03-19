@@ -14,6 +14,7 @@ export function ProfileSection() {
   const { profile, refreshProfile } = useAuth();
   const [firstName, setFirstName] = useState(profile?.first_name || "");
   const [lastName, setLastName] = useState(profile?.last_name || "");
+  const [nickname, setNickname] = useState(profile?.nickname || "");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
