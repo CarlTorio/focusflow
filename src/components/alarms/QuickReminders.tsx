@@ -104,7 +104,42 @@ export function QuickReminders() {
   const setAlarmForNote = async (note: ReminderNote, schedule: string) => {
     if (!user) return;
 
-    const alarmTime = getNextScheduleTime(schedule);
+    const isCustom = schedule === "custom";
+    const alarmTime = isCustom ? null : getNextScheduleTime(schedule);
+
+    if (isCustom) {
+      // Show custom picker
+      setShowCustomPicker(true);
+      return;
+    }
+
+    await createAlarmForNote(note, alarmTime!, schedule, !isCustom);
+  };
+
+  const handleCustomAlarmConfirm = async () => {
+    if (!settingAlarmFor || !customDate) {
+      toast.error("Please select a date");
+      return;
+    }
+
+    let h = parseInt(customHour);
+    if (customPeriod === "PM" && h !== 12) h += 12;
+    if (customPeriod === "AM" && h === 12) h = 0;
+
+    const alarmTime = new Date(customDate.getFullYear(), customDate.getMonth(), customDate.getDate(), h, parseInt(customMin));
+    
+    if (alarmTime <= new Date()) {
+      toast.error("Please select a future time");
+      return;
+    }
+
+    await createAlarmForNote(settingAlarmFor, alarmTime, "custom", false);
+    setShowCustomPicker(false);
+    setCustomDate(undefined);
+  };
+
+  const createAlarmForNote = async (note: ReminderNote, alarmTime: Date, schedule: string, recurring: boolean) => {
+    if (!user) return;
 
     // Create alarm
     const { data: alarm, error: alarmErr } = await supabase
@@ -116,8 +151,8 @@ export function QuickReminders() {
         alarm_time: alarmTime.toISOString(),
         original_alarm_time: alarmTime.toISOString(),
         sound_type: "alarm-1",
-        is_recurring: true,
-        recurrence_pattern: "daily",
+        is_recurring: recurring,
+        recurrence_pattern: recurring ? "daily" : null,
       } as any)
       .select()
       .single();
@@ -135,7 +170,11 @@ export function QuickReminders() {
 
     queryClient.invalidateQueries({ queryKey: ["reminder_notes"] });
     queryClient.invalidateQueries({ queryKey: ["alarms"] });
-    toast.success(`Reminder set for ${SCHEDULE_OPTIONS.find(s => s.value === schedule)?.label}`);
+    
+    const label = schedule === "custom"
+      ? format(alarmTime, "MMM d, h:mm a")
+      : SCHEDULE_OPTIONS.find(s => s.value === schedule)?.label;
+    toast.success(`Reminder set for ${label}`);
     setSettingAlarmFor(null);
   };
 
