@@ -241,7 +241,7 @@ export default function Planner() {
       setShowFabHint(true);
     } else {
       const hoursSince = (Date.now() - Number(dismissedAt)) / (1000 * 60 * 60);
-      setShowFabHint(daysSince < 2);
+      setShowFabHint(hoursSince < 1);
     }
   }, [schedules]);
 
