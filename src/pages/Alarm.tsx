@@ -93,12 +93,6 @@ function AlarmRow({
         </p>
       </div>
       <div className="flex items-center gap-3">
-        <button
-          onClick={(e) => { e.stopPropagation(); onDelete(); }}
-          className="text-muted-foreground hover:text-destructive transition-colors"
-        >
-          <Trash2 className="h-4 w-4" />
-        </button>
         <Switch
           checked={alarm.is_active}
           onCheckedChange={() => { onToggle(); }}
