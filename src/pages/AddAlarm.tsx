@@ -123,13 +123,7 @@ const REPEAT_OPTIONS = [
 
 const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
 
-/* ─── Sound picker ─── */
-const SOUND_LABELS: Record<string, string> = {
-  default: "Default Chime",
-  chime: "Gentle Bell",
-  bell: "Nature Sounds",
-  nature: "Soft Piano",
-};
+/* ─── Sound picker uses SOUND_OPTIONS from alarmSounds ─── */
 
 /* ─── Snooze options ─── */
 const SNOOZE_OPTIONS = [
