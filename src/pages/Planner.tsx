@@ -348,6 +348,8 @@ export default function Planner() {
                         </div>
                         <div className="w-px bg-border hidden md:block" />
                         <div className="flex-1 min-w-0">
+                          {/* Spacer to align with day header in DayColumn */}
+                          <div className="mb-4 h-[36px]" />
                           <DailyRoutineSection onEditRoutine={handleEditRoutine} selectedDate={baseDate} />
                         </div>
                       </>
