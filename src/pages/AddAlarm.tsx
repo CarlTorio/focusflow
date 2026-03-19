@@ -103,16 +103,17 @@ function BottomSheet({
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative w-full max-w-lg animate-in slide-in-from-bottom duration-300 rounded-t-2xl bg-card pb-safe">
+      <div className="relative w-full max-w-lg animate-in slide-in-from-bottom duration-300 rounded-t-2xl bg-card" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
         <div className="px-6 pt-6 pb-2">
           <h3 className="text-lg font-semibold text-foreground">{title}</h3>
         </div>
         <div className="max-h-[60vh] overflow-y-auto px-6">{children}</div>
         {actions && (
-          <div className="flex items-center justify-end gap-6 border-t border-border px-6 py-4">
+          <div className="flex items-center justify-end gap-6 border-t border-border px-6 py-4 pb-20 md:pb-4">
             {actions}
           </div>
         )}
+        {!actions && <div className="pb-20 md:pb-4" />}
       </div>
     </div>
   );
