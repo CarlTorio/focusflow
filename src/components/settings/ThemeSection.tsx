@@ -65,7 +65,7 @@ export function ThemeSection() {
                   >
                     {isSelected && (
                       <div className="flex h-full items-center justify-center">
-                        <Check className="h-4 w-4 text-white drop-shadow-md" />
+                        <Check className="h-4 w-4 text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]" />
                       </div>
                     )}
                   </div>

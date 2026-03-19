@@ -52,6 +52,12 @@ export const THEME_COLORS = [
   { label: "Crimson", hsl: "0 80% 48%" },
   { label: "Ruby", hsl: "345 70% 42%" },
   { label: "Berry", hsl: "330 65% 40%" },
+  // Neutrals
+  { label: "Black", hsl: "0 0% 10%" },
+  { label: "Charcoal", hsl: "0 0% 25%" },
+  { label: "Gray", hsl: "0 0% 45%" },
+  { label: "Silver", hsl: "0 0% 65%" },
+  { label: "White", hsl: "0 0% 90%" },
 ];
 
 function parseHSL(hslStr: string): [number, number, number] {
