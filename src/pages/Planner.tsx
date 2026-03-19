@@ -232,6 +232,26 @@ export default function Planner() {
     navigate(`/add-task?${params.toString()}`);
   }, [navigate]);
 
+  // Tooltip hint for FAB — show for 2 days after first task is created
+  const [showFabHint, setShowFabHint] = useState(false);
+  useEffect(() => {
+    const dismissedAt = localStorage.getItem("fab_hint_first_task_at");
+    if (!dismissedAt) {
+      // No first task yet — show hint
+      setShowFabHint(true);
+    } else {
+      const daysSince = (Date.now() - Number(dismissedAt)) / (1000 * 60 * 60 * 24);
+      setShowFabHint(daysSince < 2);
+    }
+  }, [schedules]);
+
+  const dismissFabHint = useCallback(() => {
+    if (!localStorage.getItem("fab_hint_first_task_at")) {
+      localStorage.setItem("fab_hint_first_task_at", String(Date.now()));
+    }
+    setShowFabHint(false);
+  }, []);
+
   // Focus mode
 
   const selectedDate = isMobile ? selectedMobileDay : new Date();
