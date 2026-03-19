@@ -1,9 +1,10 @@
 import {
   Home, CalendarDays, Bell, FileText,
-  Settings,
+  Settings, ShieldCheck,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAdmin } from "@/hooks/useAdmin";
 
 const mainNav = [
   { label: "Hub", icon: Home, to: "/hub" },

@@ -77,6 +77,7 @@ const App = () => (
                     <Route path="/notes" element={<Notes />} />
                     <Route path="/breathing" element={<Breathing />} />
                     <Route path="/settings" element={<SettingsPage />} />
+                    <Route path="/admin" element={<AdminDashboard />} />
                   </Route>
                   <Route path="/" element={<Navigate to="/hub" replace />} />
                   <Route path="*" element={<NotFound />} />
