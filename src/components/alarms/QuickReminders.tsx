@@ -202,9 +202,10 @@ export function QuickReminders() {
         </div>
         <button
           onClick={() => setShowInput(true)}
-          className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors hover:bg-primary/20"
+          className="flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
         >
           <Plus className="h-3.5 w-3.5" />
+          Add Reminder
         </button>
       </div>
 
