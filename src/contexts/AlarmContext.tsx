@@ -179,3 +179,7 @@ export function useAlarmContext() {
   if (!ctx) throw new Error("useAlarmContext must be used within AlarmProvider");
   return ctx;
 }
+
+export function useAlarmContextSafe() {
+  return useContext(AlarmContext) ?? null;
+}
