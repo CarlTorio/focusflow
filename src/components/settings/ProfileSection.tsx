@@ -124,7 +124,7 @@ export function ProfileSection() {
             />
           </div>
 
-          <Button onClick={handleSaveProfile} disabled={saving} className="w-full rounded-xl">
+          <Button type="button" onClick={handleSaveProfile} disabled={saving || !profile} className="w-full rounded-xl">
             {saving ? "Saving..." : "Save Profile"}
           </Button>
         </CardContent>
