@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAlarms } from "@/hooks/useAlarms";
 import { SOUND_OPTIONS, previewSound, stopAlarmSound } from "@/lib/alarmSounds";
 import { X, Check, ChevronRight, ArrowLeft } from "lucide-react";
