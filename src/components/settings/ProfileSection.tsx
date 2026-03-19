@@ -5,11 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { User, Camera, Image, Pencil, Eye, EyeOff, X } from "lucide-react";
+import { User, Pencil, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
+import { AvatarPicker } from "@/components/AvatarPicker";
+import { getAvatarById } from "@/lib/avatars";
 
 export function ProfileSection() {
-  const { profile, refreshProfile, user } = useAuth();
+  const { profile, refreshProfile } = useAuth();
   const [firstName, setFirstName] = useState(profile?.first_name || "");
   const [lastName, setLastName] = useState(profile?.last_name || "");
   const [newPassword, setNewPassword] = useState("");
@@ -17,24 +19,20 @@ export function ProfileSection() {
   const [showPassword, setShowPassword] = useState(false);
   const [saving, setSaving] = useState(false);
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
-  const [avatarColor, setAvatarColor] = useState((profile as any)?.avatar_url || "");
+  const [selectedAvatar, setSelectedAvatar] = useState(profile?.avatar_url || "avatar-01");
 
-  const initials = `${(firstName || "")[0] || ""}${(lastName || "")[0] || ""}`.toUpperCase() || "?";
-
-  const avatarColors = [
-    "bg-primary", "bg-primary-dark", "bg-success", "bg-warning", "bg-destructive",
-    "bg-accent", "bg-primary-medium", "bg-muted-foreground",
-  ];
+  const currentAvatar = getAvatarById(selectedAvatar);
 
   const handleSaveProfile = async () => {
     if (!profile) return;
     setSaving(true);
+
     const { error } = await supabase
       .from("profiles")
-      .update({ first_name: firstName, last_name: lastName })
+      .update({ first_name: firstName, last_name: lastName, avatar_url: selectedAvatar })
       .eq("id", profile.id);
 
-    if (error) { toast.error("Failed to update profile"); }
+    if (error) toast.error("Failed to update profile");
     else { toast.success("Profile updated"); refreshProfile(); }
 
     if (newPassword) {
@@ -50,35 +48,12 @@ export function ProfileSection() {
     setSaving(false);
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
-    const ext = file.name.split(".").pop();
-    const path = `${user.id}/avatar.${ext}`;
-    const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true });
-    if (error) { toast.error("Upload failed"); return; }
-    const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
-    await supabase.from("profiles").update({ avatar_url: urlData.publicUrl }).eq("id", user.id);
+  const handleAvatarSave = async () => {
+    if (!profile) return;
+    await supabase.from("profiles").update({ avatar_url: selectedAvatar }).eq("id", profile.id);
     toast.success("Avatar updated");
     refreshProfile();
     setAvatarModalOpen(false);
-  };
-
-  const handleDeleteData = async () => {
-    if (!user) return;
-    const confirmed = window.confirm(
-      "Are you sure? This will permanently delete all your data including tasks, notes, alarms, and mood entries. This action cannot be undone."
-    );
-    if (!confirmed) return;
-    // Delete user data from all tables
-    await Promise.all([
-      supabase.from("task_schedules").delete().eq("user_id", user.id),
-      supabase.from("tasks").delete().eq("user_id", user.id),
-      supabase.from("notes").delete().eq("user_id", user.id),
-      supabase.from("mood_entries").delete().eq("user_id", user.id),
-      supabase.from("alarms").delete().eq("user_id", user.id),
-    ]);
-    toast.success("All data deleted");
   };
 
   return (
@@ -93,12 +68,8 @@ export function ProfileSection() {
           {/* Avatar */}
           <div className="flex justify-center">
             <button onClick={() => setAvatarModalOpen(true)} className="relative">
-              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-primary-medium text-2xl font-bold text-primary-foreground">
-                {profile?.avatar_url && !profile.avatar_url.startsWith("bg-") ? (
-                  <img src={profile.avatar_url} alt="Avatar" className="h-full w-full rounded-full object-cover" />
-                ) : (
-                  initials
-                )}
+              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-secondary overflow-hidden">
+                <img src={currentAvatar.src} alt={currentAvatar.label} className="h-full w-full object-contain" />
               </div>
               <div className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
                 <Pencil className="h-3.5 w-3.5" />
@@ -150,58 +121,24 @@ export function ProfileSection() {
           <Button onClick={handleSaveProfile} disabled={saving} className="w-full rounded-xl">
             {saving ? "Saving..." : "Save Profile"}
           </Button>
-
-          <Button onClick={handleDeleteData} variant="ghost" className="w-full rounded-xl bg-destructive/10 text-destructive hover:bg-destructive/20">
-            Delete My Data
-          </Button>
         </CardContent>
       </Card>
 
-      {/* Avatar Modal */}
+      {/* Avatar Picker Modal */}
       {avatarModalOpen && (
         <>
           <div className="fixed inset-0 z-50 bg-foreground/30" onClick={() => setAvatarModalOpen(false)} />
-          <div className="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl bg-card p-6 shadow-lg md:bottom-auto md:left-1/2 md:top-1/2 md:max-w-sm md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl">
-            <div className="mb-4">
-              <h3 className="text-lg font-bold text-foreground">Profile Picture</h3>
-              <p className="text-sm text-muted-foreground">Your profile picture is used to identify you in the app</p>
+          <div className="fixed bottom-0 left-0 right-0 z-50 max-h-[80vh] overflow-y-auto rounded-t-3xl bg-card p-6 shadow-lg md:bottom-auto md:left-1/2 md:top-1/2 md:max-w-sm md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl">
+            <h3 className="mb-4 text-lg font-bold text-foreground">Change Avatar</h3>
+            <AvatarPicker value={selectedAvatar} onChange={setSelectedAvatar} />
+            <div className="mt-4 flex gap-2">
+              <Button onClick={() => setAvatarModalOpen(false)} variant="outline" className="flex-1 rounded-xl">
+                Cancel
+              </Button>
+              <Button onClick={handleAvatarSave} className="flex-1 rounded-xl">
+                Save
+              </Button>
             </div>
-            <div className="space-y-3">
-              {/* Color selector for initials avatar */}
-              <p className="text-xs font-medium text-muted-foreground">Avatar color</p>
-              <div className="flex flex-wrap gap-2">
-                {avatarColors.map(c => (
-                  <button
-                    key={c}
-                    onClick={() => setAvatarColor(c)}
-                    className={`h-10 w-10 rounded-full ${c} ${avatarColor === c ? "ring-2 ring-foreground ring-offset-2" : ""}`}
-                  />
-                ))}
-              </div>
-
-              {/* Camera option */}
-              <label className="flex cursor-pointer items-center gap-3 rounded-xl p-3 transition-colors hover:bg-secondary">
-                <Camera className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="text-sm font-medium text-foreground">Camera</p>
-                  <p className="text-xs text-muted-foreground">Take a picture with your device</p>
-                </div>
-                <input type="file" accept="image/*" capture="user" className="hidden" onChange={handleImageUpload} />
-              </label>
-
-              {/* Image library */}
-              <label className="flex cursor-pointer items-center gap-3 rounded-xl p-3 transition-colors hover:bg-secondary">
-                <Image className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="text-sm font-medium text-foreground">Image Library</p>
-                  <p className="text-xs text-muted-foreground">Select an image from your device</p>
-                </div>
-                <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-              </label>
-            </div>
-            <Button onClick={() => setAvatarModalOpen(false)} variant="outline" className="mt-4 w-full rounded-xl">
-              Close
-            </Button>
           </div>
         </>
       )}
