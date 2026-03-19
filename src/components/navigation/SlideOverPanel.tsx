@@ -2,7 +2,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import {
   X, Sun, Moon, Monitor, CalendarDays, Mail, Settings, UserPen,
-  Crown, HelpCircle, BookOpen, Star, LogOut, Bell,
+  LogOut, Bell,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -63,34 +63,18 @@ export function SlideOverPanel({ open, onClose }: { open: boolean; onClose: () =
 
         <div className="flex-1 overflow-y-auto p-4 space-y-1">
           {[
-            { icon: CalendarDays, label: "Planners" },
-            { icon: Bell, label: "Alarms", to: "/settings" },
-            { icon: Mail, label: "Invitations" },
+            { icon: CalendarDays, label: "Planners", to: "/planner" },
+            { icon: Bell, label: "Alarms", to: "/alarm" },
+            { icon: Mail, label: "Notes", to: "/notes" },
             { icon: Settings, label: "Settings", to: "/settings" },
-            { icon: UserPen, label: "Edit Profile" },
+            { icon: UserPen, label: "Edit Profile", to: "/settings" },
           ].map((item) => (
             <button
               key={item.label}
               onClick={() => {
-                if ((item as any).to) { navigate((item as any).to); onClose(); }
+                navigate(item.to);
+                onClose();
               }}
-              className="flex w-full items-center gap-3 rounded-xl p-3 text-sm text-foreground hover:bg-secondary"
-            >
-              <item.icon className="h-5 w-5 text-muted-foreground" />
-              {item.label}
-            </button>
-          ))}
-
-          <div className="my-2 h-px bg-border" />
-
-          {[
-            { icon: Crown, label: "Get Premium" },
-            { icon: HelpCircle, label: "Support" },
-            { icon: BookOpen, label: "Documentation" },
-            { icon: Star, label: "Leave a Review" },
-          ].map((item) => (
-            <button
-              key={item.label}
               className="flex w-full items-center gap-3 rounded-xl p-3 text-sm text-foreground hover:bg-secondary"
             >
               <item.icon className="h-5 w-5 text-muted-foreground" />
