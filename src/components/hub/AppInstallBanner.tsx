@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Download, X, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const APK_DOWNLOAD_URL = `https://sibqdtnvhggkzzussrup.supabase.co/storage/v1/object/public/app-releases/focusflow.apk`;
+const APK_DOWNLOAD_URL = `https://sibqdtnvhggkzzussrup.supabase.co/storage/v1/object/public/app-releases/FocusFlowV1.apk`;
 
 function isMobileWeb(): boolean {
   if (typeof window === "undefined") return false;
