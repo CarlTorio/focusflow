@@ -64,6 +64,7 @@ export function useAlarms() {
         .insert({
           user_id: user.id,
           ...input,
+          original_alarm_time: input.alarm_time,
         } as any)
         .select()
         .single();
