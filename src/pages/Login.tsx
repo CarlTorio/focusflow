@@ -26,15 +26,8 @@ export default function Login() {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    setLoading(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin + "/hub",
-    });
-    if (result.error) {
-      toast.error(result.error.message);
-      setLoading(false);
-    }
+  const handleGoogleSignIn = () => {
+    toast.info("Google Sign In is coming soon!");
   };
 
   return (
