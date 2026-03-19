@@ -30,7 +30,7 @@ export default function Register() {
       password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { first_name: firstName, last_name: lastName },
+        data: { first_name: firstName, last_name: lastName, nickname },
       },
     });
     setLoading(false);
