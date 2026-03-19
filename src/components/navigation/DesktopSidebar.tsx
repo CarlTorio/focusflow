@@ -19,6 +19,7 @@ const secondaryNav = [
 
 export function DesktopSidebar() {
   const { profile } = useAuth();
+  const { isAdmin } = useAdmin();
   const initials = profile
     ? `${(profile.first_name || "")[0] || ""}${(profile.last_name || "")[0] || ""}`.toUpperCase()
     : "?";
