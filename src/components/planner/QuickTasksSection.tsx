@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { isOnline, addPendingMutation, getCachedData, setCachedData } from "@/lib/offlineStorage";
 
 interface QuickTasksSectionProps {
   date: Date;
@@ -17,19 +18,26 @@ export function QuickTasksSection({ date, readOnly = false }: QuickTasksSectionP
   const dateStr = format(date, "yyyy-MM-dd");
   const [newTitle, setNewTitle] = useState("");
   const [showInput, setShowInput] = useState(false);
+  const cacheKey = `quick_tasks_${dateStr}`;
 
   const { data: quickTasks = [] } = useQuery({
     queryKey: ["quick_tasks", dateStr],
     queryFn: async () => {
+      if (!isOnline()) {
+        const cached = await getCachedData<any[]>(cacheKey);
+        return cached || [];
+      }
       const { data, error } = await supabase
         .from("quick_tasks")
         .select("*")
         .eq("created_date", dateStr)
         .order("created_at", { ascending: true });
       if (error) throw error;
+      await setCachedData(cacheKey, data);
       return data;
     },
     enabled: !!user,
+    retry: isOnline() ? 3 : 0,
   });
 
   const addTask = useMutation({
