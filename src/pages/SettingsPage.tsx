@@ -1,9 +1,6 @@
 import { MobileHeader } from "@/components/navigation/MobileHeader";
 import { ProfileSection } from "@/components/settings/ProfileSection";
 import { ThemeSection } from "@/components/settings/ThemeSection";
-import { DailySettingsSection } from "@/components/settings/DailySettingsSection";
-import { FocusBuddySettings } from "@/components/settings/FocusBuddySettings";
-import { AlarmManagement } from "@/components/alarms/AlarmManagement";
 import { DataPrivacySection } from "@/components/settings/DataPrivacySection";
 import { AboutSection } from "@/components/settings/AboutSection";
 
@@ -16,9 +13,6 @@ export default function SettingsPage() {
 
         <ProfileSection />
         <ThemeSection />
-        <DailySettingsSection />
-        <AlarmManagement />
-        <FocusBuddySettings />
         <DataPrivacySection />
         <AboutSection />
       </div>
