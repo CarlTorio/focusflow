@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAlarms, SoundType } from "@/hooks/useAlarms";
-import { SOUND_OPTIONS, playBuiltInSound } from "@/lib/alarmSounds";
+import { useAlarms } from "@/hooks/useAlarms";
+import { SOUND_OPTIONS, previewSound, stopAlarmSound } from "@/lib/alarmSounds";
 import { X, Check, ChevronRight, Volume2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
