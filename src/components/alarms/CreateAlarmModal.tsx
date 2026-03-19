@@ -258,7 +258,7 @@ export function CreateAlarmModal({ open, onClose }: CreateAlarmModalProps) {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      playBuiltInSound(opt.value as any);
+                      previewSound(opt.value);
                     }}
                     className="text-muted-foreground hover:text-primary"
                   >

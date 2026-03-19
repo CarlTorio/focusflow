@@ -86,7 +86,7 @@ export function AlarmProvider({ children }: { children: ReactNode }) {
 
     // Fire the alarm
     setFiringAlarm({ alarm });
-    playAlarmSound(alarm.sound_type, alarm.custom_sound_url);
+    playAlarmSound(alarm.sound_type);
 
     // Send browser notification
     if (typeof Notification !== "undefined" && Notification.permission === "granted") {

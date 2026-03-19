@@ -353,7 +353,7 @@ export default function AddAlarm() {
 
   /* ─── Main screen ─── */
   const repeatLabel = REPEAT_OPTIONS.find((r) => r.key === repeatKey)?.label || "Only ring once";
-  const soundLabel = SOUND_LABELS[soundType] || "Default Chime";
+  const soundLabel = SOUND_OPTIONS.find((s) => s.value === soundType)?.label || "Alarm 1";
   const snoozeLabel = SNOOZE_OPTIONS[snoozeIdx].label;
 
   return (
