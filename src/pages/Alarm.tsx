@@ -49,10 +49,12 @@ function AlarmRow({
   alarm,
   onToggle,
   onDelete,
+  onEdit,
 }: {
   alarm: AlarmType;
   onToggle: () => void;
   onDelete: () => void;
+  onEdit: () => void;
 }) {
   const d = new Date(alarm.alarm_time);
   const h12 = d.getHours() % 12 || 12;
@@ -72,9 +74,10 @@ function AlarmRow({
   return (
     <div
       className={cn(
-        "group flex items-center gap-4 rounded-2xl bg-card px-5 py-4 shadow-sm transition-all",
+        "flex items-center gap-4 rounded-2xl bg-card px-5 py-4 shadow-sm transition-all cursor-pointer active:scale-[0.98]",
         !alarm.is_active && "opacity-40"
       )}
+      onClick={onEdit}
     >
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-1.5">
@@ -90,14 +93,18 @@ function AlarmRow({
           {alarm.title}, {recLabel}
         </p>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
         <button
-          onClick={onDelete}
-          className="text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100 md:opacity-100"
+          onClick={(e) => { e.stopPropagation(); onDelete(); }}
+          className="text-muted-foreground hover:text-destructive transition-colors"
         >
           <Trash2 className="h-4 w-4" />
         </button>
-        <Switch checked={alarm.is_active} onCheckedChange={onToggle} />
+        <Switch
+          checked={alarm.is_active}
+          onCheckedChange={() => { onToggle(); }}
+          onClick={(e) => e.stopPropagation()}
+        />
       </div>
     </div>
   );
@@ -158,6 +165,7 @@ export default function Alarm() {
               alarm={alarm}
               onToggle={() => handleToggle(alarm)}
               onDelete={() => setDeleteTarget(alarm)}
+              onEdit={() => navigate(`/alarm/edit/${alarm.id}`)}
             />
           ))}
 
