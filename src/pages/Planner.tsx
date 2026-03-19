@@ -202,7 +202,7 @@ export default function Planner() {
 
   // Navigation
   const navDate = (dir: number) => {
-    setBaseDate((prev) => addDays(prev, dir * (isMobile ? 1 : 2)));
+    setBaseDate((prev) => addDays(prev, dir * 1));
     if (isMobile) {
       setSelectedMobileDay((prev) => addDays(prev, dir));
       setPastRevealed(false);
