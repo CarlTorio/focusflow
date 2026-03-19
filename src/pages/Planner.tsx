@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { format, addDays, startOfWeek, isToday, isPast, startOfDay, differenceInCalendarDays, parseISO } from "date-fns";
 import { ChevronLeft, ChevronRight, Plus, ClipboardList } from "lucide-react";
@@ -232,6 +232,26 @@ export default function Planner() {
     navigate(`/add-task?${params.toString()}`);
   }, [navigate]);
 
+  // Tooltip hint for FAB — show for 2 days after first task is created
+  const [showFabHint, setShowFabHint] = useState(false);
+  useEffect(() => {
+    const dismissedAt = localStorage.getItem("fab_hint_first_task_at");
+    if (!dismissedAt) {
+      // No first task yet — show hint
+      setShowFabHint(true);
+    } else {
+      const daysSince = (Date.now() - Number(dismissedAt)) / (1000 * 60 * 60 * 24);
+      setShowFabHint(daysSince < 2);
+    }
+  }, [schedules]);
+
+  const dismissFabHint = useCallback(() => {
+    if (!localStorage.getItem("fab_hint_first_task_at")) {
+      localStorage.setItem("fab_hint_first_task_at", String(Date.now()));
+    }
+    setShowFabHint(false);
+  }, []);
+
   // Focus mode
 
   const selectedDate = isMobile ? selectedMobileDay : new Date();
@@ -361,13 +381,26 @@ export default function Planner() {
           )}
         </div>
 
-        {/* FAB */}
-        <button
-          onClick={() => openAddTask()}
-          className="fixed bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-110 active:scale-95 md:bottom-6"
-        >
-          <Plus className="h-6 w-6" />
-        </button>
+        {/* FAB with hint tooltip */}
+        <div className="fixed bottom-24 right-4 z-40 md:bottom-6">
+          {showFabHint && (
+            <div className="absolute bottom-16 right-0 mb-2 w-48 animate-bounce">
+              <div className="relative rounded-xl bg-primary px-4 py-2 text-xs font-medium text-primary-foreground shadow-lg">
+                Tap here to add a task! ✨
+                <div className="absolute -bottom-1.5 right-5 h-3 w-3 rotate-45 bg-primary" />
+              </div>
+            </div>
+          )}
+          <button
+            onClick={() => {
+              dismissFabHint();
+              openAddTask();
+            }}
+            className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-110 active:scale-95"
+          >
+            <Plus className="h-6 w-6" />
+          </button>
+        </div>
       </div>
     </>
   );
