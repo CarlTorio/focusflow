@@ -223,6 +223,44 @@ export type Database = {
         }
         Relationships: []
       }
+      reminder_notes: {
+        Row: {
+          created_at: string
+          id: string
+          is_done: boolean
+          linked_alarm_id: string | null
+          notify_schedule: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_done?: boolean
+          linked_alarm_id?: string | null
+          notify_schedule?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_done?: boolean
+          linked_alarm_id?: string | null
+          notify_schedule?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reminder_notes_linked_alarm_id_fkey"
+            columns: ["linked_alarm_id"]
+            isOneToOne: false
+            referencedRelation: "alarms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       routine_completions: {
         Row: {
           completed_at: string | null
