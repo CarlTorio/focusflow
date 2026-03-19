@@ -267,9 +267,9 @@ export function QuickReminders() {
               )}
               <button
                 onClick={() => deleteNote.mutate(note.id)}
-                className="text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
+                className="text-muted-foreground transition-colors hover:text-destructive"
               >
-                <Trash2 className="h-3.5 w-3.5" />
+                <Trash2 className="h-4 w-4" />
               </button>
             </div>
           </div>
