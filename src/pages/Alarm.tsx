@@ -3,10 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { MobileHeader } from "@/components/navigation/MobileHeader";
 import { useAlarms, Alarm as AlarmType } from "@/hooks/useAlarms";
 import { Switch } from "@/components/ui/switch";
-import { Bell, Plus } from "lucide-react";
+import { Bell, Plus, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { QuickReminders } from "@/components/alarms/QuickReminders";
+import { InlineAlarmForm } from "@/components/alarms/InlineAlarmForm";
 
 function LiveClock() {
   const [now, setNow] = useState(new Date());
