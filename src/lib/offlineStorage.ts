@@ -131,13 +131,13 @@ export async function syncPendingMutations(): Promise<{ synced: number; failed: 
       try {
         let error: any = null;
         if (m.operation === "insert") {
-          const res = await (supabase.from(m.table) as any).insert(m.data);
+          const res = await (supabase as any).from(m.table).insert(m.data);
           error = res.error;
         } else if (m.operation === "update") {
-          const res = await (supabase.from(m.table) as any).update(m.data).eq(m.matchColumn!, m.matchValue!);
+          const res = await (supabase as any).from(m.table).update(m.data).eq(m.matchColumn!, m.matchValue!);
           error = res.error;
         } else if (m.operation === "delete") {
-          const res = await (supabase.from(m.table) as any).delete().eq(m.matchColumn!, m.matchValue!);
+          const res = await (supabase as any).from(m.table).delete().eq(m.matchColumn!, m.matchValue!);
           error = res.error;
         }
 
