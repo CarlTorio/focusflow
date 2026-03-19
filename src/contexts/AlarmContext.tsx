@@ -130,7 +130,7 @@ export function AlarmProvider({ children }: { children: ReactNode }) {
   }, [user, queryClient]);
 
   const dismiss = useCallback(() => {
-    stopCustomSound();
+    stopAlarmSound();
     if (firingAlarm) {
       // Deactivate non-recurring alarms
       if (!firingAlarm.alarm.is_recurring) {
