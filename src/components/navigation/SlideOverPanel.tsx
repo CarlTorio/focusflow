@@ -5,6 +5,7 @@ import {
   X, Sun, Moon, Monitor, CalendarDays, Mail, Settings, UserPen,
   LogOut, Bell,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 export function SlideOverPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
