@@ -115,8 +115,8 @@ export function NudgeProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export const useNudgeContext = () => {
+export function useNudgeContext() {
   const context = useContext(NudgeContext);
   if (!context) throw new Error("useNudgeContext must be used within NudgeProvider");
   return context;
-};
+}
