@@ -22,7 +22,7 @@ export interface Alarm {
 }
 
 export type AlarmType = "task_reminder" | "custom" | "nudge" | "due_warning" | "break_reminder";
-export type SoundType = "default" | "chime" | "bell" | "nature" | "custom";
+export type SoundType = "alarm-1" | "alarm-2" | "alarm-3" | "alarm-4" | "alarm-5" | "alarm-6" | "alarm-7" | "alarm-8" | "alarm-9" | "alarm-10" | "custom";
 
 export interface CreateAlarmInput {
   title: string;

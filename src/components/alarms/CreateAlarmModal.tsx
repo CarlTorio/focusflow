@@ -49,7 +49,7 @@ export function CreateAlarmModal({ open, onClose }: CreateAlarmModalProps) {
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurrencePattern, setRecurrencePattern] = useState("daily");
   const [customDays, setCustomDays] = useState<number[]>([]);
-  const [soundType, setSoundType] = useState<SoundType>("default");
+  const [soundType, setSoundType] = useState("alarm-1");
   const [customSoundUrl, setCustomSoundUrl] = useState<string | null>(null);
   const [customSoundName, setCustomSoundName] = useState("");
   const [uploading, setUploading] = useState(false);
