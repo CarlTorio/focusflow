@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAlarms } from "@/hooks/useAlarms";
 import { SOUND_OPTIONS, previewSound, stopAlarmSound } from "@/lib/alarmSounds";
-import { X, Check, ChevronRight, ArrowLeft } from "lucide-react";
+import { X, Check, ChevronRight, ArrowLeft, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Slider } from "@/components/ui/slider";
@@ -196,7 +196,7 @@ const RING_DURATION_OPTIONS = [
 export default function AddAlarm() {
   const navigate = useNavigate();
   const { id: editId } = useParams<{ id: string }>();
-  const { alarms, createAlarm, updateAlarm } = useAlarms();
+  const { alarms, createAlarm, updateAlarm, deleteAlarm } = useAlarms();
   const isEdit = !!editId;
   const editAlarm = isEdit ? alarms.find((a) => a.id === editId) : null;
 
@@ -242,6 +242,7 @@ export default function AddAlarm() {
   const [snoozeCount, setSnoozeCount] = useState(init.snoozeCount);
   const [ringDuration, setRingDuration] = useState(5);
   const [saving, setSaving] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Modals
   const [showRepeat, setShowRepeat] = useState(false);
@@ -439,6 +440,17 @@ export default function AddAlarm() {
             onClick={() => { setTempLabel(label); setShowLabel(true); }}
           />
         </div>
+
+        {/* Delete button (edit mode only) */}
+        {isEdit && (
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="mt-6 flex w-full items-center justify-center gap-2 rounded-2xl bg-destructive/10 py-4 text-sm font-semibold text-destructive transition-colors hover:bg-destructive/20"
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete alarm
+          </button>
+        )}
       </div>
 
       {/* ─── Repeat bottom sheet ─── */}
@@ -583,6 +595,37 @@ export default function AddAlarm() {
           className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         />
       </BottomSheet>
+
+      {/* Delete confirmation */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowDeleteConfirm(false)} />
+          <div className="relative mx-4 w-full max-w-sm rounded-2xl bg-card p-6">
+            <h3 className="text-lg font-semibold text-foreground">Delete this alarm?</h3>
+            <p className="mt-2 text-sm text-muted-foreground">This action cannot be undone.</p>
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 rounded-xl bg-secondary py-3 text-sm font-semibold text-foreground"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (editId) {
+                    deleteAlarm.mutate(editId);
+                    toast.success("Alarm deleted");
+                    navigate("/alarm");
+                  }
+                }}
+                className="flex-1 rounded-xl bg-destructive py-3 text-sm font-semibold text-destructive-foreground"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

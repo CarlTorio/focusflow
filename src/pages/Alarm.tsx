@@ -3,20 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { MobileHeader } from "@/components/navigation/MobileHeader";
 import { useAlarms, Alarm as AlarmType } from "@/hooks/useAlarms";
 import { Switch } from "@/components/ui/switch";
-import { Bell, Plus, Trash2 } from "lucide-react";
+import { Bell, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { toast } from "sonner";
 
 function LiveClock() {
   const [now, setNow] = useState(new Date());
@@ -48,12 +37,10 @@ function LiveClock() {
 function AlarmRow({
   alarm,
   onToggle,
-  onDelete,
   onEdit,
 }: {
   alarm: AlarmType;
   onToggle: () => void;
-  onDelete: () => void;
   onEdit: () => void;
 }) {
   const displayTime = (alarm as any).original_alarm_time || alarm.alarm_time;
@@ -95,12 +82,6 @@ function AlarmRow({
         </p>
       </div>
       <div className="flex items-center gap-3">
-        <button
-          onClick={(e) => { e.stopPropagation(); onDelete(); }}
-          className="text-muted-foreground hover:text-destructive transition-colors"
-        >
-          <Trash2 className="h-4 w-4" />
-        </button>
         <Switch
           checked={alarm.is_active}
           onCheckedChange={() => { onToggle(); }}
@@ -113,21 +94,12 @@ function AlarmRow({
 
 export default function Alarm() {
   const navigate = useNavigate();
-  const { alarms, updateAlarm, deleteAlarm } = useAlarms();
-  const [deleteTarget, setDeleteTarget] = useState<AlarmType | null>(null);
+  const { alarms, updateAlarm } = useAlarms();
 
   const activeCount = alarms.filter((a) => a.is_active).length;
 
   const handleToggle = (alarm: AlarmType) => {
     updateAlarm.mutate({ id: alarm.id, is_active: !alarm.is_active } as any);
-  };
-
-  const confirmDelete = () => {
-    if (deleteTarget) {
-      deleteAlarm.mutate(deleteTarget.id);
-      setDeleteTarget(null);
-      toast.success("Alarm deleted");
-    }
   };
 
   return (
@@ -165,7 +137,6 @@ export default function Alarm() {
               key={alarm.id}
               alarm={alarm}
               onToggle={() => handleToggle(alarm)}
-              onDelete={() => setDeleteTarget(alarm)}
               onEdit={() => navigate(`/alarm/edit/${alarm.id}`)}
             />
           ))}
@@ -190,19 +161,6 @@ export default function Alarm() {
         </button>
       </div>
 
-      {/* Delete dialog */}
-      <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete this alarm?</AlertDialogTitle>
-            <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
