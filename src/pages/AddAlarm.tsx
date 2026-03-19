@@ -242,6 +242,7 @@ export default function AddAlarm() {
   const [snoozeCount, setSnoozeCount] = useState(init.snoozeCount);
   const [ringDuration, setRingDuration] = useState(5);
   const [saving, setSaving] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Modals
   const [showRepeat, setShowRepeat] = useState(false);
