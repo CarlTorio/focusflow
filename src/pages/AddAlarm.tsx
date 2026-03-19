@@ -2,9 +2,11 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAlarms } from "@/hooks/useAlarms";
 import { SOUND_OPTIONS, previewSound, stopAlarmSound } from "@/lib/alarmSounds";
-import { X, Check, ChevronRight, Volume2 } from "lucide-react";
+import { X, Check, ChevronRight, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { Slider } from "@/components/ui/slider";
+import { Checkbox } from "@/components/ui/checkbox";
 
 /* ─── Scroll-wheel picker ─── */
 const ITEM_H = 48;
@@ -45,7 +47,6 @@ function WheelColumn({
 
   return (
     <div className="relative" style={{ height: ITEM_H * VISIBLE }}>
-      {/* Selection highlight */}
       <div
         className="pointer-events-none absolute inset-x-0 z-10 border-y border-primary/20"
         style={{ top: CENTER * ITEM_H, height: ITEM_H }}
@@ -56,7 +57,6 @@ function WheelColumn({
         className="h-full snap-y snap-mandatory overflow-y-auto scrollbar-none"
         style={{ scrollSnapType: "y mandatory" }}
       >
-        {/* Padding so first/last items can center */}
         <div style={{ height: CENTER * ITEM_H }} />
         {items.map((item, i) => {
           const isActive = i === value;
@@ -69,10 +69,7 @@ function WheelColumn({
                   ? "text-primary text-2xl font-semibold"
                   : "text-muted-foreground text-lg font-normal opacity-40"
               )}
-              style={{
-                height: ITEM_H,
-                fontFamily: "var(--font-heading)",
-              }}
+              style={{ height: ITEM_H }}
               onClick={() => {
                 onChange(i);
                 ref.current?.scrollTo({ top: i * ITEM_H, behavior: "smooth" });
@@ -83,6 +80,39 @@ function WheelColumn({
           );
         })}
         <div style={{ height: CENTER * ITEM_H }} />
+      </div>
+    </div>
+  );
+}
+
+/* ─── Bottom Sheet Modal ─── */
+function BottomSheet({
+  open,
+  onClose,
+  title,
+  children,
+  actions,
+}: {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+  actions?: React.ReactNode;
+}) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center">
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      <div className="relative w-full max-w-lg animate-in slide-in-from-bottom duration-300 rounded-t-2xl bg-card pb-safe">
+        <div className="px-6 pt-6 pb-2">
+          <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+        </div>
+        <div className="max-h-[60vh] overflow-y-auto px-6">{children}</div>
+        {actions && (
+          <div className="flex items-center justify-end gap-6 border-t border-border px-6 py-4">
+            {actions}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -101,7 +131,7 @@ function SettingRow({
   return (
     <button
       onClick={onClick}
-      className="flex w-full items-center justify-between rounded-xl bg-card px-4 py-3.5 text-left transition-colors hover:bg-secondary"
+      className="flex w-full items-center justify-between px-5 py-4 text-left transition-colors hover:bg-secondary/50"
     >
       <span className="text-sm font-medium text-foreground">{label}</span>
       <span className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -112,55 +142,94 @@ function SettingRow({
   );
 }
 
-/* ─── Repeat picker ─── */
-const REPEAT_OPTIONS = [
-  { key: "once", label: "Only ring once" },
-  { key: "daily", label: "Every day" },
-  { key: "weekdays", label: "Weekdays" },
-  { key: "weekly", label: "Weekly" },
-  { key: "custom", label: "Custom days" },
+/* ─── Radio row for bottom sheets ─── */
+function RadioRow({
+  label,
+  subtitle,
+  selected,
+  onClick,
+}: {
+  label: string;
+  subtitle?: string;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex w-full items-center justify-between py-3.5 text-left"
+    >
+      <div>
+        <span className="text-sm text-foreground">{label}</span>
+        {subtitle && (
+          <p className="text-xs text-muted-foreground">{subtitle}</p>
+        )}
+      </div>
+      <div
+        className={cn(
+          "flex h-5 w-5 items-center justify-center rounded-full border-2 transition-colors",
+          selected
+            ? "border-primary bg-primary"
+            : "border-muted-foreground"
+        )}
+      >
+        {selected && <div className="h-2 w-2 rounded-full bg-primary-foreground" />}
+      </div>
+    </button>
+  );
+}
+
+/* ─── Day labels ─── */
+const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+/* ─── Ring duration options ─── */
+const RING_DURATION_OPTIONS = [
+  { value: 1, label: "1 minute" },
+  { value: 5, label: "5 minutes" },
+  { value: 10, label: "10 minutes" },
+  { value: 15, label: "15 minutes" },
+  { value: 20, label: "20 minutes" },
+  { value: 30, label: "30 minutes" },
 ];
-
-const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
-
-/* ─── Sound picker uses SOUND_OPTIONS from alarmSounds ─── */
-
-/* ─── Snooze options ─── */
-const SNOOZE_OPTIONS = [
-  { mins: 5, max: 3, label: "5 minutes, 3×" },
-  { mins: 10, max: 3, label: "10 minutes, 3×" },
-  { mins: 5, max: 99, label: "5 minutes, unlimited" },
-  { mins: 10, max: 99, label: "10 minutes, unlimited" },
-];
-
-type SubScreen = null | "repeat" | "sound" | "label" | "snooze";
 
 export default function AddAlarm() {
   const navigate = useNavigate();
   const { createAlarm } = useAlarms();
 
-  // Time picker state
   const hours12 = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0"));
   const minutes60 = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"));
   const periods = ["am", "pm"];
 
-  const [hourIdx, setHourIdx] = useState(8); // 09
+  const [hourIdx, setHourIdx] = useState(8);
   const [minIdx, setMinIdx] = useState(0);
   const [periodIdx, setPeriodIdx] = useState(0);
 
   // Settings
-  const [repeatKey, setRepeatKey] = useState("once");
   const [customDays, setCustomDays] = useState<number[]>([]);
   const [soundType, setSoundType] = useState("alarm-1");
   const [label, setLabel] = useState("Alarm");
-  const [snoozeIdx, setSnoozeIdx] = useState(0);
+  const [snoozeMins, setSnoozeMins] = useState(5);
+  const [snoozeCount, setSnoozeCount] = useState(3);
+  const [ringDuration, setRingDuration] = useState(5);
   const [saving, setSaving] = useState(false);
 
-  // Sub-screens
-  const [subScreen, setSubScreen] = useState<SubScreen>(null);
+  // Modals
+  const [showRepeat, setShowRepeat] = useState(false);
+  const [showSound, setShowSound] = useState(false);
+  const [showSnooze, setShowSnooze] = useState(false);
+  const [showRingDuration, setShowRingDuration] = useState(false);
+  const [showLabel, setShowLabel] = useState(false);
+  const [tempLabel, setTempLabel] = useState(label);
 
-  const toggleDay = (d: number) =>
-    setCustomDays((prev) =>
+  // Temp state for snooze modal
+  const [tempSnoozeMins, setTempSnoozeMins] = useState(snoozeMins);
+  const [tempSnoozeCount, setTempSnoozeCount] = useState(snoozeCount);
+
+  // Temp state for repeat modal
+  const [tempDays, setTempDays] = useState<number[]>(customDays);
+
+  const toggleTempDay = (d: number) =>
+    setTempDays((prev) =>
       prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]
     );
 
@@ -173,20 +242,10 @@ export default function AddAlarm() {
           : (hourIdx + 1) === 12 ? 0 : hourIdx + 1;
 
       const now = new Date();
-      const alarmDate = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        hour24,
-        minIdx
-      );
-      // If time already passed today, set for tomorrow
-      if (alarmDate <= now) {
-        alarmDate.setDate(alarmDate.getDate() + 1);
-      }
+      const alarmDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour24, minIdx);
+      if (alarmDate <= now) alarmDate.setDate(alarmDate.getDate() + 1);
 
-      const isRecurring = repeatKey !== "once";
-      const snooze = SNOOZE_OPTIONS[snoozeIdx];
+      const isRecurring = customDays.length > 0;
 
       await createAlarm.mutateAsync({
         title: label.trim() || "Alarm",
@@ -194,10 +253,10 @@ export default function AddAlarm() {
         alarm_time: alarmDate.toISOString(),
         sound_type: soundType,
         is_recurring: isRecurring,
-        recurrence_pattern: isRecurring ? repeatKey : undefined,
-        recurrence_days: repeatKey === "custom" ? customDays : undefined,
-        snooze_duration_minutes: snooze.mins,
-        max_snoozes: snooze.max,
+        recurrence_pattern: isRecurring ? "custom" : undefined,
+        recurrence_days: isRecurring ? customDays : undefined,
+        snooze_duration_minutes: snoozeMins,
+        max_snoozes: snoozeCount,
       });
 
       toast.success("Alarm set!");
@@ -209,152 +268,66 @@ export default function AddAlarm() {
     }
   };
 
-  /* ─── Sub-screen: Repeat ─── */
-  if (subScreen === "repeat") {
+  /* ─── Sound sub-screen (full page like reference) ─── */
+  if (showSound) {
     return (
       <div className="min-h-screen bg-background pb-20 md:pb-8">
-        <Header
-          title="Repeat"
-          onBack={() => setSubScreen(null)}
-        />
-        <div className="mx-auto max-w-lg px-4 pt-4 space-y-2">
-          {REPEAT_OPTIONS.map((opt) => (
-            <button
-              key={opt.key}
-              onClick={() => {
-                setRepeatKey(opt.key);
-                if (opt.key !== "custom") setSubScreen(null);
-              }}
-              className={cn(
-                "flex w-full items-center justify-between rounded-xl px-4 py-3.5 text-sm font-medium transition-colors",
-                repeatKey === opt.key
-                  ? "bg-primary/10 text-primary"
-                  : "bg-card text-foreground hover:bg-secondary"
-              )}
-            >
-              {opt.label}
-              {repeatKey === opt.key && <Check className="h-4 w-4" />}
-            </button>
-          ))}
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-3 bg-background px-4">
+          <button onClick={() => { stopAlarmSound(); setShowSound(false); }} className="text-foreground p-1">
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <span className="text-base font-semibold text-foreground">Alarm tone</span>
+        </header>
 
-          {repeatKey === "custom" && (
-            <div className="flex justify-center gap-2 pt-4">
-              {DAY_LABELS.map((d, i) => (
+        <div className="mx-auto max-w-lg px-4 pt-2">
+          {/* Ringtones section */}
+          <p className="px-1 pb-2 pt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Ringtones
+          </p>
+          <div className="rounded-2xl bg-card overflow-hidden">
+            {SOUND_OPTIONS.map((opt, i) => (
+              <div key={opt.value}>
+                {i > 0 && <div className="mx-4 border-t border-border" />}
                 <button
-                  key={i}
-                  onClick={() => toggleDay(i)}
-                  className={cn(
-                    "flex h-10 w-10 items-center justify-center rounded-full text-xs font-semibold transition-colors",
-                    customDays.includes(i)
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-secondary text-foreground"
-                  )}
-                >
-                  {d}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  /* ─── Sub-screen: Sound ─── */
-  if (subScreen === "sound") {
-    return (
-      <div className="min-h-screen bg-background pb-20 md:pb-8">
-        <Header title="Sound" onBack={() => { stopAlarmSound(); setSubScreen(null); }} />
-        <div className="mx-auto max-w-lg px-4 pt-4 space-y-2">
-          {SOUND_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => {
-                setSoundType(opt.value);
-                stopAlarmSound();
-                setSubScreen(null);
-              }}
-              className={cn(
-                "flex w-full items-center justify-between rounded-xl px-4 py-3.5 text-sm font-medium transition-colors",
-                soundType === opt.value
-                  ? "bg-primary/10 text-primary"
-                  : "bg-card text-foreground hover:bg-secondary"
-              )}
-            >
-              <span>{opt.label}</span>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
+                  onClick={() => {
+                    setSoundType(opt.value);
                     previewSound(opt.value);
                   }}
-                  className="text-muted-foreground hover:text-primary"
+                  className="flex w-full items-center justify-between px-5 py-3.5 text-left transition-colors hover:bg-secondary/50"
                 >
-                  <Volume2 className="h-4 w-4" />
+                  <span className="text-sm text-foreground">{opt.label}</span>
+                  <div
+                    className={cn(
+                      "flex h-5 w-5 items-center justify-center rounded-full border-2 transition-colors",
+                      soundType === opt.value
+                        ? "border-primary bg-primary"
+                        : "border-muted-foreground"
+                    )}
+                  >
+                    {soundType === opt.value && (
+                      <div className="h-2 w-2 rounded-full bg-primary-foreground" />
+                    )}
+                  </div>
                 </button>
-                {soundType === opt.value && <Check className="h-4 w-4" />}
               </div>
-            </button>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     );
   }
 
-  /* ─── Sub-screen: Label ─── */
-  if (subScreen === "label") {
-    return (
-      <div className="min-h-screen bg-background pb-20 md:pb-8">
-        <Header
-          title="Label"
-          onBack={() => setSubScreen(null)}
-        />
-        <div className="mx-auto max-w-lg px-4 pt-6">
-          <input
-            autoFocus
-            value={label}
-            onChange={(e) => setLabel(e.target.value)}
-            placeholder="Alarm label"
-            className="w-full rounded-xl border border-input bg-card px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-          />
-        </div>
-      </div>
-    );
-  }
+  /* ─── Repeat label ─── */
+  const repeatLabel =
+    customDays.length === 7
+      ? "Every day"
+      : customDays.length === 5 && [1, 2, 3, 4, 5].every((d) => customDays.includes(d))
+        ? "Weekdays"
+        : customDays.length > 0
+          ? customDays.sort().map((d) => DAY_NAMES[d]?.slice(0, 3)).join(", ")
+          : "Only ring once";
 
-  /* ─── Sub-screen: Snooze ─── */
-  if (subScreen === "snooze") {
-    return (
-      <div className="min-h-screen bg-background pb-20 md:pb-8">
-        <Header title="Snooze duration" onBack={() => setSubScreen(null)} />
-        <div className="mx-auto max-w-lg px-4 pt-4 space-y-2">
-          {SNOOZE_OPTIONS.map((opt, i) => (
-            <button
-              key={i}
-              onClick={() => {
-                setSnoozeIdx(i);
-                setSubScreen(null);
-              }}
-              className={cn(
-                "flex w-full items-center justify-between rounded-xl px-4 py-3.5 text-sm font-medium transition-colors",
-                snoozeIdx === i
-                  ? "bg-primary/10 text-primary"
-                  : "bg-card text-foreground hover:bg-secondary"
-              )}
-            >
-              {opt.label}
-              {snoozeIdx === i && <Check className="h-4 w-4" />}
-            </button>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  /* ─── Main screen ─── */
-  const repeatLabel = REPEAT_OPTIONS.find((r) => r.key === repeatKey)?.label || "Only ring once";
   const soundLabel = SOUND_OPTIONS.find((s) => s.value === soundType)?.label || "Alarm 1";
-  const snoozeLabel = SNOOZE_OPTIONS[snoozeIdx].label;
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-8">
@@ -363,12 +336,7 @@ export default function AddAlarm() {
         <button onClick={() => navigate("/alarm")} className="text-foreground p-1">
           <X className="h-6 w-6" />
         </button>
-        <span
-          className="text-base font-semibold text-foreground"
-          style={{ fontFamily: "var(--font-heading)" }}
-        >
-          Add alarm
-        </span>
+        <span className="text-base font-semibold text-foreground">Add alarm</span>
         <button
           onClick={handleSave}
           disabled={saving}
@@ -392,52 +360,182 @@ export default function AddAlarm() {
           </div>
         </div>
 
-        {/* Settings */}
-        <div className="space-y-2 pt-4">
+        {/* Settings rows */}
+        <div className="mt-4 rounded-2xl bg-card overflow-hidden">
           <SettingRow
             label="Repeat"
             value={repeatLabel}
-            onClick={() => setSubScreen("repeat")}
+            onClick={() => { setTempDays([...customDays]); setShowRepeat(true); }}
           />
-        </div>
-
-        <div className="mt-4 space-y-px rounded-2xl bg-card overflow-hidden">
+          <div className="mx-5 border-t border-border" />
           <SettingRow
-            label="Sound"
+            label="Alarm tone"
             value={soundLabel}
-            onClick={() => setSubScreen("sound")}
+            onClick={() => setShowSound(true)}
           />
-          <div className="mx-4 border-t border-border" />
+          <div className="mx-5 border-t border-border" />
+          <SettingRow
+            label="Ring duration"
+            value={`${ringDuration} min`}
+            onClick={() => setShowRingDuration(true)}
+          />
+          <div className="mx-5 border-t border-border" />
+          <SettingRow
+            label="Snooze duration"
+            value={`${snoozeMins} min, ${snoozeCount}×`}
+            onClick={() => { setTempSnoozeMins(snoozeMins); setTempSnoozeCount(snoozeCount); setShowSnooze(true); }}
+          />
+          <div className="mx-5 border-t border-border" />
           <SettingRow
             label="Label"
             value={label || "Alarm"}
-            onClick={() => setSubScreen("label")}
-          />
-          <div className="mx-4 border-t border-border" />
-          <SettingRow
-            label="Snooze duration"
-            value={snoozeLabel}
-            onClick={() => setSubScreen("snooze")}
+            onClick={() => { setTempLabel(label); setShowLabel(true); }}
           />
         </div>
       </div>
-    </div>
-  );
-}
 
-/* ─── Shared sub-screen header ─── */
-function Header({ title, onBack }: { title: string; onBack: () => void }) {
-  return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 bg-background px-4">
-      <button onClick={onBack} className="text-foreground p-1">
-        <X className="h-5 w-5" />
-      </button>
-      <span
-        className="text-base font-semibold text-foreground"
-        style={{ fontFamily: "var(--font-heading)" }}
+      {/* ─── Repeat bottom sheet ─── */}
+      <BottomSheet
+        open={showRepeat}
+        onClose={() => setShowRepeat(false)}
+        title="Repeat"
+        actions={
+          <>
+            <button onClick={() => setShowRepeat(false)} className="text-sm font-semibold text-primary">
+              CANCEL
+            </button>
+            <button
+              onClick={() => { setCustomDays(tempDays); setShowRepeat(false); }}
+              className="text-sm font-semibold text-primary"
+            >
+              OK
+            </button>
+          </>
+        }
       >
-        {title}
-      </span>
-    </header>
+        <div className="divide-y divide-border">
+          {DAY_NAMES.map((day, i) => (
+            <button
+              key={i}
+              onClick={() => toggleTempDay(i)}
+              className="flex w-full items-center justify-between py-3.5 text-left"
+            >
+              <span className="text-sm text-foreground">{day}</span>
+              <Checkbox
+                checked={tempDays.includes(i)}
+                onCheckedChange={() => toggleTempDay(i)}
+                className="border-muted-foreground data-[state=checked]:border-primary data-[state=checked]:bg-primary"
+              />
+            </button>
+          ))}
+        </div>
+      </BottomSheet>
+
+      {/* ─── Ring Duration bottom sheet ─── */}
+      <BottomSheet
+        open={showRingDuration}
+        onClose={() => setShowRingDuration(false)}
+        title="Ring duration"
+        actions={
+          <button onClick={() => setShowRingDuration(false)} className="text-sm font-semibold text-primary">
+            CANCEL
+          </button>
+        }
+      >
+        <div className="divide-y divide-border">
+          {RING_DURATION_OPTIONS.map((opt) => (
+            <RadioRow
+              key={opt.value}
+              label={opt.label}
+              selected={ringDuration === opt.value}
+              onClick={() => { setRingDuration(opt.value); setShowRingDuration(false); }}
+            />
+          ))}
+        </div>
+      </BottomSheet>
+
+      {/* ─── Snooze Duration bottom sheet ─── */}
+      <BottomSheet
+        open={showSnooze}
+        onClose={() => setShowSnooze(false)}
+        title="Snooze duration"
+        actions={
+          <>
+            <button onClick={() => setShowSnooze(false)} className="text-sm font-semibold text-primary">
+              CANCEL
+            </button>
+            <button
+              onClick={() => { setSnoozeMins(tempSnoozeMins); setSnoozeCount(tempSnoozeCount); setShowSnooze(false); }}
+              className="text-sm font-semibold text-primary"
+            >
+              OK
+            </button>
+          </>
+        }
+      >
+        <div className="space-y-6 py-2">
+          <div>
+            <p className="text-xs text-muted-foreground mb-3">Snooze duration (min)</p>
+            <Slider
+              value={[tempSnoozeMins]}
+              onValueChange={(v) => setTempSnoozeMins(v[0])}
+              min={5}
+              max={30}
+              step={5}
+              className="w-full"
+            />
+            <div className="mt-2 flex justify-between text-xs text-muted-foreground">
+              {[5, 10, 15, 20, 25, 30].map((n) => (
+                <span key={n} className={cn(tempSnoozeMins === n && "text-primary font-semibold")}>{n}</span>
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground mb-3">Number of snoozes</p>
+            <Slider
+              value={[tempSnoozeCount]}
+              onValueChange={(v) => setTempSnoozeCount(v[0])}
+              min={0}
+              max={10}
+              step={1}
+              className="w-full"
+            />
+            <div className="mt-2 flex justify-between text-xs text-muted-foreground">
+              {[0, 1, 3, 5, 10].map((n) => (
+                <span key={n} className={cn(tempSnoozeCount === n && "text-primary font-semibold")}>{n}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </BottomSheet>
+
+      {/* ─── Label bottom sheet ─── */}
+      <BottomSheet
+        open={showLabel}
+        onClose={() => setShowLabel(false)}
+        title="Label"
+        actions={
+          <>
+            <button onClick={() => setShowLabel(false)} className="text-sm font-semibold text-primary">
+              CANCEL
+            </button>
+            <button
+              onClick={() => { setLabel(tempLabel); setShowLabel(false); }}
+              className="text-sm font-semibold text-primary"
+            >
+              OK
+            </button>
+          </>
+        }
+      >
+        <input
+          autoFocus
+          value={tempLabel}
+          onChange={(e) => setTempLabel(e.target.value)}
+          placeholder="Alarm label"
+          className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+        />
+      </BottomSheet>
+    </div>
   );
 }
