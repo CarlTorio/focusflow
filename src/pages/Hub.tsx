@@ -12,6 +12,7 @@ export default function Hub() {
       <MobileHeader title="Today" />
       <ProfileHero />
       <div className="mx-auto max-w-2xl space-y-6 px-4 py-6">
+        <AppInstallBanner />
         <DueDateNotifications />
         <RoutineWeeklyCard />
         <TaskSummaryCard />
