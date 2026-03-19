@@ -199,6 +199,17 @@ export function FolderPanel({
             />
           </div>
         )}
+
+        {/* Add New Folder button — desktop only */}
+        {!isCreating && (
+          <button
+            onClick={() => setIsCreating(true)}
+            className="hidden md:flex items-center gap-2 mx-2 mt-2 px-3 py-2 rounded-lg text-xs font-medium text-muted-foreground border border-dashed border-muted-foreground/30 transition-colors hover:bg-secondary hover:text-foreground w-[calc(100%-1rem)]"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Add New Folder
+          </button>
+        )}
       </div>
 
       <AlertDialog open={!!deletingFolder} onOpenChange={() => setDeletingFolder(null)}>
