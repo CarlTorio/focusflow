@@ -199,7 +199,7 @@ export function DailyRoutineSection({ onEditRoutine, selectedDate }: DailyRoutin
 
       {/* Routine list */}
       {!collapsed && (
-        <div className="px-2 pb-2 space-y-0.5 animate-in fade-in-0 duration-150">
+        <div className="space-y-1.5 animate-in fade-in-0 duration-150">
           {visibleRoutines.map((routine) => {
             const completed = completionSet.has(routine.id);
             const countdown = viewingToday ? getCountdown(routine.deadline_time) : null;
