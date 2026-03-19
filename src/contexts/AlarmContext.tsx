@@ -4,6 +4,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { playAlarmSound, stopAlarmSound } from "@/lib/alarmSounds";
 import { Alarm } from "@/hooks/useAlarms";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  initializeNativeNotifications,
+  onNotificationAction,
+  isNativePlatform,
+  scheduleAlarmNotification,
+  cancelAlarmNotification,
+} from "@/lib/nativeNotifications";
 
 interface FiringAlarm {
   alarm: Alarm;
