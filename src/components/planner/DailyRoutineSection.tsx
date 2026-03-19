@@ -62,7 +62,7 @@ function RoutineItem({
 
   return (
     <div className="space-y-0">
-      <div className="flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all hover:bg-card/60">
+      <div className="flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 dark:bg-primary/10 px-3 py-2.5 transition-all hover:bg-primary/10">
         {/* Checkbox */}
         <button
           onClick={canToggle ? onToggle : undefined}
