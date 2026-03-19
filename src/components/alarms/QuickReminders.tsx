@@ -43,6 +43,11 @@ export function QuickReminders() {
   const [newTitle, setNewTitle] = useState("");
   const [showInput, setShowInput] = useState(false);
   const [settingAlarmFor, setSettingAlarmFor] = useState<ReminderNote | null>(null);
+  const [showCustomPicker, setShowCustomPicker] = useState(false);
+  const [customDate, setCustomDate] = useState<Date | undefined>(undefined);
+  const [customHour, setCustomHour] = useState("09");
+  const [customMin, setCustomMin] = useState("00");
+  const [customPeriod, setCustomPeriod] = useState<"AM" | "PM">("AM");
 
   const { data: notes = [] } = useQuery({
     queryKey: ["reminder_notes", user?.id],
