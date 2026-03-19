@@ -1,8 +1,8 @@
 import { useState, useRef } from "react";
-import { useAlarms, SoundType } from "@/hooks/useAlarms";
+import { useAlarms } from "@/hooks/useAlarms";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
-import { playBuiltInSound, SOUND_OPTIONS, stopCustomSound } from "@/lib/alarmSounds";
+import { previewSound, SOUND_OPTIONS, stopAlarmSound } from "@/lib/alarmSounds";
 import {
   Dialog,
   DialogContent,
@@ -49,7 +49,7 @@ export function CreateAlarmModal({ open, onClose }: CreateAlarmModalProps) {
   const [isRecurring, setIsRecurring] = useState(false);
   const [recurrencePattern, setRecurrencePattern] = useState("daily");
   const [customDays, setCustomDays] = useState<number[]>([]);
-  const [soundType, setSoundType] = useState<SoundType>("default");
+  const [soundType, setSoundType] = useState("alarm-1");
   const [customSoundUrl, setCustomSoundUrl] = useState<string | null>(null);
   const [customSoundName, setCustomSoundName] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -240,7 +240,7 @@ export function CreateAlarmModal({ open, onClose }: CreateAlarmModalProps) {
               {SOUND_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
-                  onClick={() => setSoundType(opt.value as SoundType)}
+                  onClick={() => setSoundType(opt.value)}
                   className={cn(
                     "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors",
                     soundType === opt.value
@@ -258,7 +258,7 @@ export function CreateAlarmModal({ open, onClose }: CreateAlarmModalProps) {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      playBuiltInSound(opt.value as any);
+                      previewSound(opt.value);
                     }}
                     className="text-muted-foreground hover:text-primary"
                   >

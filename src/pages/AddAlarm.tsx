@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAlarms, SoundType } from "@/hooks/useAlarms";
-import { SOUND_OPTIONS, playBuiltInSound } from "@/lib/alarmSounds";
+import { useAlarms } from "@/hooks/useAlarms";
+import { SOUND_OPTIONS, previewSound, stopAlarmSound } from "@/lib/alarmSounds";
 import { X, Check, ChevronRight, Volume2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -123,13 +123,7 @@ const REPEAT_OPTIONS = [
 
 const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
 
-/* ─── Sound picker ─── */
-const SOUND_LABELS: Record<string, string> = {
-  default: "Default Chime",
-  chime: "Gentle Bell",
-  bell: "Nature Sounds",
-  nature: "Soft Piano",
-};
+/* ─── Sound picker uses SOUND_OPTIONS from alarmSounds ─── */
 
 /* ─── Snooze options ─── */
 const SNOOZE_OPTIONS = [
@@ -157,7 +151,7 @@ export default function AddAlarm() {
   // Settings
   const [repeatKey, setRepeatKey] = useState("once");
   const [customDays, setCustomDays] = useState<number[]>([]);
-  const [soundType, setSoundType] = useState<SoundType>("default");
+  const [soundType, setSoundType] = useState("alarm-1");
   const [label, setLabel] = useState("Alarm");
   const [snoozeIdx, setSnoozeIdx] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -270,13 +264,14 @@ export default function AddAlarm() {
   if (subScreen === "sound") {
     return (
       <div className="min-h-screen bg-background pb-20 md:pb-8">
-        <Header title="Sound" onBack={() => setSubScreen(null)} />
+        <Header title="Sound" onBack={() => { stopAlarmSound(); setSubScreen(null); }} />
         <div className="mx-auto max-w-lg px-4 pt-4 space-y-2">
           {SOUND_OPTIONS.map((opt) => (
             <button
               key={opt.value}
               onClick={() => {
-                setSoundType(opt.value as SoundType);
+                setSoundType(opt.value);
+                stopAlarmSound();
                 setSubScreen(null);
               }}
               className={cn(
@@ -291,7 +286,7 @@ export default function AddAlarm() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    playBuiltInSound(opt.value as any);
+                    previewSound(opt.value);
                   }}
                   className="text-muted-foreground hover:text-primary"
                 >
@@ -358,7 +353,7 @@ export default function AddAlarm() {
 
   /* ─── Main screen ─── */
   const repeatLabel = REPEAT_OPTIONS.find((r) => r.key === repeatKey)?.label || "Only ring once";
-  const soundLabel = SOUND_LABELS[soundType] || "Default Chime";
+  const soundLabel = SOUND_OPTIONS.find((s) => s.value === soundType)?.label || "Alarm 1";
   const snoozeLabel = SNOOZE_OPTIONS[snoozeIdx].label;
 
   return (

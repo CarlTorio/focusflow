@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState, useCallback, ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
-import { playAlarmSound, stopCustomSound } from "@/lib/alarmSounds";
+import { playAlarmSound, stopAlarmSound } from "@/lib/alarmSounds";
 import { Alarm } from "@/hooks/useAlarms";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -86,7 +86,7 @@ export function AlarmProvider({ children }: { children: ReactNode }) {
 
     // Fire the alarm
     setFiringAlarm({ alarm });
-    playAlarmSound(alarm.sound_type, alarm.custom_sound_url);
+    playAlarmSound(alarm.sound_type);
 
     // Send browser notification
     if (typeof Notification !== "undefined" && Notification.permission === "granted") {
@@ -130,7 +130,7 @@ export function AlarmProvider({ children }: { children: ReactNode }) {
   }, [user, queryClient]);
 
   const dismiss = useCallback(() => {
-    stopCustomSound();
+    stopAlarmSound();
     if (firingAlarm) {
       // Deactivate non-recurring alarms
       if (!firingAlarm.alarm.is_recurring) {
@@ -145,7 +145,7 @@ export function AlarmProvider({ children }: { children: ReactNode }) {
   }, [firingAlarm, queryClient]);
 
   const snooze = useCallback(() => {
-    stopCustomSound();
+    stopAlarmSound();
     if (!firingAlarm) return;
     const alarm = firingAlarm.alarm;
     if (alarm.snooze_count >= alarm.max_snoozes) {
