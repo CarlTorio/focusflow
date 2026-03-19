@@ -250,7 +250,7 @@ export function QuickReminders() {
               className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 border-border transition-colors hover:border-primary"
             />
             <span className="flex-1 min-w-0 truncate text-sm text-foreground">{note.title}</span>
-            <div className="flex shrink-0 items-center gap-1">
+            <div className="flex shrink-0 items-center gap-2.5">
               {note.notify_schedule ? (
                 <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
                   {SCHEDULE_OPTIONS.find(s => s.value === note.notify_schedule)?.icon}{" "}
@@ -259,15 +259,15 @@ export function QuickReminders() {
               ) : (
                 <button
                   onClick={() => setSettingAlarmFor(note)}
-                  className="text-muted-foreground transition-colors hover:text-primary"
-                  title="Set reminder alarm"
+                  className="flex items-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
                 >
-                  <Bell className="h-4 w-4" />
+                  <Bell className="h-3.5 w-3.5" />
+                  Remind Me
                 </button>
               )}
               <button
                 onClick={() => deleteNote.mutate(note.id)}
-                className="text-muted-foreground transition-colors hover:text-destructive"
+                className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
