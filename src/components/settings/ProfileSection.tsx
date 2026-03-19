@@ -91,6 +91,11 @@ export function ProfileSection() {
           </div>
 
           <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Nickname</Label>
+            <Input value={nickname} onChange={e => setNickname(e.target.value)} placeholder="What should we call you?" className="rounded-xl" />
+          </div>
+
+          <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">Email Address</Label>
             <Input value={profile?.email || ""} readOnly className="rounded-xl bg-muted text-muted-foreground" />
           </div>
