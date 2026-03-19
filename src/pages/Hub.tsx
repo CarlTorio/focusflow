@@ -1,5 +1,6 @@
 import { MobileHeader } from "@/components/navigation/MobileHeader";
 import { ProfileHero } from "@/components/hub/ProfileHero";
+import { AppInstallBanner } from "@/components/hub/AppInstallBanner";
 import { DueDateNotifications } from "@/components/hub/DueDateNotifications";
 import { RoutineWeeklyCard } from "@/components/hub/RoutineWeeklyCard";
 import { TaskSummaryCard } from "@/components/hub/TaskSummaryCard";
