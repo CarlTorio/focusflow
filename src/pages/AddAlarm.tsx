@@ -282,12 +282,14 @@ export default function AddAlarm() {
           id: editId,
           title: label.trim() || "Alarm",
           alarm_time: alarmDate.toISOString(),
+          original_alarm_time: alarmDate.toISOString(),
           sound_type: soundType,
           is_recurring: isRecurring,
           recurrence_pattern: isRecurring ? "custom" : null,
           recurrence_days: isRecurring ? customDays : null,
           snooze_duration_minutes: snoozeMins,
           max_snoozes: snoozeCount,
+          snooze_count: 0,
         } as any);
         toast.success("Alarm updated!");
       } else {
