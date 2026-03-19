@@ -48,12 +48,10 @@ function LiveClock() {
 function AlarmRow({
   alarm,
   onToggle,
-  onDelete,
   onEdit,
 }: {
   alarm: AlarmType;
   onToggle: () => void;
-  onDelete: () => void;
   onEdit: () => void;
 }) {
   const displayTime = (alarm as any).original_alarm_time || alarm.alarm_time;
