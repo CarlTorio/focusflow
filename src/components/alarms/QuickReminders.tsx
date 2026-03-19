@@ -3,9 +3,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { Plus, Check, Bell, Trash2, StickyNote } from "lucide-react";
+import { Plus, Check, Bell, Trash2, StickyNote, CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
 
 interface ReminderNote {
   id: string;
@@ -41,6 +43,11 @@ export function QuickReminders() {
   const [newTitle, setNewTitle] = useState("");
   const [showInput, setShowInput] = useState(false);
   const [settingAlarmFor, setSettingAlarmFor] = useState<ReminderNote | null>(null);
+  const [showCustomPicker, setShowCustomPicker] = useState(false);
+  const [customDate, setCustomDate] = useState<Date | undefined>(undefined);
+  const [customHour, setCustomHour] = useState("09");
+  const [customMin, setCustomMin] = useState("00");
+  const [customPeriod, setCustomPeriod] = useState<"AM" | "PM">("AM");
 
   const { data: notes = [] } = useQuery({
     queryKey: ["reminder_notes", user?.id],
@@ -97,7 +104,42 @@ export function QuickReminders() {
   const setAlarmForNote = async (note: ReminderNote, schedule: string) => {
     if (!user) return;
 
-    const alarmTime = getNextScheduleTime(schedule);
+    const isCustom = schedule === "custom";
+    const alarmTime = isCustom ? null : getNextScheduleTime(schedule);
+
+    if (isCustom) {
+      // Show custom picker
+      setShowCustomPicker(true);
+      return;
+    }
+
+    await createAlarmForNote(note, alarmTime!, schedule, !isCustom);
+  };
+
+  const handleCustomAlarmConfirm = async () => {
+    if (!settingAlarmFor || !customDate) {
+      toast.error("Please select a date");
+      return;
+    }
+
+    let h = parseInt(customHour);
+    if (customPeriod === "PM" && h !== 12) h += 12;
+    if (customPeriod === "AM" && h === 12) h = 0;
+
+    const alarmTime = new Date(customDate.getFullYear(), customDate.getMonth(), customDate.getDate(), h, parseInt(customMin));
+    
+    if (alarmTime <= new Date()) {
+      toast.error("Please select a future time");
+      return;
+    }
+
+    await createAlarmForNote(settingAlarmFor, alarmTime, "custom", false);
+    setShowCustomPicker(false);
+    setCustomDate(undefined);
+  };
+
+  const createAlarmForNote = async (note: ReminderNote, alarmTime: Date, schedule: string, recurring: boolean) => {
+    if (!user) return;
 
     // Create alarm
     const { data: alarm, error: alarmErr } = await supabase
@@ -109,8 +151,8 @@ export function QuickReminders() {
         alarm_time: alarmTime.toISOString(),
         original_alarm_time: alarmTime.toISOString(),
         sound_type: "alarm-1",
-        is_recurring: true,
-        recurrence_pattern: "daily",
+        is_recurring: recurring,
+        recurrence_pattern: recurring ? "daily" : null,
       } as any)
       .select()
       .single();
@@ -128,7 +170,11 @@ export function QuickReminders() {
 
     queryClient.invalidateQueries({ queryKey: ["reminder_notes"] });
     queryClient.invalidateQueries({ queryKey: ["alarms"] });
-    toast.success(`Reminder set for ${SCHEDULE_OPTIONS.find(s => s.value === schedule)?.label}`);
+    
+    const label = schedule === "custom"
+      ? format(alarmTime, "MMM d, h:mm a")
+      : SCHEDULE_OPTIONS.find(s => s.value === schedule)?.label;
+    toast.success(`Reminder set for ${label}`);
     setSettingAlarmFor(null);
   };
 
@@ -260,33 +306,115 @@ export function QuickReminders() {
       {/* Schedule picker modal */}
       {settingAlarmFor && (
         <>
-          <div className="fixed inset-0 z-50 bg-black/40" onClick={() => setSettingAlarmFor(null)} />
-          <div className="fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl bg-card p-6 pb-24 shadow-lg animate-in slide-in-from-bottom duration-200 md:bottom-auto md:left-1/2 md:top-1/2 md:max-w-sm md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl md:pb-6">
+          <div className="fixed inset-0 z-50 bg-black/40" onClick={() => { setSettingAlarmFor(null); setShowCustomPicker(false); }} />
+          <div className="fixed bottom-0 left-0 right-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-2xl bg-card p-6 pb-24 shadow-lg animate-in slide-in-from-bottom duration-200 md:bottom-auto md:left-1/2 md:top-1/2 md:max-w-sm md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl md:pb-6">
             <h3 className="text-base font-bold text-foreground mb-1">Set Reminder</h3>
             <p className="text-xs text-muted-foreground mb-4 truncate">
               📋 {settingAlarmFor.title}
             </p>
-            <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">
-              When should we remind you?
-            </p>
-            <div className="space-y-2">
-              {SCHEDULE_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => setAlarmForNote(settingAlarmFor, opt.value)}
-                  className="flex w-full items-center gap-3 rounded-xl border border-border/50 bg-background px-4 py-3 text-left transition-colors hover:bg-primary/5 hover:border-primary/30"
-                >
-                  <span className="text-lg">{opt.icon}</span>
-                  <span className="text-sm font-medium text-foreground">{opt.label}</span>
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={() => setSettingAlarmFor(null)}
-              className="mt-3 w-full rounded-xl py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Cancel
-            </button>
+
+            {!showCustomPicker ? (
+              <>
+                <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">
+                  When should we remind you?
+                </p>
+                <div className="space-y-2">
+                  {SCHEDULE_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setAlarmForNote(settingAlarmFor, opt.value)}
+                      className="flex w-full items-center gap-3 rounded-xl border border-border/50 bg-background px-4 py-3 text-left transition-colors hover:bg-primary/5 hover:border-primary/30"
+                    >
+                      <span className="text-lg">{opt.icon}</span>
+                      <span className="text-sm font-medium text-foreground">{opt.label}</span>
+                    </button>
+                  ))}
+                  {/* Custom option */}
+                  <button
+                    onClick={() => setAlarmForNote(settingAlarmFor, "custom")}
+                    className="flex w-full items-center gap-3 rounded-xl border border-dashed border-primary/30 bg-primary/5 px-4 py-3 text-left transition-colors hover:bg-primary/10"
+                  >
+                    <CalendarIcon className="h-5 w-5 text-primary" />
+                    <span className="text-sm font-medium text-primary">Custom date & time</span>
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">
+                  Pick date & time
+                </p>
+                <div className="flex justify-center">
+                  <Calendar
+                    mode="single"
+                    selected={customDate}
+                    onSelect={setCustomDate}
+                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                    className={cn("p-2 pointer-events-auto rounded-xl border border-border/50")}
+                  />
+                </div>
+
+                {/* Time picker */}
+                <div className="mt-4 flex items-center justify-center gap-2">
+                  <select
+                    value={customHour}
+                    onChange={(e) => setCustomHour(e.target.value)}
+                    className="rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground"
+                  >
+                    {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, "0")).map((h) => (
+                      <option key={h} value={h}>{h}</option>
+                    ))}
+                  </select>
+                  <span className="text-foreground font-bold">:</span>
+                  <select
+                    value={customMin}
+                    onChange={(e) => setCustomMin(e.target.value)}
+                    className="rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground"
+                  >
+                    {["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"].map((m) => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={() => setCustomPeriod(customPeriod === "AM" ? "PM" : "AM")}
+                    className="rounded-lg border border-input bg-background px-3 py-2 text-sm font-semibold text-primary"
+                  >
+                    {customPeriod}
+                  </button>
+                </div>
+
+                {customDate && (
+                  <p className="mt-2 text-center text-xs text-muted-foreground">
+                    {format(customDate, "MMM d, yyyy")} at {customHour}:{customMin} {customPeriod}
+                  </p>
+                )}
+
+                <div className="mt-4 flex gap-2">
+                  <button
+                    onClick={() => setShowCustomPicker(false)}
+                    className="flex-1 rounded-xl border border-border py-2.5 text-sm font-medium text-foreground"
+                  >
+                    Back
+                  </button>
+                  <button
+                    onClick={handleCustomAlarmConfirm}
+                    disabled={!customDate}
+                    className="flex-1 rounded-xl bg-primary py-2.5 text-sm font-medium text-primary-foreground disabled:opacity-40"
+                  >
+                    Set Alarm
+                  </button>
+                </div>
+              </>
+            )}
+
+            {!showCustomPicker && (
+              <button
+                onClick={() => { setSettingAlarmFor(null); setShowCustomPicker(false); }}
+                className="mt-3 w-full rounded-xl py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Cancel
+              </button>
+            )}
           </div>
         </>
       )}
