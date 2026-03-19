@@ -37,8 +37,8 @@ export function previewSound(soundKey: string) {
   const opt = SOUND_OPTIONS.find((s) => s.value === soundKey);
   if (!opt) return;
   currentAudio = new Audio(opt.src);
-  currentAudio.volume = 0.5;
+  currentAudio.volume = 0.7;
   currentAudio.play().catch(console.error);
-  // Stop preview after 3 seconds
-  setTimeout(() => stopAlarmSound(), 3000);
+  // Stop preview after 5 seconds
+  setTimeout(() => stopAlarmSound(), 5000);
 }
