@@ -207,7 +207,8 @@ export default function AddAlarm() {
   // Compute initial values from editAlarm
   const getInitialValues = () => {
     if (editAlarm) {
-      const d = new Date(editAlarm.alarm_time);
+      const displayTime = (editAlarm as any).original_alarm_time || editAlarm.alarm_time;
+      const d = new Date(displayTime);
       const h = d.getHours();
       const h12Val = h % 12 || 12;
       return {
