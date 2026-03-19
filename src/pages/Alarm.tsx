@@ -94,21 +94,12 @@ function AlarmRow({
 
 export default function Alarm() {
   const navigate = useNavigate();
-  const { alarms, updateAlarm, deleteAlarm } = useAlarms();
-  const [deleteTarget, setDeleteTarget] = useState<AlarmType | null>(null);
+  const { alarms, updateAlarm } = useAlarms();
 
   const activeCount = alarms.filter((a) => a.is_active).length;
 
   const handleToggle = (alarm: AlarmType) => {
     updateAlarm.mutate({ id: alarm.id, is_active: !alarm.is_active } as any);
-  };
-
-  const confirmDelete = () => {
-    if (deleteTarget) {
-      deleteAlarm.mutate(deleteTarget.id);
-      setDeleteTarget(null);
-      toast.success("Alarm deleted");
-    }
   };
 
   return (
