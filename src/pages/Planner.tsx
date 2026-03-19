@@ -343,9 +343,13 @@ export default function Planner() {
                       />
                     ) : (
                       <>
-                        <DayColumn date={baseDate} schedules={schedulesByDate[format(baseDate, "yyyy-MM-dd")] || []} onComplete={(id) => completeSchedule.mutate({ scheduleId: id })} onAddTask={() => openAddTask(baseDate)} onOpenFocus={() => {}} userName={userName} onCompleteSubtask={(sid, tid) => completeSubtaskDirect.mutate({ subtaskId: sid, taskId: tid })} onUpdateTask={(input) => updateTask.mutate(input)} onDeleteTask={(id) => deleteTask.mutate(id)} />
+                        <div className="flex-1 min-w-0">
+                          <DayColumn date={baseDate} schedules={schedulesByDate[format(baseDate, "yyyy-MM-dd")] || []} onComplete={(id) => completeSchedule.mutate({ scheduleId: id })} onAddTask={() => openAddTask(baseDate)} onOpenFocus={() => {}} userName={userName} onCompleteSubtask={(sid, tid) => completeSubtaskDirect.mutate({ subtaskId: sid, taskId: tid })} onUpdateTask={(input) => updateTask.mutate(input)} onDeleteTask={(id) => deleteTask.mutate(id)} />
+                        </div>
                         <div className="w-px bg-border hidden md:block" />
-                        <DayColumn date={addDays(baseDate, 1)} schedules={schedulesByDate[format(addDays(baseDate, 1), "yyyy-MM-dd")] || []} onComplete={(id) => completeSchedule.mutate({ scheduleId: id })} onAddTask={() => openAddTask(addDays(baseDate, 1))} onOpenFocus={() => {}} userName={userName} onCompleteSubtask={(sid, tid) => completeSubtaskDirect.mutate({ subtaskId: sid, taskId: tid })} onUpdateTask={(input) => updateTask.mutate(input)} onDeleteTask={(id) => deleteTask.mutate(id)} />
+                        <div className="flex-1 min-w-0">
+                          <DailyRoutineSection onEditRoutine={handleEditRoutine} selectedDate={baseDate} />
+                        </div>
                       </>
                     )}
                   </div>
