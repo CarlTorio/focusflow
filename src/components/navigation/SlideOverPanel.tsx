@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 
 export function SlideOverPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { profile, user, signOut } = useAuth();
+  const { mode, setMode } = useTheme();
   const navigate = useNavigate();
 
   const initials = profile
