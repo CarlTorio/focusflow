@@ -324,7 +324,7 @@ export default function Planner() {
                 </div>
               ) : (
                 <>
-                  <DailyRoutineSection onEditRoutine={handleEditRoutine} selectedDate={selectedDate} />
+                  {isMobile && <DailyRoutineSection onEditRoutine={handleEditRoutine} selectedDate={selectedDate} />}
 
                   <div className={cn("flex gap-6", isMobile && "flex-col")}>
                     {isMobile ? (
