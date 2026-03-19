@@ -56,7 +56,8 @@ function AlarmRow({
   onDelete: () => void;
   onEdit: () => void;
 }) {
-  const d = new Date(alarm.alarm_time);
+  const displayTime = (alarm as any).original_alarm_time || alarm.alarm_time;
+  const d = new Date(displayTime);
   const h12 = d.getHours() % 12 || 12;
   const mins = String(d.getMinutes()).padStart(2, "0");
   const ampm = d.getHours() >= 12 ? "pm" : "am";

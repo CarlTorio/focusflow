@@ -24,6 +24,7 @@ export type Database = {
           is_active: boolean | null
           is_recurring: boolean | null
           max_snoozes: number | null
+          original_alarm_time: string | null
           recurrence_days: number[] | null
           recurrence_pattern: string | null
           snooze_count: number | null
@@ -42,6 +43,7 @@ export type Database = {
           is_active?: boolean | null
           is_recurring?: boolean | null
           max_snoozes?: number | null
+          original_alarm_time?: string | null
           recurrence_days?: number[] | null
           recurrence_pattern?: string | null
           snooze_count?: number | null
@@ -60,6 +62,7 @@ export type Database = {
           is_active?: boolean | null
           is_recurring?: boolean | null
           max_snoozes?: number | null
+          original_alarm_time?: string | null
           recurrence_days?: number[] | null
           recurrence_pattern?: string | null
           snooze_count?: number | null
