@@ -179,26 +179,21 @@ export function DailyRoutineSection({ onEditRoutine, selectedDate }: DailyRoutin
   if (visibleRoutines.length === 0) return null;
 
   return (
-    <div className="mb-4 rounded-2xl border border-border/50 bg-secondary/30 overflow-hidden">
-      {/* Header */}
+    <div className="mb-4">
+      {/* Header - matches task section headers */}
       <button
         onClick={() => setCollapsed(!collapsed)}
-        className="flex w-full items-center justify-between px-4 py-3"
+        className="mb-2 flex w-full items-center gap-2 text-xs"
       >
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-bold text-foreground">Daily Routine</span>
-          <span className={cn(
-            "text-xs font-semibold",
-            allDone ? "text-primary" : "text-muted-foreground"
-          )}>
-            {completedCount}/{visibleRoutines.length}
-            {allDone && " ✓"}
-          </span>
-        </div>
+        <div className="h-2 w-2 rounded-full bg-primary shrink-0" />
+        <span className="font-bold uppercase tracking-wider text-primary">
+          Daily Routine ({completedCount}/{visibleRoutines.length})
+          {allDone && " ✓"}
+        </span>
         {collapsed ? (
-          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground ml-auto" />
         ) : (
-          <ChevronUp className="h-4 w-4 text-muted-foreground" />
+          <ChevronUp className="h-3.5 w-3.5 text-muted-foreground ml-auto" />
         )}
       </button>
 
