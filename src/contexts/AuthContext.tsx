@@ -7,6 +7,7 @@ interface Profile {
   email: string;
   first_name: string;
   last_name: string;
+  nickname: string | null;
   avatar_url: string | null;
   onboarding_completed?: boolean;
   theme_mode?: string;
