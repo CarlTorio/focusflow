@@ -7,7 +7,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 export function SlideOverPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { profile, signOut } = useAuth();
+  const { profile, user, signOut } = useAuth();
   const navigate = useNavigate();
 
   const initials = profile
@@ -27,13 +27,15 @@ export function SlideOverPanel({ open, onClose }: { open: boolean; onClose: () =
       <div className="fixed inset-0 z-50 bg-foreground/30" onClick={onClose} />
       <div className="fixed left-0 top-0 z-50 flex h-full w-4/5 max-w-sm flex-col bg-card shadow-lg">
         <div className="flex items-center justify-between p-4">
-          <div>
-            <p className="text-lg font-bold text-foreground">
-              {profile?.first_name} {profile?.last_name}
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-lg font-bold text-foreground">
+              {profile?.first_name || profile?.nickname || "User"} {profile?.last_name || ""}
             </p>
-            <p className="text-xs text-muted-foreground">{profile?.email}</p>
+            <p className="truncate text-xs text-muted-foreground">
+              {profile?.email || user?.email || "No email"}
+            </p>
           </div>
-          <button onClick={onClose} className="text-muted-foreground">
+          <button onClick={onClose} className="ml-2 shrink-0 text-muted-foreground">
             <X className="h-5 w-5" />
           </button>
         </div>
