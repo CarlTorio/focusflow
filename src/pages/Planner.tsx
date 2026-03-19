@@ -212,7 +212,7 @@ export default function Planner() {
 
   const headerText = useMemo(() => {
     if (isMobile) return format(selectedMobileDay, "MMMM d");
-    return `${format(baseDate, "MMM d")} — ${format(addDays(baseDate, 1), "MMM d")}`;
+    return format(baseDate, "MMMM d");
   }, [baseDate, selectedMobileDay, isMobile]);
 
   const mobileDays = useMemo(() => {
