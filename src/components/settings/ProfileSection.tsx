@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +11,7 @@ import { AvatarPicker } from "@/components/AvatarPicker";
 import { getAvatarById } from "@/lib/avatars";
 
 export function ProfileSection() {
-  const { profile, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const [firstName, setFirstName] = useState(profile?.first_name || "");
   const [lastName, setLastName] = useState(profile?.last_name || "");
   const [nickname, setNickname] = useState(profile?.nickname || "");
@@ -22,38 +22,74 @@ export function ProfileSection() {
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState(profile?.avatar_url || "avatar-01");
 
+  useEffect(() => {
+    setFirstName(profile?.first_name || "");
+    setLastName(profile?.last_name || "");
+    setNickname(profile?.nickname || "");
+    setSelectedAvatar(profile?.avatar_url || "avatar-01");
+  }, [profile]);
+
   const currentAvatar = getAvatarById(selectedAvatar);
 
   const handleSaveProfile = async () => {
-    if (!profile) return;
+    if (!user) return;
+
+    if (newPassword && newPassword !== confirmPassword) {
+      toast.error("Passwords don't match");
+      return;
+    }
+
     setSaving(true);
 
     const { error } = await supabase
       .from("profiles")
-      .update({ first_name: firstName, last_name: lastName, nickname, avatar_url: selectedAvatar })
-      .eq("id", profile.id);
+      .update({
+        first_name: firstName,
+        last_name: lastName,
+        nickname,
+        avatar_url: selectedAvatar,
+      })
+      .eq("id", user.id);
 
-    if (error) toast.error("Failed to update profile");
-    else { toast.success("Profile updated"); refreshProfile(); }
+    if (error) {
+      toast.error("Failed to update profile");
+      setSaving(false);
+      return;
+    }
 
     if (newPassword) {
-      if (newPassword !== confirmPassword) {
-        toast.error("Passwords don't match");
+      const { error: pwError } = await supabase.auth.updateUser({ password: newPassword });
+      if (pwError) {
+        toast.error("Failed to update password");
         setSaving(false);
         return;
       }
-      const { error: pwError } = await supabase.auth.updateUser({ password: newPassword });
-      if (pwError) toast.error("Failed to update password");
-      else { toast.success("Password updated"); setNewPassword(""); setConfirmPassword(""); }
+      toast.success("Profile and password updated");
+      setNewPassword("");
+      setConfirmPassword("");
+    } else {
+      toast.success("Profile updated");
     }
+
+    await refreshProfile();
     setSaving(false);
   };
 
   const handleAvatarSave = async () => {
-    if (!profile) return;
-    await supabase.from("profiles").update({ avatar_url: selectedAvatar }).eq("id", profile.id);
+    if (!user) return;
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ avatar_url: selectedAvatar })
+      .eq("id", user.id);
+
+    if (error) {
+      toast.error("Failed to update avatar");
+      return;
+    }
+
     toast.success("Avatar updated");
-    refreshProfile();
+    await refreshProfile();
     setAvatarModalOpen(false);
   };
 
@@ -66,10 +102,9 @@ export function ProfileSection() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-5">
-          {/* Avatar */}
           <div className="flex justify-center">
-            <button onClick={() => setAvatarModalOpen(true)} className="relative">
-              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-secondary overflow-hidden">
+            <button type="button" onClick={() => setAvatarModalOpen(true)} className="relative">
+              <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-secondary">
                 <img src={currentAvatar.src} alt={currentAvatar.label} className="h-full w-full object-contain" />
               </div>
               <div className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
@@ -78,29 +113,32 @@ export function ProfileSection() {
             </button>
           </div>
 
-          {/* Name fields */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">First Name</Label>
-              <Input value={firstName} onChange={e => setFirstName(e.target.value)} className="rounded-xl" />
+              <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} className="rounded-xl" />
             </div>
             <div className="space-y-1">
               <Label className="text-xs text-muted-foreground">Last Name</Label>
-              <Input value={lastName} onChange={e => setLastName(e.target.value)} className="rounded-xl" />
+              <Input value={lastName} onChange={(e) => setLastName(e.target.value)} className="rounded-xl" />
             </div>
           </div>
 
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">Nickname</Label>
-            <Input value={nickname} onChange={e => setNickname(e.target.value)} placeholder="What should we call you?" className="rounded-xl" />
+            <Input
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              placeholder="What should we call you?"
+              className="rounded-xl"
+            />
           </div>
 
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">Email Address</Label>
-            <Input value={profile?.email || ""} readOnly className="rounded-xl bg-muted text-muted-foreground" />
+            <Input value={profile?.email || user?.email || ""} readOnly className="rounded-xl bg-muted text-muted-foreground" />
           </div>
 
-          {/* Password */}
           <div className="space-y-3 pt-2">
             <p className="text-sm font-semibold text-foreground">Update Your Password</p>
             <div className="relative">
@@ -108,10 +146,14 @@ export function ProfileSection() {
                 type={showPassword ? "text" : "password"}
                 placeholder="New Password"
                 value={newPassword}
-                onChange={e => setNewPassword(e.target.value)}
+                onChange={(e) => setNewPassword(e.target.value)}
                 className="rounded-xl pr-10"
               />
-              <button onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+              >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
@@ -119,18 +161,17 @@ export function ProfileSection() {
               type={showPassword ? "text" : "password"}
               placeholder="Confirm Password"
               value={confirmPassword}
-              onChange={e => setConfirmPassword(e.target.value)}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               className="rounded-xl"
             />
           </div>
 
-          <Button type="button" onClick={handleSaveProfile} disabled={saving || !profile} className="w-full rounded-xl">
+          <Button type="button" onClick={handleSaveProfile} disabled={saving || !user} className="w-full rounded-xl">
             {saving ? "Saving..." : "Save Profile"}
           </Button>
         </CardContent>
       </Card>
 
-      {/* Avatar Picker Modal */}
       {avatarModalOpen && (
         <>
           <div className="fixed inset-0 z-50 bg-foreground/30" onClick={() => setAvatarModalOpen(false)} />
@@ -138,10 +179,10 @@ export function ProfileSection() {
             <h3 className="mb-4 text-lg font-bold text-foreground">Change Avatar</h3>
             <AvatarPicker value={selectedAvatar} onChange={setSelectedAvatar} />
             <div className="mt-4 flex gap-2">
-              <Button onClick={() => setAvatarModalOpen(false)} variant="outline" className="flex-1 rounded-xl">
+              <Button type="button" onClick={() => setAvatarModalOpen(false)} variant="outline" className="flex-1 rounded-xl">
                 Cancel
               </Button>
-              <Button onClick={handleAvatarSave} className="flex-1 rounded-xl">
+              <Button type="button" onClick={handleAvatarSave} className="flex-1 rounded-xl">
                 Save
               </Button>
             </div>
