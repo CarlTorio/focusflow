@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { MobileHeader } from "@/components/navigation/MobileHeader";
 import { useAlarms, Alarm as AlarmType } from "@/hooks/useAlarms";
 import { Switch } from "@/components/ui/switch";
-import { Bell, Plus, Trash2 } from "lucide-react";
+import { Bell, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import {
