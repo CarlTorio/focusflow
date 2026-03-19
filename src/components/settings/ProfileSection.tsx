@@ -30,7 +30,7 @@ export function ProfileSection() {
 
     const { error } = await supabase
       .from("profiles")
-      .update({ first_name: firstName, last_name: lastName, avatar_url: selectedAvatar })
+      .update({ first_name: firstName, last_name: lastName, nickname, avatar_url: selectedAvatar })
       .eq("id", profile.id);
 
     if (error) toast.error("Failed to update profile");
