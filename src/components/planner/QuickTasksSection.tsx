@@ -79,6 +79,18 @@ export function QuickTasksSection({ date, readOnly = false }: QuickTasksSectionP
 
   const toggleComplete = useMutation({
     mutationFn: async ({ id, completed }: { id: string; completed: boolean }) => {
+      if (!isOnline()) {
+        await addPendingMutation({
+          table: "quick_tasks",
+          operation: "update",
+          data: { is_completed: completed },
+          matchColumn: "id",
+          matchValue: id,
+        });
+        const cached = await getCachedData<any[]>(cacheKey) || [];
+        await setCachedData(cacheKey, cached.map((t) => (t.id === id ? { ...t, is_completed: completed } : t)));
+        return;
+      }
       const { error } = await supabase
         .from("quick_tasks")
         .update({ is_completed: completed })
