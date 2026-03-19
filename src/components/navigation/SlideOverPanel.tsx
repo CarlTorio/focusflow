@@ -2,7 +2,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import {
   X, Sun, Moon, Monitor, CalendarDays, Mail, Settings, UserPen,
-  Crown, HelpCircle, BookOpen, Star, LogOut, Bell,
+  LogOut, Bell,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
