@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import {
   X, Sun, Moon, Monitor, CalendarDays, Mail, Settings, UserPen,
