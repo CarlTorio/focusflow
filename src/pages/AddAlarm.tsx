@@ -595,6 +595,37 @@ export default function AddAlarm() {
           className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
         />
       </BottomSheet>
+
+      {/* Delete confirmation */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowDeleteConfirm(false)} />
+          <div className="relative mx-4 w-full max-w-sm rounded-2xl bg-card p-6">
+            <h3 className="text-lg font-semibold text-foreground">Delete this alarm?</h3>
+            <p className="mt-2 text-sm text-muted-foreground">This action cannot be undone.</p>
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 rounded-xl bg-secondary py-3 text-sm font-semibold text-foreground"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (editId) {
+                    deleteAlarm.mutate(editId);
+                    toast.success("Alarm deleted");
+                    navigate("/alarm");
+                  }
+                }}
+                className="flex-1 rounded-xl bg-destructive py-3 text-sm font-semibold text-destructive-foreground"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
