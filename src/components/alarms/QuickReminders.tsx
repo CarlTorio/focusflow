@@ -259,17 +259,17 @@ export function QuickReminders() {
               ) : (
                 <button
                   onClick={() => setSettingAlarmFor(note)}
-                  className="text-muted-foreground opacity-0 transition-opacity hover:text-primary group-hover:opacity-100"
+                  className="text-muted-foreground transition-colors hover:text-primary"
                   title="Set reminder alarm"
                 >
-                  <Bell className="h-3.5 w-3.5" />
+                  <Bell className="h-4 w-4" />
                 </button>
               )}
               <button
                 onClick={() => deleteNote.mutate(note.id)}
-                className="text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
+                className="text-muted-foreground transition-colors hover:text-destructive"
               >
-                <Trash2 className="h-3.5 w-3.5" />
+                <Trash2 className="h-4 w-4" />
               </button>
             </div>
           </div>
