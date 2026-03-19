@@ -27,16 +27,11 @@ export function SlideOverPanel({ open, onClose }: { open: boolean; onClose: () =
       <div className="fixed inset-0 z-50 bg-foreground/30" onClick={onClose} />
       <div className="fixed left-0 top-0 z-50 flex h-full w-4/5 max-w-sm flex-col bg-card shadow-lg">
         <div className="flex items-center justify-between p-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-light text-sm font-bold text-primary-dark">
-              {initials}
-            </div>
-            <div>
-              <p className="font-semibold text-foreground">
-                {profile?.first_name} {profile?.last_name}
-              </p>
-              <p className="text-xs text-muted-foreground">{profile?.email}</p>
-            </div>
+          <div>
+            <p className="text-lg font-bold text-foreground">
+              {profile?.first_name} {profile?.last_name}
+            </p>
+            <p className="text-xs text-muted-foreground">{profile?.email}</p>
           </div>
           <button onClick={onClose} className="text-muted-foreground">
             <X className="h-5 w-5" />
