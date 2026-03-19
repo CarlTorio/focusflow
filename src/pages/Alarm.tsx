@@ -6,6 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Bell, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
+import { QuickReminders } from "@/components/alarms/QuickReminders";
 
 function LiveClock() {
   const [now, setNow] = useState(new Date());
@@ -119,35 +120,76 @@ export default function Alarm() {
         </h1>
       </div>
 
-      <div className="mx-auto max-w-lg px-4 md:px-6">
-        {/* Live clock */}
-        <div className="flex flex-col items-center py-12 md:py-16">
+      {/* Live clock — centered */}
+      <div className="mx-auto max-w-5xl px-4 md:px-6">
+        <div className="flex flex-col items-center py-10 md:py-12">
           <LiveClock />
-          <p className="mt-6 text-sm text-muted-foreground">
+          <p className="mt-4 text-sm text-muted-foreground">
             {activeCount === 0
               ? "No alarms on"
               : `${activeCount} alarm${activeCount > 1 ? "s" : ""} active`}
           </p>
         </div>
+      </div>
 
-        {/* Alarm list */}
-        <div className="space-y-3">
-          {alarms.map((alarm) => (
-            <AlarmRow
-              key={alarm.id}
-              alarm={alarm}
-              onToggle={() => handleToggle(alarm)}
-              onEdit={() => navigate(`/alarm/edit/${alarm.id}`)}
-            />
-          ))}
+      {/* Main content — two columns on desktop */}
+      <div className="mx-auto max-w-5xl px-4 md:px-6">
+        {/* Mobile: Quick Reminders first, then alarms */}
+        <div className="md:hidden space-y-6">
+          <QuickReminders />
 
-          {alarms.length === 0 && (
-            <div className="py-8 text-center">
-              <p className="text-sm text-muted-foreground">
-                Tap + to set your first alarm
-              </p>
+          <div>
+            <div className="mb-3 flex items-center gap-2">
+              <Bell className="h-4 w-4 text-primary" />
+              <h3 className="text-sm font-bold text-foreground">Alarms</h3>
             </div>
-          )}
+            <div className="space-y-3">
+              {alarms.map((alarm) => (
+                <AlarmRow
+                  key={alarm.id}
+                  alarm={alarm}
+                  onToggle={() => handleToggle(alarm)}
+                  onEdit={() => navigate(`/alarm/edit/${alarm.id}`)}
+                />
+              ))}
+              {alarms.length === 0 && (
+                <div className="py-6 text-center">
+                  <p className="text-sm text-muted-foreground">Tap + to set your first alarm</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop: side-by-side */}
+        <div className="hidden md:grid md:grid-cols-2 md:gap-8">
+          {/* Left — Alarms */}
+          <div>
+            <div className="mb-3 flex items-center gap-2">
+              <Bell className="h-4 w-4 text-primary" />
+              <h3 className="text-sm font-bold text-foreground">Alarms</h3>
+            </div>
+            <div className="space-y-3">
+              {alarms.map((alarm) => (
+                <AlarmRow
+                  key={alarm.id}
+                  alarm={alarm}
+                  onToggle={() => handleToggle(alarm)}
+                  onEdit={() => navigate(`/alarm/edit/${alarm.id}`)}
+                />
+              ))}
+              {alarms.length === 0 && (
+                <div className="py-8 text-center">
+                  <p className="text-sm text-muted-foreground">Tap + to set your first alarm</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right — Quick Reminders */}
+          <div>
+            <QuickReminders />
+          </div>
         </div>
       </div>
 
@@ -160,7 +202,6 @@ export default function Alarm() {
           <Plus className="h-7 w-7" />
         </button>
       </div>
-
     </div>
   );
 }
