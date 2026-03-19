@@ -151,7 +151,7 @@ export default function AddAlarm() {
   // Settings
   const [repeatKey, setRepeatKey] = useState("once");
   const [customDays, setCustomDays] = useState<number[]>([]);
-  const [soundType, setSoundType] = useState<SoundType>("default");
+  const [soundType, setSoundType] = useState("alarm-1");
   const [label, setLabel] = useState("Alarm");
   const [snoozeIdx, setSnoozeIdx] = useState(0);
   const [saving, setSaving] = useState(false);
