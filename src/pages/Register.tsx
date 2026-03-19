@@ -10,6 +10,7 @@ import { toast } from "sonner";
 export default function Register() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [nickname, setNickname] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -29,7 +30,7 @@ export default function Register() {
       password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: { first_name: firstName, last_name: lastName },
+        data: { first_name: firstName, last_name: lastName, nickname },
       },
     });
     setLoading(false);
@@ -71,6 +72,13 @@ export default function Register() {
               required
             />
           </div>
+          <Input
+            placeholder="Nickname (e.g. JC)"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+            className="h-12 rounded-xl border-border bg-card focus-visible:ring-primary"
+            required
+          />
           <Input
             type="email"
             placeholder="Email address"

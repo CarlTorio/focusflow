@@ -114,7 +114,9 @@ export function ProfileHero() {
           />
         </div>
         <h2 className="text-lg font-bold text-foreground">{fullName}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Welcome back, {getGreeting()}</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {getGreeting()}, {(profile as any)?.nickname || profile?.first_name || "there"}!
+        </p>
         <span className="mt-3 rounded-full bg-primary-light px-4 py-1.5 text-xs font-medium text-primary-dark">
           {format(new Date(), "EEEE do MMMM")}
         </span>
