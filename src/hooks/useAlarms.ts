@@ -28,7 +28,7 @@ export interface CreateAlarmInput {
   title: string;
   alarm_type: AlarmType;
   alarm_time: string;
-  sound_type?: SoundType;
+  sound_type?: string;
   custom_sound_url?: string;
   is_recurring?: boolean;
   recurrence_pattern?: string;
