@@ -264,13 +264,14 @@ export default function AddAlarm() {
   if (subScreen === "sound") {
     return (
       <div className="min-h-screen bg-background pb-20 md:pb-8">
-        <Header title="Sound" onBack={() => setSubScreen(null)} />
+        <Header title="Sound" onBack={() => { stopAlarmSound(); setSubScreen(null); }} />
         <div className="mx-auto max-w-lg px-4 pt-4 space-y-2">
           {SOUND_OPTIONS.map((opt) => (
             <button
               key={opt.value}
               onClick={() => {
-                setSoundType(opt.value as SoundType);
+                setSoundType(opt.value);
+                stopAlarmSound();
                 setSubScreen(null);
               }}
               className={cn(
@@ -285,7 +286,7 @@ export default function AddAlarm() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    playBuiltInSound(opt.value as any);
+                    previewSound(opt.value);
                   }}
                   className="text-muted-foreground hover:text-primary"
                 >
