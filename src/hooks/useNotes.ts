@@ -31,6 +31,7 @@ export function useNotes() {
       return notes;
     },
     enabled: !!user,
+    staleTime: 30_000,
     retry: isOnline() ? 3 : 0,
   });
 
