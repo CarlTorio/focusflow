@@ -58,11 +58,17 @@ export function useTasks() {
   const tasksQuery = useQuery({
     queryKey: ["tasks"],
     queryFn: async () => {
+      console.log("[Tasks] Fetching tasks...");
       const { data, error } = await supabase
         .from("tasks")
         .select("*")
         .order("created_at", { ascending: false });
-      if (error) throw error;
+      if (error) {
+        console.error("[Tasks] Fetch error:", error);
+        toast({ title: "Failed to load tasks", description: "Please try again.", variant: "destructive" });
+        throw error;
+      }
+      console.log("[Tasks] Loaded", data?.length, "tasks");
       return data;
     },
     enabled: !!user,
