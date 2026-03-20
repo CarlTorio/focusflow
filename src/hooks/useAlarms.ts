@@ -53,23 +53,26 @@ export function useAlarms() {
   const alarmsQuery = useQuery({
     queryKey: ["alarms", user?.id],
     queryFn: async () => {
-      if (!isOnline()) {
-        const cached = await getCachedData<Alarm[]>(CACHE_KEY + "_" + user!.id);
-        return cached || [];
+      try {
+        const { data, error } = await supabase
+          .from("alarms")
+          .select("*")
+          .eq("user_id", user!.id)
+          .order("alarm_time", { ascending: true });
+        if (error) throw error;
+        const alarms = data as Alarm[];
+        await setCachedData(CACHE_KEY + "_" + user!.id, alarms);
+        return alarms;
+      } catch (err) {
+        if (!isOnline()) {
+          const cached = await getCachedData<Alarm[]>(CACHE_KEY + "_" + user!.id);
+          return cached || [];
+        }
+        throw err;
       }
-      const { data, error } = await supabase
-        .from("alarms")
-        .select("*")
-        .eq("user_id", user!.id)
-        .order("alarm_time", { ascending: true });
-      if (error) throw error;
-      const alarms = data as Alarm[];
-      // Cache for offline
-      await setCachedData(CACHE_KEY + "_" + user!.id, alarms);
-      return alarms;
     },
     enabled: !!user,
-    retry: isOnline() ? 3 : 0,
+    retry: 3,
   });
 
   const createAlarm = useMutation({
