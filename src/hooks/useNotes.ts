@@ -42,22 +42,26 @@ export function useNotes() {
   const allNotesQuery = useQuery({
     queryKey: ["notes-all", user?.id],
     queryFn: async () => {
-      if (!isOnline()) {
-        const cached = await getCachedData<Note[]>(CACHE_KEY + "_all_" + user!.id);
-        return cached || [];
+      try {
+        const { data, error } = await supabase
+          .from("notes")
+          .select("*")
+          .eq("user_id", user!.id)
+          .order("updated_at", { ascending: false });
+        if (error) throw error;
+        const notes = data as Note[];
+        await setCachedData(CACHE_KEY + "_all_" + user!.id, notes);
+        return notes;
+      } catch (err) {
+        if (!isOnline()) {
+          const cached = await getCachedData<Note[]>(CACHE_KEY + "_all_" + user!.id);
+          return cached || [];
+        }
+        throw err;
       }
-      const { data, error } = await supabase
-        .from("notes")
-        .select("*")
-        .eq("user_id", user!.id)
-        .order("updated_at", { ascending: false });
-      if (error) throw error;
-      const notes = data as Note[];
-      await setCachedData(CACHE_KEY + "_all_" + user!.id, notes);
-      return notes;
     },
     enabled: !!user,
-    retry: isOnline() ? 3 : 0,
+    retry: 3,
   });
 
   const createNote = useMutation({
