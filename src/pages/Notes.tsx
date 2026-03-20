@@ -72,10 +72,8 @@ export default function Notes() {
   const handleUpdate = useCallback((params: { id: string; title?: string; content?: string; is_starred?: boolean }) => {
     updateNote.mutate(params);
     // Optimistically update the selected note
-    if (selectedNote && params.id === selectedNote.id) {
-      setSelectedNote((prev) => prev ? { ...prev, ...params } : prev);
-    }
-  }, [updateNote, selectedNote]);
+    setSelectedNote((prev) => prev && params.id === prev.id ? { ...prev, ...params } : prev);
+  }, [updateNote]);
 
   const handleToggleStar = useCallback((note: Note) => {
     updateNote.mutate({ id: note.id, is_starred: !note.is_starred });
