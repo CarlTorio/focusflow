@@ -14,6 +14,25 @@ export function useNotes() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
+  // Realtime subscription for cross-device sync
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel("notes-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "notes", filter: `user_id=eq.${user.id}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["notes"] });
+          queryClient.invalidateQueries({ queryKey: ["notes-all"] });
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, queryClient]);
+
   const notesQuery = useQuery({
     queryKey: ["notes", user?.id],
     queryFn: async () => {
