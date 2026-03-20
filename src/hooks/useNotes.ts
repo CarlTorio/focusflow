@@ -160,9 +160,12 @@ export function useNotes() {
       if (context?.prevNotes) queryClient.setQueryData(["notes", user?.id], context.prevNotes);
       if (context?.prevAllNotes) queryClient.setQueryData(["notes-all", user?.id], context.prevAllNotes);
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["notes"] });
-      queryClient.invalidateQueries({ queryKey: ["notes-all"] });
+    onSettled: (_data, error) => {
+      // Only refetch on success — on error, optimistic rollback is enough
+      if (!error) {
+        queryClient.invalidateQueries({ queryKey: ["notes"] });
+        queryClient.invalidateQueries({ queryKey: ["notes-all"] });
+      }
     },
   });
 
