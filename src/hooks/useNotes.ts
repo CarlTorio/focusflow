@@ -1,7 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { isOnline, addPendingMutation, getCachedData, setCachedData } from "@/lib/offlineStorage";
+import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 
 export type Note = Tables<"notes">;
@@ -11,6 +13,25 @@ const CACHE_KEY = "notes";
 export function useNotes() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+
+  // Realtime subscription for cross-device sync
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel("notes-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "notes", filter: `user_id=eq.${user.id}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["notes"] });
+          queryClient.invalidateQueries({ queryKey: ["notes-all"] });
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, queryClient]);
 
   const notesQuery = useQuery({
     queryKey: ["notes", user?.id],
@@ -101,6 +122,9 @@ export function useNotes() {
       queryClient.invalidateQueries({ queryKey: ["notes"] });
       queryClient.invalidateQueries({ queryKey: ["notes-all"] });
     },
+    onError: (error: any) => {
+      toast.error("Failed to create note: " + (error?.message || "Unknown error"));
+    },
   });
 
   const updateNote = useMutation({
@@ -156,7 +180,8 @@ export function useNotes() {
 
       return { prevNotes, prevAllNotes };
     },
-    onError: (_err, _params, context) => {
+    onError: (_err: any, _params, context) => {
+      toast.error("Failed to save note. Changes will sync when connection recovers.");
       if (context?.prevNotes) queryClient.setQueryData(["notes", user?.id], context.prevNotes);
       if (context?.prevAllNotes) queryClient.setQueryData(["notes-all", user?.id], context.prevAllNotes);
     },
@@ -192,6 +217,9 @@ export function useNotes() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notes"] });
       queryClient.invalidateQueries({ queryKey: ["notes-all"] });
+    },
+    onError: (error: any) => {
+      toast.error("Failed to delete note: " + (error?.message || "Unknown error"));
     },
   });
 
