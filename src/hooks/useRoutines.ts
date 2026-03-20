@@ -32,12 +32,18 @@ export function useRoutines() {
   const routinesQuery = useQuery({
     queryKey: ["routines"],
     queryFn: async () => {
+      console.log("[Routines] Fetching routines...");
       const { data, error } = await supabase
         .from("routines")
         .select("*")
         .eq("is_active", true)
         .order("order_index", { ascending: true });
-      if (error) throw error;
+      if (error) {
+        console.error("[Routines] Fetch error:", error);
+        toast({ title: "Failed to load routines", description: "Please try again.", variant: "destructive" });
+        throw error;
+      }
+      console.log("[Routines] Loaded", data?.length, "routines");
       return data as Routine[];
     },
     enabled: !!user,
