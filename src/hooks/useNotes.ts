@@ -122,6 +122,9 @@ export function useNotes() {
       queryClient.invalidateQueries({ queryKey: ["notes"] });
       queryClient.invalidateQueries({ queryKey: ["notes-all"] });
     },
+    onError: (error: any) => {
+      toast.error("Failed to create note: " + (error?.message || "Unknown error"));
+    },
   });
 
   const updateNote = useMutation({
