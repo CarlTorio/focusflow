@@ -69,12 +69,16 @@ export function useNotes() {
         const cached = await getCachedData<Note[]>(CACHE_KEY + "_all_" + user!.id);
         return cached || [];
       }
+      console.log("[Notes] Fetching all notes...");
       const { data, error } = await supabase
         .from("notes")
         .select("*")
         .eq("user_id", user!.id)
         .order("updated_at", { ascending: false });
-      if (error) throw error;
+      if (error) {
+        console.error("[Notes] All notes fetch error:", error);
+        throw error;
+      }
       const notes = data as Note[];
       await setCachedData(CACHE_KEY + "_all_" + user!.id, notes);
       return notes;
