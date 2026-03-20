@@ -172,7 +172,7 @@ export function AlarmProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!user) return;
-    intervalRef.current = setInterval(checkAlarms, 30000);
+    intervalRef.current = setInterval(checkAlarms, 120000);
     // Check immediately on mount
     checkAlarms();
     return () => {
