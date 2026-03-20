@@ -52,11 +52,15 @@ export function useRoutines() {
   const completionsQuery = useQuery({
     queryKey: ["routine_completions", today],
     queryFn: async () => {
+      console.log("[Routines] Fetching completions for", today);
       const { data, error } = await supabase
         .from("routine_completions")
         .select("*")
         .eq("completed_date", today);
-      if (error) throw error;
+      if (error) {
+        console.error("[Routines] Completions fetch error:", error);
+        throw error;
+      }
       return data as RoutineCompletion[];
     },
     enabled: !!user,

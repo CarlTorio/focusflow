@@ -77,11 +77,16 @@ export function useTasks() {
   const schedulesQuery = useQuery({
     queryKey: ["task_schedules"],
     queryFn: async () => {
+      console.log("[Tasks] Fetching schedules...");
       const { data, error } = await supabase
         .from("task_schedules")
         .select("*")
         .order("scheduled_date", { ascending: true });
-      if (error) throw error;
+      if (error) {
+        console.error("[Tasks] Schedules fetch error:", error);
+        throw error;
+      }
+      console.log("[Tasks] Loaded", data?.length, "schedules");
       return data;
     },
     enabled: !!user,
