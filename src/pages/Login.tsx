@@ -1,28 +1,71 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
-import { lovable } from "@/integrations/lovable";
 import { Brain, ArrowRight } from "lucide-react";
 import { DecorativeShapes } from "@/components/DecorativeShapes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+
+const LOGIN_TIMEOUT_MS = 8000;
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { user, session } = useAuth();
+
+  useEffect(() => {
+    if (user || session) {
+      navigate("/hub", { replace: true });
+    }
+  }, [navigate, session, user]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
+
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) {
-      toast.error(error.message);
-    } else {
-      navigate("/hub");
+
+    try {
+      const result = await Promise.race([
+        supabase.auth.signInWithPassword({ email, password }),
+        new Promise<never>((_, reject) => {
+          window.setTimeout(() => reject(new Error("Login timed out")), LOGIN_TIMEOUT_MS);
+        }),
+      ]);
+
+      if (result.error) {
+        toast.error(result.error.message);
+        return;
+      }
+
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        navigate("/hub", { replace: true });
+        return;
+      }
+
+      toast.info("Login successful. Finishing sign-in...");
+    } catch (error) {
+      const { data } = await supabase.auth.getSession();
+
+      if (data.session) {
+        navigate("/hub", { replace: true });
+        return;
+      }
+
+      const message = error instanceof Error && error.message === "Login timed out"
+        ? "Login is taking too long right now. Please try again in a moment."
+        : error instanceof Error
+          ? error.message
+          : "Unable to login right now.";
+
+      toast.error(message);
+    } finally {
+      setLoading(false);
     }
   };
 
