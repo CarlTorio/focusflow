@@ -69,19 +69,23 @@ export function AlarmProvider({ children }: { children: ReactNode }) {
 
   const checkAlarms = useCallback(async () => {
     if (!user || firingAlarm) return;
+    if (!navigator.onLine) return;
 
     const now = new Date();
     const fiveMinAgo = new Date(now.getTime() - 5 * 60 * 1000);
 
-    const { data: alarms } = await supabase
-      .from("alarms")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("is_active", true)
-      .lte("alarm_time", now.toISOString())
-      .gte("alarm_time", fiveMinAgo.toISOString())
-      .order("alarm_time", { ascending: true })
-      .limit(1);
+    try {
+      const { data: alarms, error } = await supabase
+        .from("alarms")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("is_active", true)
+        .lte("alarm_time", now.toISOString())
+        .gte("alarm_time", fiveMinAgo.toISOString())
+        .order("alarm_time", { ascending: true })
+        .limit(1);
+
+      if (error) return;
 
     if (!alarms || alarms.length === 0) return;
     const alarm = alarms[0] as Alarm;
