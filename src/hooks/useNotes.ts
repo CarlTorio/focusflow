@@ -180,7 +180,8 @@ export function useNotes() {
 
       return { prevNotes, prevAllNotes };
     },
-    onError: (_err, _params, context) => {
+    onError: (_err: any, _params, context) => {
+      toast.error("Failed to save note. Changes will sync when connection recovers.");
       if (context?.prevNotes) queryClient.setQueryData(["notes", user?.id], context.prevNotes);
       if (context?.prevAllNotes) queryClient.setQueryData(["notes-all", user?.id], context.prevAllNotes);
     },
