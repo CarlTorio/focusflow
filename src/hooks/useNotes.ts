@@ -40,13 +40,19 @@ export function useNotes() {
         const cached = await getCachedData<Note[]>(CACHE_KEY + "_" + user!.id);
         return (cached || []).filter((n) => !n.is_archived);
       }
+      console.log("[Notes] Fetching notes...");
       const { data, error } = await supabase
         .from("notes")
         .select("*")
         .eq("user_id", user!.id)
         .eq("is_archived", false)
         .order("updated_at", { ascending: false });
-      if (error) throw error;
+      if (error) {
+        console.error("[Notes] Fetch error:", error);
+        toast.error("Failed to load notes. Please try again.");
+        throw error;
+      }
+      console.log("[Notes] Loaded", data?.length, "notes");
       const notes = data as Note[];
       await setCachedData(CACHE_KEY + "_" + user!.id, notes);
       return notes;
