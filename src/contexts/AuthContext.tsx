@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
+import { syncPendingMutations } from "@/lib/offlineStorage";
 
 interface Profile {
   id: string;
@@ -69,27 +70,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (user) await fetchProfile(user);
   };
 
+  const hydrateAuthenticatedState = async (nextSession: Session) => {
+    setSession(nextSession);
+    setUser(nextSession.user);
+
+    try {
+      await fetchProfile(nextSession.user);
+    } catch {
+      setProfile(null);
+    }
+
+    try {
+      await syncPendingMutations();
+    } catch (error) {
+      console.error("[auth] Failed to sync pending local changes:", error);
+    }
+
+    setLoading(false);
+  };
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          setTimeout(() => fetchProfile(session.user).catch(() => setProfile(null)), 0);
+      async (_event, nextSession) => {
+        if (nextSession?.user) {
+          await hydrateAuthenticatedState(nextSession);
         } else {
+          setSession(null);
+          setUser(null);
           setProfile(null);
+          setLoading(false);
         }
-        setLoading(false);
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchProfile(session.user).catch(() => setProfile(null));
+    supabase.auth.getSession().then(async ({ data: { session: nextSession } }) => {
+      if (nextSession?.user) {
+        await hydrateAuthenticatedState(nextSession);
+      } else {
+        setSession(null);
+        setUser(null);
+        setProfile(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();

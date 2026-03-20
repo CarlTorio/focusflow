@@ -184,11 +184,5 @@ export function initOfflineSync(onSynced?: () => void) {
   };
 
   window.addEventListener("online", handleOnline);
-
-  // Also try to sync on init if online
-  if (isOnline()) {
-    syncPendingMutations().then((result) => {
-      if (result.synced > 0 && onSynced) onSynced();
-    });
-  }
 }
+
