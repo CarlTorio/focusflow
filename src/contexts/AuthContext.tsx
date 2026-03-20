@@ -32,13 +32,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
-    const { data } = await supabase
+  const fetchProfile = async (user: User) => {
+    const { data, error } = await supabase
       .from("profiles")
       .select("*")
-      .eq("id", userId)
-      .single();
-    if (data) setProfile(data as any);
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (!data) {
+      const fallbackProfile = {
+        id: user.id,
+        email: user.email ?? null,
+        first_name: user.user_metadata?.first_name ?? "",
+        last_name: user.user_metadata?.last_name ?? "",
+        nickname: user.user_metadata?.nickname ?? user.user_metadata?.first_name ?? null,
+        avatar_url: user.user_metadata?.avatar_id ?? "avatar-01",
+      };
+
+      const { data: inserted, error: insertError } = await supabase
+        .from("profiles")
+        .insert(fallbackProfile)
+        .select("*")
+        .maybeSingle();
+
+      if (insertError) throw insertError;
+      setProfile((inserted ?? fallbackProfile) as Profile);
+      return;
+    }
+
+    setProfile(data as Profile);
   };
 
   const refreshProfile = async () => {
