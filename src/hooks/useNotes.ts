@@ -15,53 +15,44 @@ export function useNotes() {
   const notesQuery = useQuery({
     queryKey: ["notes", user?.id],
     queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .from("notes")
-          .select("*")
-          .eq("user_id", user!.id)
-          .eq("is_archived", false)
-          .order("updated_at", { ascending: false });
-        if (error) throw error;
-        const notes = data as Note[];
-        await setCachedData(CACHE_KEY + "_" + user!.id, notes);
-        return notes;
-      } catch (err) {
-        // Fallback to cache only on network failure
-        if (!isOnline()) {
-          const cached = await getCachedData<Note[]>(CACHE_KEY + "_" + user!.id);
-          return (cached || []).filter((n) => !n.is_archived);
-        }
-        throw err;
+      if (!isOnline()) {
+        const cached = await getCachedData<Note[]>(CACHE_KEY + "_" + user!.id);
+        return (cached || []).filter((n) => !n.is_archived);
       }
+      const { data, error } = await supabase
+        .from("notes")
+        .select("*")
+        .eq("user_id", user!.id)
+        .eq("is_archived", false)
+        .order("updated_at", { ascending: false });
+      if (error) throw error;
+      const notes = data as Note[];
+      await setCachedData(CACHE_KEY + "_" + user!.id, notes);
+      return notes;
     },
     enabled: !!user,
-    retry: 3,
+    retry: isOnline() ? 3 : 0,
   });
 
   const allNotesQuery = useQuery({
     queryKey: ["notes-all", user?.id],
     queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .from("notes")
-          .select("*")
-          .eq("user_id", user!.id)
-          .order("updated_at", { ascending: false });
-        if (error) throw error;
-        const notes = data as Note[];
-        await setCachedData(CACHE_KEY + "_all_" + user!.id, notes);
-        return notes;
-      } catch (err) {
-        if (!isOnline()) {
-          const cached = await getCachedData<Note[]>(CACHE_KEY + "_all_" + user!.id);
-          return cached || [];
-        }
-        throw err;
+      if (!isOnline()) {
+        const cached = await getCachedData<Note[]>(CACHE_KEY + "_all_" + user!.id);
+        return cached || [];
       }
+      const { data, error } = await supabase
+        .from("notes")
+        .select("*")
+        .eq("user_id", user!.id)
+        .order("updated_at", { ascending: false });
+      if (error) throw error;
+      const notes = data as Note[];
+      await setCachedData(CACHE_KEY + "_all_" + user!.id, notes);
+      return notes;
     },
     enabled: !!user,
-    retry: 3,
+    retry: isOnline() ? 3 : 0,
   });
 
   const createNote = useMutation({

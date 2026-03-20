@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
-import { syncPendingMutations } from "@/lib/offlineStorage";
 
 interface Profile {
   id: string;
@@ -33,85 +32,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (user: User) => {
-    const { data, error } = await supabase
+  const fetchProfile = async (userId: string) => {
+    const { data } = await supabase
       .from("profiles")
       .select("*")
-      .eq("id", user.id)
-      .maybeSingle();
-
-    if (error) throw error;
-
-    if (!data) {
-      const fallbackProfile = {
-        id: user.id,
-        email: user.email ?? null,
-        first_name: user.user_metadata?.first_name ?? "",
-        last_name: user.user_metadata?.last_name ?? "",
-        nickname: user.user_metadata?.nickname ?? user.user_metadata?.first_name ?? null,
-        avatar_url: user.user_metadata?.avatar_id ?? "avatar-01",
-      };
-
-      const { data: inserted, error: insertError } = await supabase
-        .from("profiles")
-        .insert(fallbackProfile)
-        .select("*")
-        .maybeSingle();
-
-      if (insertError) throw insertError;
-      setProfile((inserted ?? fallbackProfile) as Profile);
-      return;
-    }
-
-    setProfile(data as Profile);
+      .eq("id", userId)
+      .single();
+    if (data) setProfile(data as any);
   };
 
   const refreshProfile = async () => {
-    if (user) await fetchProfile(user);
-  };
-
-  const hydrateAuthenticatedState = async (nextSession: Session) => {
-    setSession(nextSession);
-    setUser(nextSession.user);
-
-    try {
-      await fetchProfile(nextSession.user);
-    } catch {
-      setProfile(null);
-    }
-
-    try {
-      await syncPendingMutations();
-    } catch (error) {
-      console.error("[auth] Failed to sync pending local changes:", error);
-    }
-
-    setLoading(false);
+    if (user) await fetchProfile(user.id);
   };
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, nextSession) => {
-        if (nextSession?.user) {
-          await hydrateAuthenticatedState(nextSession);
+      async (_event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          setTimeout(() => fetchProfile(session.user.id), 0);
         } else {
-          setSession(null);
-          setUser(null);
           setProfile(null);
-          setLoading(false);
         }
+        setLoading(false);
       }
     );
 
-    supabase.auth.getSession().then(async ({ data: { session: nextSession } }) => {
-      if (nextSession?.user) {
-        await hydrateAuthenticatedState(nextSession);
-      } else {
-        setSession(null);
-        setUser(null);
-        setProfile(null);
-        setLoading(false);
-      }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) fetchProfile(session.user.id);
+      setLoading(false);
     });
 
     return () => subscription.unsubscribe();

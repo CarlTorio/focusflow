@@ -56,33 +56,29 @@ export function useTasks() {
   }, [user, queryClient]);
 
   const tasksQuery = useQuery({
-    queryKey: ["tasks", user?.id],
+    queryKey: ["tasks"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tasks")
         .select("*")
-        .eq("user_id", user!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
     enabled: !!user,
-    refetchOnMount: "always",
   });
 
   const schedulesQuery = useQuery({
-    queryKey: ["task_schedules", user?.id],
+    queryKey: ["task_schedules"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("task_schedules")
         .select("*")
-        .eq("user_id", user!.id)
         .order("scheduled_date", { ascending: true });
       if (error) throw error;
       return data;
     },
     enabled: !!user,
-    refetchOnMount: "always",
   });
 
   const createTask = useMutation({
