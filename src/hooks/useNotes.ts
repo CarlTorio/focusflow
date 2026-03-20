@@ -221,7 +221,6 @@ export function useNotes() {
     onError: (error: any) => {
       toast.error("Failed to delete note: " + (error?.message || "Unknown error"));
     },
-    },
   });
 
   return {
