@@ -69,43 +69,50 @@ export function AlarmProvider({ children }: { children: ReactNode }) {
 
   const checkAlarms = useCallback(async () => {
     if (!user || firingAlarm) return;
+    if (!navigator.onLine) return;
 
     const now = new Date();
     const fiveMinAgo = new Date(now.getTime() - 5 * 60 * 1000);
 
-    const { data: alarms } = await supabase
-      .from("alarms")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("is_active", true)
-      .lte("alarm_time", now.toISOString())
-      .gte("alarm_time", fiveMinAgo.toISOString())
-      .order("alarm_time", { ascending: true })
-      .limit(1);
+    try {
+      const { data: alarms, error } = await supabase
+        .from("alarms")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("is_active", true)
+        .lte("alarm_time", now.toISOString())
+        .gte("alarm_time", fiveMinAgo.toISOString())
+        .order("alarm_time", { ascending: true })
+        .limit(1);
 
-    if (!alarms || alarms.length === 0) return;
-    const alarm = alarms[0] as Alarm;
+      if (error) return;
 
-    if (firedIds.current.has(alarm.id)) return;
-    firedIds.current.add(alarm.id);
+      if (!alarms || alarms.length === 0) return;
+      const alarm = alarms[0] as Alarm;
 
-    if (isInQuietHours()) return;
+      if (firedIds.current.has(alarm.id)) return;
+      firedIds.current.add(alarm.id);
 
-    // Fire the alarm
-    setFiringAlarm({ alarm });
-    playAlarmSound(alarm.sound_type);
+      if (isInQuietHours()) return;
 
-    // Send browser notification
-    if (typeof Notification !== "undefined" && Notification.permission === "granted") {
-      try {
-        new Notification(alarm.title, {
-          body: `Alarm: ${alarm.title}`,
-          icon: "/favicon.ico",
-          tag: alarm.id,
-        });
-      } catch (e) {
-        // Notification API may not be available in all contexts
+      // Fire the alarm
+      setFiringAlarm({ alarm });
+      playAlarmSound(alarm.sound_type);
+
+      // Send browser notification
+      if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+        try {
+          new Notification(alarm.title, {
+            body: `Alarm: ${alarm.title}`,
+            icon: "/favicon.ico",
+            tag: alarm.id,
+          });
+        } catch (e) {
+          // Notification API may not be available in all contexts
+        }
       }
+    } catch {
+      // DB unreachable, silently skip this check
     }
   }, [user, firingAlarm, isInQuietHours]);
 
@@ -165,7 +172,7 @@ export function AlarmProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!user) return;
-    intervalRef.current = setInterval(checkAlarms, 30000);
+    intervalRef.current = setInterval(checkAlarms, 120000);
     // Check immediately on mount
     checkAlarms();
     return () => {
