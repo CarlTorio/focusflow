@@ -87,29 +87,32 @@ export function AlarmProvider({ children }: { children: ReactNode }) {
 
       if (error) return;
 
-    if (!alarms || alarms.length === 0) return;
-    const alarm = alarms[0] as Alarm;
+      if (!alarms || alarms.length === 0) return;
+      const alarm = alarms[0] as Alarm;
 
-    if (firedIds.current.has(alarm.id)) return;
-    firedIds.current.add(alarm.id);
+      if (firedIds.current.has(alarm.id)) return;
+      firedIds.current.add(alarm.id);
 
-    if (isInQuietHours()) return;
+      if (isInQuietHours()) return;
 
-    // Fire the alarm
-    setFiringAlarm({ alarm });
-    playAlarmSound(alarm.sound_type);
+      // Fire the alarm
+      setFiringAlarm({ alarm });
+      playAlarmSound(alarm.sound_type);
 
-    // Send browser notification
-    if (typeof Notification !== "undefined" && Notification.permission === "granted") {
-      try {
-        new Notification(alarm.title, {
-          body: `Alarm: ${alarm.title}`,
-          icon: "/favicon.ico",
-          tag: alarm.id,
-        });
-      } catch (e) {
-        // Notification API may not be available in all contexts
+      // Send browser notification
+      if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+        try {
+          new Notification(alarm.title, {
+            body: `Alarm: ${alarm.title}`,
+            icon: "/favicon.ico",
+            tag: alarm.id,
+          });
+        } catch (e) {
+          // Notification API may not be available in all contexts
+        }
       }
+    } catch {
+      // DB unreachable, silently skip this check
     }
   }, [user, firingAlarm, isInQuietHours]);
 
