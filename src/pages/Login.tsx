@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { Brain, ArrowRight } from "lucide-react";
@@ -8,64 +8,83 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 
-const LOGIN_TIMEOUT_MS = 8000;
+const SLOW_LOGIN_NOTICE_MS = 8000;
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [slowLogin, setSlowLogin] = useState(false);
+  const slowLoginTimerRef = useRef<number | null>(null);
   const navigate = useNavigate();
   const { user, session } = useAuth();
 
+  const clearSlowLoginTimer = () => {
+    if (slowLoginTimerRef.current) {
+      window.clearTimeout(slowLoginTimerRef.current);
+      slowLoginTimerRef.current = null;
+    }
+  };
+
   useEffect(() => {
     if (user || session) {
+      clearSlowLoginTimer();
+      setLoading(false);
+      setSlowLogin(false);
       navigate("/hub", { replace: true });
     }
   }, [navigate, session, user]);
+
+  useEffect(() => {
+    return () => clearSlowLoginTimer();
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
 
     setLoading(true);
+    setSlowLogin(false);
+    clearSlowLoginTimer();
+
+    slowLoginTimerRef.current = window.setTimeout(() => {
+      setSlowLogin(true);
+    }, SLOW_LOGIN_NOTICE_MS);
 
     try {
-      const result = await Promise.race([
-        supabase.auth.signInWithPassword({ email, password }),
-        new Promise<never>((_, reject) => {
-          window.setTimeout(() => reject(new Error("Login timed out")), LOGIN_TIMEOUT_MS);
-        }),
-      ]);
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
 
-      if (result.error) {
-        toast.error(result.error.message);
+      if (error) {
+        clearSlowLoginTimer();
+        setLoading(false);
+        setSlowLogin(false);
+        toast.error(error.message);
         return;
       }
 
       const { data } = await supabase.auth.getSession();
       if (data.session) {
+        clearSlowLoginTimer();
+        setLoading(false);
+        setSlowLogin(false);
         navigate("/hub", { replace: true });
         return;
       }
-
-      toast.info("Login successful. Finishing sign-in...");
     } catch (error) {
       const { data } = await supabase.auth.getSession();
 
       if (data.session) {
+        clearSlowLoginTimer();
+        setLoading(false);
+        setSlowLogin(false);
         navigate("/hub", { replace: true });
         return;
       }
 
-      const message = error instanceof Error && error.message === "Login timed out"
-        ? "Login is taking too long right now. Please try again in a moment."
-        : error instanceof Error
-          ? error.message
-          : "Unable to login right now.";
-
-      toast.error(message);
-    } finally {
+      clearSlowLoginTimer();
       setLoading(false);
+      setSlowLogin(false);
+      toast.error(error instanceof Error ? error.message : "Unable to login right now.");
     }
   };
 
@@ -110,6 +129,11 @@ export default function Login() {
           >
             {loading ? "Logging in..." : "Login"}
           </Button>
+          {slowLogin ? (
+            <p className="text-center text-sm text-muted-foreground">
+              Medyo mabagal ang sign-in right now, pero hinihintay pa rin namin ang login mo…
+            </p>
+          ) : null}
         </form>
 
         <div className="flex items-center justify-between text-sm">
