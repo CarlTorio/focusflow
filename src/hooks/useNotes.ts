@@ -1,7 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
 import { isOnline, addPendingMutation, getCachedData, setCachedData } from "@/lib/offlineStorage";
+import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 
 export type Note = Tables<"notes">;
