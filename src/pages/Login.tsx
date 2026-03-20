@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
-import { lovable } from "@/integrations/lovable";
-import { Brain, ArrowRight } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Brain, ArrowRight, Loader2 } from "lucide-react";
 import { DecorativeShapes } from "@/components/DecorativeShapes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,22 +13,68 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
+
+  // Auto-redirect if already logged in
+  useEffect(() => {
+    if (!authLoading && user) {
+      navigate("/hub", { replace: true });
+    }
+  }, [user, authLoading, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
+
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) {
-      toast.error(error.message);
-    } else {
-      navigate("/hub");
+    try {
+      console.log("[Login] Attempting sign in for:", email);
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      
+      if (error) {
+        console.error("[Login] Auth error:", error.message);
+        // User-friendly error messages
+        if (error.message.includes("Invalid login credentials")) {
+          toast.error("Incorrect email or password. Please try again.");
+        } else if (error.message.includes("Email not confirmed")) {
+          toast.error("Please verify your email address before logging in.");
+        } else if (error.message.includes("Failed to fetch") || error.message.includes("NetworkError")) {
+          toast.error("Unable to connect to server. Please check your internet connection and try again.");
+        } else {
+          toast.error(error.message);
+        }
+      } else if (data?.session) {
+        console.log("[Login] Success, session established");
+        toast.success("Welcome back!");
+        navigate("/hub", { replace: true });
+      } else {
+        console.warn("[Login] No error but no session returned");
+        toast.error("Login failed. Please try again.");
+      }
+    } catch (err: any) {
+      console.error("[Login] Unexpected error:", err);
+      if (err?.message?.includes("Failed to fetch") || err?.message?.includes("NetworkError")) {
+        toast.error("Unable to connect to server. Please check your internet connection and try again.");
+      } else {
+        toast.error("An unexpected error occurred. Please try again.");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleGoogleSignIn = () => {
     toast.info("Google Sign In is coming soon!");
   };
+
+  // Show nothing while checking existing session
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-background px-4">
@@ -51,6 +97,7 @@ export default function Login() {
             onChange={(e) => setEmail(e.target.value)}
             className="h-12 rounded-xl border-border bg-card focus-visible:ring-primary"
             required
+            disabled={loading}
           />
           <Input
             type="password"
@@ -59,13 +106,21 @@ export default function Login() {
             onChange={(e) => setPassword(e.target.value)}
             className="h-12 rounded-xl border-border bg-card focus-visible:ring-primary"
             required
+            disabled={loading}
           />
           <Button
             type="submit"
             disabled={loading}
             className="h-12 w-full rounded-xl bg-primary font-semibold text-primary-foreground hover:bg-primary-dark"
           >
-            {loading ? "Logging in..." : "Login"}
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Logging in...
+              </span>
+            ) : (
+              "Login"
+            )}
           </Button>
         </form>
 
