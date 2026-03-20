@@ -58,11 +58,17 @@ export function useTasks() {
   const tasksQuery = useQuery({
     queryKey: ["tasks"],
     queryFn: async () => {
+      console.log("[Tasks] Fetching tasks...");
       const { data, error } = await supabase
         .from("tasks")
         .select("*")
         .order("created_at", { ascending: false });
-      if (error) throw error;
+      if (error) {
+        console.error("[Tasks] Fetch error:", error);
+        toast({ title: "Failed to load tasks", description: "Please try again.", variant: "destructive" });
+        throw error;
+      }
+      console.log("[Tasks] Loaded", data?.length, "tasks");
       return data;
     },
     enabled: !!user,
@@ -71,11 +77,16 @@ export function useTasks() {
   const schedulesQuery = useQuery({
     queryKey: ["task_schedules"],
     queryFn: async () => {
+      console.log("[Tasks] Fetching schedules...");
       const { data, error } = await supabase
         .from("task_schedules")
         .select("*")
         .order("scheduled_date", { ascending: true });
-      if (error) throw error;
+      if (error) {
+        console.error("[Tasks] Schedules fetch error:", error);
+        throw error;
+      }
+      console.log("[Tasks] Loaded", data?.length, "schedules");
       return data;
     },
     enabled: !!user,
